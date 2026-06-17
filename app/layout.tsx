@@ -15,6 +15,7 @@ const description = "Create interactive messages people actually feel.";
 export const metadata: Metadata = {
   title,
   description,
+  verification: { google: "YqkvRoFtGrwkcNkndiT3yVoJhOPtECJ83gExA47yJh8" },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   icons: {
     icon: [
