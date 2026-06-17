@@ -97,6 +97,8 @@ export function createDemoExperience(template: Template): ExperienceRecord {
     category: getTemplateCategory(template).slug,
     creatorName: "Someone kind",
     receiverName: "You",
+    relationshipTag: "",
+    showCreatorName: true,
     tone: template.tone,
     theme: template.theme,
     customMessages: {

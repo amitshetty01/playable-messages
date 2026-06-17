@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AdSlot } from "@/components/AdSlot";
 import { ExperiencePlayer } from "@/components/ExperiencePlayer";
 import { getTemplate } from "@/lib/data";
 import { getExperience } from "@/lib/experiences";
@@ -53,7 +52,6 @@ export default async function ExperiencePage({ params }: { params: Promise<{ id:
       <div className="flex justify-center gap-3">
         <Link className="ghost-button" href={`/edit/${data.id}`}>Edit this message</Link>
       </div>
-      <AdSlot label="After completion ad slot" />
     </div>
   );
 }

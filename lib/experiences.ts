@@ -11,6 +11,8 @@ type ExperienceRow = {
   category: string;
   creator_name: string;
   receiver_name: string;
+  relationship_tag: string;
+  show_creator_name: boolean;
   tone: ExperienceRecord["tone"];
   theme: ExperienceRecord["theme"];
   custom_messages: ExperienceRecord["customMessages"];
@@ -19,6 +21,7 @@ type ExperienceRow = {
   expires_at?: string | null;
   analytics: ExperienceAnalytics;
   images?: string[];
+  reaction?: string;
 };
 
 const STORE_PATH = path.join(os.tmpdir(), "playable-messages-store.json");
@@ -48,6 +51,8 @@ function toRecord(row: ExperienceRow): ExperienceRecord {
     category: row.category,
     creatorName: row.creator_name,
     receiverName: row.receiver_name,
+    relationshipTag: (row.relationship_tag ?? "") as ExperienceRecord["relationshipTag"],
+    showCreatorName: row.show_creator_name ?? true,
     tone: row.tone,
     theme: row.theme,
     customMessages: row.custom_messages,
@@ -55,7 +60,8 @@ function toRecord(row: ExperienceRow): ExperienceRecord {
     createdAt: row.created_at,
     expiresAt: row.expires_at ?? undefined,
     analytics: row.analytics,
-    images: row.images
+    images: row.images,
+    reaction: row.reaction ?? undefined,
   };
 }
 
@@ -70,6 +76,8 @@ export async function createExperience(body: Record<string, unknown>) {
       category: input.category,
       creator_name: input.creatorName,
       receiver_name: input.receiverName,
+      relationship_tag: input.relationshipTag,
+      show_creator_name: input.showCreatorName,
       tone: input.tone,
       theme: input.theme,
       custom_messages: input.customMessages,
@@ -77,7 +85,7 @@ export async function createExperience(body: Record<string, unknown>) {
       created_at: new Date().toISOString(),
       expires_at: input.expiresAt ?? null,
       analytics: emptyAnalytics(input.templateId),
-      images: input.images
+      images: input.images,
     };
     const store = await readLocalStore();
     store.set(id, row);
@@ -92,12 +100,14 @@ export async function createExperience(body: Record<string, unknown>) {
     category: input.category,
     creator_name: input.creatorName,
     receiver_name: input.receiverName,
+    relationship_tag: input.relationshipTag,
+    show_creator_name: input.showCreatorName,
     tone: input.tone,
     theme: input.theme,
     custom_messages: input.customMessages,
     final_message: input.finalMessage,
     analytics: emptyAnalytics(input.templateId),
-    images: input.images
+    images: input.images,
   };
   if (input.expiresAt) row.expires_at = input.expiresAt;
 
@@ -145,6 +155,8 @@ export async function updateExperience(body: Record<string, unknown>) {
       category: input.category,
       creator_name: input.creatorName,
       receiver_name: input.receiverName,
+      relationship_tag: input.relationshipTag,
+      show_creator_name: input.showCreatorName,
       tone: input.tone,
       theme: input.theme,
       custom_messages: input.customMessages,
@@ -163,11 +175,13 @@ export async function updateExperience(body: Record<string, unknown>) {
     category: input.category,
     creator_name: input.creatorName,
     receiver_name: input.receiverName,
+    relationship_tag: input.relationshipTag,
+    show_creator_name: input.showCreatorName,
     tone: input.tone,
     theme: input.theme,
     custom_messages: input.customMessages,
     final_message: input.finalMessage,
-    images: input.images
+    images: input.images,
   };
   if (input.expiresAt) updateRow.expires_at = input.expiresAt;
   const { data, error } = await supabase
@@ -206,5 +220,22 @@ export async function trackExperienceEvent(id: string, payload: AnalyticsPayload
 
   const { error: updateError } = await supabase.from("generated_experiences").update({ analytics }).eq("id", id);
   if (updateError) return { ok: false, error: updateError.message };
+  return { ok: true, error: null };
+}
+
+export async function setExperienceReaction(id: string, reaction: string) {
+  if (!isSupabaseConfigured()) {
+    const store = await readLocalStore();
+    const existing = store.get(id);
+    if (!existing) return { ok: false, error: "Experience not found." };
+    existing.reaction = reaction.slice(0, 10);
+    store.set(id, existing);
+    await writeLocalStore(store);
+    return { ok: true, error: null };
+  }
+
+  const supabase = getSupabaseServerClient();
+  const { error } = await supabase.from("generated_experiences").update({ reaction: reaction.slice(0, 10) }).eq("id", id);
+  if (error) return { ok: false, error: error.message };
   return { ok: true, error: null };
 }

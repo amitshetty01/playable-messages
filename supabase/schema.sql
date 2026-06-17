@@ -4,6 +4,8 @@ create table if not exists generated_experiences (
   category text not null,
   creator_name text not null,
   receiver_name text not null,
+  relationship_tag text not null default '',
+  show_creator_name boolean not null default true,
   tone text not null,
   theme text not null,
   custom_messages jsonb not null default '{}'::jsonb,
@@ -11,11 +13,18 @@ create table if not exists generated_experiences (
   created_at timestamptz not null default now(),
   expires_at timestamptz,
   images jsonb not null default '[]'::jsonb,
-  analytics jsonb not null default '{"opened":0,"completed":0,"selectedChoices":{},"finalCtaClicks":0,"templateUsed":""}'::jsonb
+  analytics jsonb not null default '{"opened":0,"completed":0,"selectedChoices":{},"finalCtaClicks":0,"templateUsed":""}'::jsonb,
+  reaction text not null default ''
 );
 
 alter table generated_experiences
 add column if not exists images jsonb not null default '[]'::jsonb;
+alter table generated_experiences
+add column if not exists relationship_tag text not null default '';
+alter table generated_experiences
+add column if not exists show_creator_name boolean not null default true;
+alter table generated_experiences
+add column if not exists reaction text not null default '';
 
 create table if not exists analytics_events (
   id bigserial primary key,

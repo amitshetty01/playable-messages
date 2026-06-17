@@ -41,6 +41,7 @@ export function QuickFlow() {
         body: JSON.stringify({
           templateId: templateId || pickTemplate(msg),
           finalMessage: msg,
+          showCreatorName: true,
           customMessages: { landingText: msg.slice(0, 120), buttonText: "Open", steps: ["Here's something for you..."], ctaMessage: "Made with 💖" },
         }),
       });

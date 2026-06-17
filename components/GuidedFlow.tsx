@@ -6,13 +6,14 @@ import { ExperiencePreview } from "@/components/ExperiencePreview";
 import { Spinner } from "@/components/Spinner";
 import type { ExperienceRecord } from "@/lib/types";
 
-type Step = "message" | "receiver" | "sender" | "confirm";
+type Step = "message" | "receiver" | "sender" | "relation" | "confirm";
 
 export function GuidedFlow() {
   const [step, setStep] = useState<Step>("message");
   const [message, setMessage] = useState("");
   const [receiver, setReceiver] = useState("");
   const [sender, setSender] = useState("");
+  const [relationshipTag, setRelationshipTag] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [experience, setExperience] = useState<ExperienceRecord | null>(null);
@@ -29,6 +30,8 @@ export function GuidedFlow() {
           finalMessage: message,
           creatorName: sender.trim() || "Someone",
           receiverName: receiver.trim() || "You",
+          relationshipTag: relationshipTag,
+          showCreatorName: true,
           customMessages: { landingText: message.slice(0, 120), buttonText: "Open", steps: ["Here's something for you..."], ctaMessage: "Made with 💖" },
         }),
       });
@@ -99,6 +102,26 @@ export function GuidedFlow() {
             />
             <div className="flex justify-between">
               <button type="button" className="ghost-button text-sm" onClick={() => setStep("receiver")}>← Back</button>
+              <button type="button" className="premium-button text-sm" onClick={() => setStep("relation")}>Next →</button>
+            </div>
+          </>
+        )}
+
+        {step === "relation" && (
+          <>
+            <Bubble text="One last thing — how do you know them?" from="bot" />
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[{v:"partner",l:"Partner",e:"💕"},{v:"friend",l:"Friend",e:"🤝"},{v:"family",l:"Family",e:"👨‍👩‍👧‍👦"},{v:"coworker",l:"Coworker",e:"💼"},{v:"",l:"Other",e:"✨"}].map((r) => (
+                <button key={r.v} type="button" onClick={() => setRelationshipTag(r.v)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+                    relationshipTag === r.v ? "border-white/40 bg-white/15 text-white" : "border-white/10 bg-white/[0.04] text-white/50 hover:border-white/20 hover:text-white/70"
+                  }`}>
+                  {r.e} {r.l}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-between">
+              <button type="button" className="ghost-button text-sm" onClick={() => setStep("sender")}>← Back</button>
               <button type="button" className="premium-button text-sm" onClick={() => setStep("confirm")}>Next →</button>
             </div>
           </>
@@ -110,6 +133,7 @@ export function GuidedFlow() {
             <div className="space-y-2 rounded-xl border border-white/10 bg-white/[0.06] p-4 text-sm">
               <p><span className="font-bold text-white/60">To:</span> {receiver || "You"}</p>
               <p><span className="font-bold text-white/60">From:</span> {sender || "Someone"}</p>
+              <p><span className="font-bold text-white/60">Relation:</span> {relationshipTag || "Not specified"}</p>
               <p><span className="font-bold text-white/60">Message:</span> {message}</p>
             </div>
             <Bubble text="Ready? Let's make it interactive." from="bot" />

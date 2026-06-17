@@ -1,5 +1,5 @@
 import { categories, defaultCustomMessages, defaultFinalMessage, getTemplate, themes, tones } from "@/lib/data";
-import type { CustomMessages, ExperienceAnalytics, ExperienceRecord, ThemeName, Tone } from "@/lib/types";
+import type { CustomMessages, ExperienceAnalytics, ExperienceRecord, RelationshipTag, ThemeName, Tone } from "@/lib/types";
 
 const max = (value: unknown, fallback: string, length: number) => {
   const text = typeof value === "string" ? value.trim() : fallback;
@@ -35,11 +35,16 @@ export function normalizeExperiencePayload(body: Record<string, unknown>): Omit<
   const steps = Array.isArray(inputMessages.steps) ? inputMessages.steps.map((step) => max(step, "", 320)).filter(Boolean).slice(0, 8) : defaultCustomMessages.steps;
   const sceneTitles = Array.isArray(inputMessages.sceneTitles) ? inputMessages.sceneTitles.map((t) => max(t, "", 120)).filter(Boolean).slice(0, 10) : undefined;
 
+  const relationshipTag = (["partner", "friend", "family", "coworker", ""].includes(body.relationshipTag as string) ? body.relationshipTag : "") as RelationshipTag;
+  const showCreatorName = typeof body.showCreatorName === "boolean" ? body.showCreatorName : true;
+
   return {
     templateId: template.id,
     category,
     creatorName: max(body.creatorName, "Someone", 80),
     receiverName: max(body.receiverName, "You", 80),
+    relationshipTag,
+    showCreatorName,
     tone,
     theme,
     customMessages: {

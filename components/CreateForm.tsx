@@ -9,7 +9,8 @@ import { categories, defaultCustomMessages, defaultFinalMessage, getTemplateCate
 import { saveExperience } from "@/lib/my-experiences";
 import { compressImage } from "@/lib/compressImage";
 import { Spinner } from "@/components/Spinner";
-import type { Category, ExperienceRecord, Template, ThemeName, Tone } from "@/lib/types";
+import type { Category, ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
+import { RELATIONSHIP_TAGS, ANON_TONES } from "@/lib/types";
 
 const EXPIRY_OPTIONS = [
   { label: "Never expires", value: "" },
@@ -30,11 +31,14 @@ function computeExpiresAt(option: string): string | undefined {
 export function CreateForm({ templates, initialTemplate, existingExperience }: { templates: Template[]; initialTemplate: Template; existingExperience?: ExperienceRecord }) {
   const isEdit = Boolean(existingExperience);
   const getDefaultCategory = (t: Template) => getTemplateCategory(t).slug;
+  const isAnonTone = ANON_TONES.includes(existingExperience?.tone ?? initialTemplate.tone);
   const initialFormState = {
     templateId: existingExperience?.templateId ?? initialTemplate.id,
     category: existingExperience?.category ?? getDefaultCategory(initialTemplate),
     creatorName: existingExperience?.creatorName ?? "Someone",
     receiverName: existingExperience?.receiverName ?? "You",
+    relationshipTag: (existingExperience?.relationshipTag ?? "") as RelationshipTag,
+    showCreatorName: existingExperience?.showCreatorName ?? !isAnonTone,
     tone: existingExperience?.tone ?? initialTemplate.tone as Tone,
     theme: existingExperience?.theme ?? initialTemplate.theme as ThemeName,
     landingText: existingExperience?.customMessages.landingText ?? initialTemplate.hook,
@@ -102,6 +106,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         ctaMessage: draft.ctaMessage ?? initialFormState.ctaMessage,
         sceneTitles: draft.sceneTitles ?? initialFormState.sceneTitles,
         expiryOption: draft.expiryOption ?? initialFormState.expiryOption,
+        relationshipTag: (draft as any).relationshipTag ?? initialFormState.relationshipTag,
+        showCreatorName: (draft as any).showCreatorName ?? initialFormState.showCreatorName,
       };
       setForm(restored);
       if (Array.isArray(draft.images)) setImages(draft.images);
@@ -116,6 +122,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     category: form.category,
     creatorName: form.creatorName,
     receiverName: form.receiverName,
+    relationshipTag: form.relationshipTag,
+    showCreatorName: form.showCreatorName,
     tone: form.tone,
     theme: form.theme,
     customMessages: {
@@ -235,9 +243,10 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
 
         <div className="mt-8 space-y-8">
           <Field label="How do you want to say it?" full>
-            <select value={form.templateId} onChange={(event) => {
+              <select value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;
-              setForm((prev) => ({ ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin" }));
+              const anon = ANON_TONES.includes(next.tone);
+              setForm((prev) => ({ ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin", showCreatorName: !anon }));
             }} className="input">
               {templates.map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
             </select>
@@ -256,6 +265,28 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                 {fieldErrors.receiverName && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.receiverName}</p>}
               </Field>
             </div>
+            <div className="mt-4">
+              <p className="mb-2 text-sm font-bold text-white/70">How do you know them? (optional)</p>
+              <div className="flex flex-wrap gap-2">
+                {RELATIONSHIP_TAGS.map((r) => (
+                  <button key={r.value} type="button" onClick={() => setForm((prev) => ({ ...prev, relationshipTag: r.value }))}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+                      form.relationshipTag === r.value ? "border-white/40 bg-white/15 text-white" : "border-white/10 bg-white/[0.04] text-white/50 hover:border-white/20 hover:text-white/70"
+                    }`}>
+                    {r.emoji} {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {ANON_TONES.includes(form.tone) ? (
+              <div className="mt-3 flex items-center gap-3">
+                <button type="button" onClick={() => setForm((prev) => ({ ...prev, showCreatorName: !prev.showCreatorName }))}
+                  className={`h-5 w-9 rounded-full transition-colors ${form.showCreatorName ? "bg-neon" : "bg-white/20"}`}>
+                  <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${form.showCreatorName ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+                </button>
+                <span className="text-sm text-white/60">Reveal who sent this</span>
+              </div>
+            ) : null}
           </div>
 
           <div>

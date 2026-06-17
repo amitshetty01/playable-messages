@@ -20,6 +20,17 @@ const Inkblot = dynamic(() => import("@/components/experience/Inkblot").then((m)
 const TwoLiesOneTruth = dynamic(() => import("@/components/experience/TwoLiesOneTruth").then((m) => ({ default: m.TwoLiesOneTruth })), { ssr: false });
 const CloserYouGet = dynamic(() => import("@/components/experience/CloserYouGet").then((m) => ({ default: m.CloserYouGet })), { ssr: false });
 const SpinToReveal = dynamic(() => import("@/components/experience/SpinToReveal").then((m) => ({ default: m.SpinToReveal })), { ssr: false });
+const HeartbeatSync = dynamic(() => import("@/components/experience/HeartbeatSync").then((m) => ({ default: m.HeartbeatSync })), { ssr: false });
+const PolaroidStack = dynamic(() => import("@/components/experience/PolaroidStack").then((m) => ({ default: m.PolaroidStack })), { ssr: false });
+const CandleCountdown = dynamic(() => import("@/components/experience/CandleCountdown").then((m) => ({ default: m.CandleCountdown })), { ssr: false });
+const ScratchCard = dynamic(() => import("@/components/experience/ScratchCard").then((m) => ({ default: m.ScratchCard })), { ssr: false });
+const TiltMaze = dynamic(() => import("@/components/experience/TiltMaze").then((m) => ({ default: m.TiltMaze })), { ssr: false });
+const MorseCode = dynamic(() => import("@/components/experience/MorseCode").then((m) => ({ default: m.MorseCode })), { ssr: false });
+const DissolveWall = dynamic(() => import("@/components/experience/DissolveWall").then((m) => ({ default: m.DissolveWall })), { ssr: false });
+const LockPick = dynamic(() => import("@/components/experience/LockPick").then((m) => ({ default: m.LockPick })), { ssr: false });
+const GravityFlip = dynamic(() => import("@/components/experience/GravityFlip").then((m) => ({ default: m.GravityFlip })), { ssr: false });
+const EchoChamber = dynamic(() => import("@/components/experience/EchoChamber").then((m) => ({ default: m.EchoChamber })), { ssr: false });
+const BalanceScale = dynamic(() => import("@/components/experience/BalanceScale").then((m) => ({ default: m.BalanceScale })), { ssr: false });
 
 type Mode = "demo" | "generated" | "preview";
 
@@ -35,7 +46,18 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "inkblot": (props) => <Inkblot {...props} />,
   "two-lies-one-truth": (props) => <TwoLiesOneTruth {...props} />,
   "the-closer-you-get": (props) => <CloserYouGet {...props} />,
-  "spin-to-reveal": (props) => <SpinToReveal {...props} />
+  "spin-to-reveal": (props) => <SpinToReveal {...props} />,
+  "heartbeat-sync": (props) => <HeartbeatSync {...props} />,
+  "polaroid-stack": (props) => <PolaroidStack {...props} />,
+  "candle-countdown": (props) => <CandleCountdown {...props} />,
+  "scratch-card": (props) => <ScratchCard {...props} />,
+  "tilt-maze": (props) => <TiltMaze {...props} />,
+  "morse-code": (props) => <MorseCode {...props} />,
+  "dissolve-wall": (props) => <DissolveWall {...props} />,
+  "lock-pick": (props) => <LockPick {...props} />,
+  "gravity-flip": (props) => <GravityFlip {...props} />,
+  "echo-chamber": (props) => <EchoChamber {...props} />,
+  "balance-scale": (props) => <BalanceScale {...props} />
 };
 
 export function ExperiencePlayer({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) {

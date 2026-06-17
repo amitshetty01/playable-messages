@@ -8,6 +8,7 @@ export type SavedExperience = {
   receiverName: string;
   createdAt: string;
   creatorName: string;
+  reaction?: string;
 };
 
 export function getMyExperiences(): SavedExperience[] {

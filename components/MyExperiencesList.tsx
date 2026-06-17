@@ -36,6 +36,7 @@ export function MyExperiencesList() {
           <div className="min-w-0 flex-1">
             <p className="truncate font-extrabold">{exp.receiverName} &mdash; {exp.templateTitle}</p>
             <p className="mt-0.5 text-sm text-white/50">{new Date(exp.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
+            {exp.reaction ? <p className="mt-1 text-xs text-white/40">They reacted {exp.reaction}</p> : null}
           </div>
           <div className="flex shrink-0 gap-2">
             <Link className="ghost-button !min-h-10 !px-4 !py-2 text-sm" href={`/experience/${exp.id}`}>Open</Link>
