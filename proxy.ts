@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const VERCEL_DOMAIN = "playable-messages.vercel.app";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
 
   if (host.includes(VERCEL_DOMAIN)) {
