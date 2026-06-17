@@ -59,7 +59,8 @@ export function Header() {
         <button
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="sm:hidden grid h-8 w-8 place-items-center rounded-full border border-white/20 bg-white/10 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+          onContextMenu={(e) => e.preventDefault()}
+          className="sm:hidden grid h-8 w-8 place-items-center rounded-full border border-white/20 bg-white/10 text-white/70 transition-colors select-none hover:bg-white/20 hover:text-white"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -81,7 +82,8 @@ export function Header() {
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
-                className="grid h-6 w-6 place-items-center rounded-full border border-white/15 bg-white/5 text-white/50"
+                onContextMenu={(e) => e.preventDefault()}
+                className="grid h-6 w-6 place-items-center rounded-full border border-white/15 bg-white/5 text-white/50 select-none"
               >
                 <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
