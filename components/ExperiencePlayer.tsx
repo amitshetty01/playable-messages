@@ -7,19 +7,25 @@ import { SceneErrorBoundary } from "@/components/SceneErrorBoundary";
 import type { AnalyticsEventType, ExperienceRecord, Template } from "@/lib/types";
 
 const SceneEngine = dynamic(() => import("@/components/SceneEngine").then((m) => ({ default: m.SceneEngine })), { ssr: false });
-const RiskButton = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.RiskButton })), { ssr: false });
-const GlitchTruth = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.GlitchTruth })), { ssr: false });
-const ChooseMyApology = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.ChooseMyApology })), { ssr: false });
-const MoodRepairMachine = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.MoodRepairMachine })), { ssr: false });
-const SecretRoom = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.SecretRoom })), { ssr: false });
-const MemoryMaze = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.MemoryMaze })), { ssr: false });
-const LastDeletedMessage = dynamic(() => import("@/components/ExperienceFlows").then((m) => ({ default: m.LastDeletedMessage })), { ssr: false });
-const TypeOrElse = dynamic(() => import("@/components/experience/TypeOrElse").then((m) => ({ default: m.TypeOrElse })), { ssr: false });
-const TrustScale = dynamic(() => import("@/components/experience/TrustScale").then((m) => ({ default: m.TrustScale })), { ssr: false });
-const Inkblot = dynamic(() => import("@/components/experience/Inkblot").then((m) => ({ default: m.Inkblot })), { ssr: false });
-const TwoLiesOneTruth = dynamic(() => import("@/components/experience/TwoLiesOneTruth").then((m) => ({ default: m.TwoLiesOneTruth })), { ssr: false });
-const CloserYouGet = dynamic(() => import("@/components/experience/CloserYouGet").then((m) => ({ default: m.CloserYouGet })), { ssr: false });
-const SpinToReveal = dynamic(() => import("@/components/experience/SpinToReveal").then((m) => ({ default: m.SpinToReveal })), { ssr: false });
+const StaticFrequencyGame = dynamic(() => import("@/components/games/StaticFrequencyGame").then((m) => ({ default: m.StaticFrequencyGame })), { ssr: false });
+const FateCardsGame = dynamic(() => import("@/components/games/FateCardsGame").then((m) => ({ default: m.FateCardsGame })), { ssr: false });
+const FrozenInIceGame = dynamic(() => import("@/components/games/FrozenInIceGame").then((m) => ({ default: m.FrozenInIceGame })), { ssr: false });
+const ShakeForAnswerGame = dynamic(() => import("@/components/games/ShakeForAnswerGame").then((m) => ({ default: m.ShakeForAnswerGame })), { ssr: false });
+const CalmTheStormGame = dynamic(() => import("@/components/games/CalmTheStormGame").then((m) => ({ default: m.CalmTheStormGame })), { ssr: false });
+const TugOfWarGame = dynamic(() => import("@/components/games/TugOfWarGame").then((m) => ({ default: m.TugOfWarGame })), { ssr: false });
+const TreasureMapGame = dynamic(() => import("@/components/games/TreasureMapGame").then((m) => ({ default: m.TreasureMapGame })), { ssr: false });
+const MemoryMatchGame = dynamic(() => import("@/components/games/MemoryMatchGame").then((m) => ({ default: m.MemoryMatchGame })), { ssr: false });
+const ClimbMountainGame = dynamic(() => import("@/components/games/ClimbMountainGame").then((m) => ({ default: m.ClimbMountainGame })), { ssr: false });
+const BlowOutCandlesGame = dynamic(() => import("@/components/games/BlowOutCandlesGame").then((m) => ({ default: m.BlowOutCandlesGame })), { ssr: false });
+const BraidBraceletGame = dynamic(() => import("@/components/games/BraidBraceletGame").then((m) => ({ default: m.BraidBraceletGame })), { ssr: false });
+const SnowGlobeGame = dynamic(() => import("@/components/games/SnowGlobeGame").then((m) => ({ default: m.SnowGlobeGame })), { ssr: false });
+const ScratchCardGame = dynamic(() => import("@/components/games/ScratchCardGame").then((m) => ({ default: m.ScratchCardGame })), { ssr: false });
+const DominoChainGame = dynamic(() => import("@/components/games/DominoChainGame").then((m) => ({ default: m.DominoChainGame })), { ssr: false });
+const PaperAirplaneGame = dynamic(() => import("@/components/games/PaperAirplaneGame").then((m) => ({ default: m.PaperAirplaneGame })), { ssr: false });
+const PhotoBoothGame = dynamic(() => import("@/components/games/PhotoBoothGame").then((m) => ({ default: m.PhotoBoothGame })), { ssr: false });
+const FortuneCookieGame = dynamic(() => import("@/components/games/FortuneCookieGame").then((m) => ({ default: m.FortuneCookieGame })), { ssr: false });
+const MessageInTheSandGame = dynamic(() => import("@/components/games/MessageInTheSandGame").then((m) => ({ default: m.MessageInTheSandGame })), { ssr: false });
+const PartyPopperGame = dynamic(() => import("@/components/games/PartyPopperGame").then((m) => ({ default: m.PartyPopperGame })), { ssr: false });
 const HeartbeatSync = dynamic(() => import("@/components/experience/HeartbeatSync").then((m) => ({ default: m.HeartbeatSync })), { ssr: false });
 const PolaroidStack = dynamic(() => import("@/components/experience/PolaroidStack").then((m) => ({ default: m.PolaroidStack })), { ssr: false });
 const CandleCountdown = dynamic(() => import("@/components/experience/CandleCountdown").then((m) => ({ default: m.CandleCountdown })), { ssr: false });
@@ -36,18 +42,25 @@ const GameAdapter = dynamic(() => import("@/components/GameAdapter").then((m) =>
 type Mode = "demo" | "generated" | "preview";
 
 const FLOWS: Record<string, (props: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) => React.ReactNode> = {
-  "the-risk-button": (props) => <RiskButton {...props} />,
-  "glitch-truth": (props) => <GlitchTruth {...props} />,
-  "choose-my-punishment": (props) => <ChooseMyApology {...props} />,
-  "mood-repair-machine": (props) => <MoodRepairMachine {...props} />,
-  "the-secret-room": (props) => <SecretRoom {...props} />,
-  "memory-maze": (props) => <MemoryMaze {...props} />,
-  "type-or-else": (props) => <TypeOrElse {...props} />,
-  "the-trust-scale": (props) => <TrustScale {...props} />,
-  "inkblot": (props) => <Inkblot {...props} />,
-  "two-lies-one-truth": (props) => <TwoLiesOneTruth {...props} />,
-  "the-closer-you-get": (props) => <CloserYouGet {...props} />,
-  "spin-to-reveal": (props) => <SpinToReveal {...props} />,
+  "the-last-deleted-message": (props) => <StaticFrequencyGame {...props} />,
+  "the-risk-button": (props) => <FateCardsGame {...props} />,
+  "glitch-truth": (props) => <FrozenInIceGame {...props} />,
+  "dont-smile-challenge": (props) => <ShakeForAnswerGame {...props} />,
+  "choose-my-punishment": (props) => <CalmTheStormGame {...props} />,
+  "mood-repair-machine": (props) => <TugOfWarGame {...props} />,
+  "the-secret-room": (props) => <TreasureMapGame {...props} />,
+  "memory-maze": (props) => <MemoryMatchGame {...props} />,
+  "roast-to-respect": (props) => <ClimbMountainGame {...props} />,
+  "birthday-surprise-journey": (props) => <BlowOutCandlesGame {...props} />,
+  "memory-journey": (props) => <BraidBraceletGame {...props} />,
+  "secret-letter": (props) => <SnowGlobeGame {...props} />,
+  "surprise-room": (props) => <ScratchCardGame {...props} />,
+  "type-or-else": (props) => <DominoChainGame {...props} />,
+  "the-trust-scale": (props) => <PaperAirplaneGame {...props} />,
+  "inkblot": (props) => <PhotoBoothGame {...props} />,
+  "two-lies-one-truth": (props) => <FortuneCookieGame {...props} />,
+  "the-closer-you-get": (props) => <MessageInTheSandGame {...props} />,
+  "spin-to-reveal": (props) => <PartyPopperGame {...props} />,
   "heartbeat-sync": (props) => <HeartbeatSync {...props} />,
   "polaroid-stack": (props) => <PolaroidStack {...props} />,
   "candle-countdown": (props) => <CandleCountdown {...props} />,
@@ -112,7 +125,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
 
   return (
     <SceneErrorBoundary>
-      <LastDeletedMessage template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
+      <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
     </SceneErrorBoundary>
   );
 }
