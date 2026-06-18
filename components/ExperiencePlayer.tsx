@@ -31,6 +31,7 @@ const LockPick = dynamic(() => import("@/components/experience/LockPick").then((
 const GravityFlip = dynamic(() => import("@/components/experience/GravityFlip").then((m) => ({ default: m.GravityFlip })), { ssr: false });
 const EchoChamber = dynamic(() => import("@/components/experience/EchoChamber").then((m) => ({ default: m.EchoChamber })), { ssr: false });
 const BalanceScale = dynamic(() => import("@/components/experience/BalanceScale").then((m) => ({ default: m.BalanceScale })), { ssr: false });
+const GameAdapter = dynamic(() => import("@/components/GameAdapter").then((m) => ({ default: m.GameAdapter })), { ssr: false });
 
 type Mode = "demo" | "generated" | "preview";
 
@@ -57,7 +58,15 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "lock-pick": (props) => <LockPick {...props} />,
   "gravity-flip": (props) => <GravityFlip {...props} />,
   "echo-chamber": (props) => <EchoChamber {...props} />,
-  "balance-scale": (props) => <BalanceScale {...props} />
+  "balance-scale": (props) => <BalanceScale {...props} />,
+  "love-beats": (props) => <GameAdapter {...props} />,
+  "sorry-puzzle": (props) => <GameAdapter {...props} />,
+  "funny-slots": (props) => <GameAdapter {...props} />,
+  "secret-decoder": (props) => <GameAdapter {...props} />,
+  "birthday-cake": (props) => <GameAdapter {...props} />,
+  "roast-wheel": (props) => <GameAdapter {...props} />,
+  "memory-flip": (props) => <GameAdapter {...props} />,
+  "mystery-fog": (props) => <GameAdapter {...props} />,
 };
 
 export function ExperiencePlayer({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) {

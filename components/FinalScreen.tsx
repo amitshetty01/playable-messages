@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ReportButton } from "@/components/ReportButton";
 import { ShareButtons } from "@/components/ShareButtons";
-import { DownloadCard } from "@/components/DownloadCard";
 import { FinalReveal } from "@/components/FinalReveal";
 
 export function FinalScreen({ finalMessage, ctaMessage, shareUrl, experienceId, templateId, templateTitle, onCtaClick }: { finalMessage: string; ctaMessage: string; shareUrl?: string; experienceId?: string; templateId: string; templateTitle: string; onCtaClick?: () => void }) {
@@ -14,7 +13,6 @@ export function FinalScreen({ finalMessage, ctaMessage, shareUrl, experienceId, 
         <Link className="premium-button" href={`/create/${templateId}`} onClick={onCtaClick}>Create your own interactive message</Link>
         <ReportButton experienceId={experienceId} />
       </div>
-      {shareUrl ? <DownloadCard shareUrl={shareUrl} title={templateTitle} subtitle={ctaMessage || "A message crafted just for you"} finalMessage={finalMessage} /> : null}
     </article>
   );
 }

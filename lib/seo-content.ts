@@ -333,6 +333,110 @@ export const templateSeoPages: TemplateSeoContent[] = [
       { question: "Can I end with appreciation?", answer: "Yes. The final reveal is perfect for respect or gratitude." },
       { question: "Is it good for group chats?", answer: "Yes. It is easy to share as a funny link." }
     ]
+  },
+  {
+    templateId: "love-beats",
+    title: "Scratch Card Love Message Template",
+    description: "Use the Scratch Card template to hide a love confession under a heart-shaped scratch-off layer that reveals your message touch by touch.",
+    intro: ["Scratch Card turns a love message into a tactile reveal. The recipient drags across the surface like a lottery ticket, uncovering your words beneath a heart-shaped metallic layer."],
+    examples: ["Scratch the heart to find out what I have been too shy to say.", "You earned this scratch. Every swipe reveals one more reason I care.", "This is the part I could not say out loud. Scratch to read it."],
+    relatedUseCases: ["confession-messages", "surprise-message-links", "interactive-message-generator"],
+    faqs: [
+      { question: "What is a scratch card message?", answer: "It is a digital scratch-off layer that hides your message. The recipient drags their finger to uncover the text underneath." },
+      { question: "Is it good for love confessions?", answer: "Yes. The playful reveal makes romantic confessions feel lighter and more memorable." },
+      { question: "Can I change the scratch-off color?", answer: "You can customize the template message and theme to match your tone." }
+    ]
+  },
+  {
+    templateId: "sorry-puzzle",
+    title: "Puzzle Pieces Apology Message Template",
+    description: "Use the Puzzle Pieces template to turn an apology into a reassembly game where scattered fragments form your message when dragged into place.",
+    intro: ["Puzzle Pieces gives an apology a physical feel. Your message breaks into fragments that the recipient drags back into position — each piece restoring one part of what you meant to say."],
+    examples: ["I know things fell apart. Let me help put this back together.", "Each piece is part of what I should have said sooner.", "Drag the pieces. The full picture is my real apology."],
+    relatedUseCases: ["apology-messages", "friendship-messages", "interactive-message-generator"],
+    faqs: [
+      { question: "How does the puzzle work?", answer: "Your message is split into draggable fragments. The recipient drags each piece to the correct spot to rebuild the full text." },
+      { question: "Is this only for apologies?", answer: "It works for any message, but the reassembly metaphor fits apologies and fight repair especially well." },
+      { question: "How many pieces are there?", answer: "The template uses a small grid so the puzzle stays quick and satisfying." }
+    ]
+  },
+  {
+    templateId: "funny-slots",
+    title: "Slot Machine Funny Message Template",
+    description: "Use the Slot Machine template to deliver a funny message through a rigged slot reel that always hits jackpot with confetti and laughs.",
+    intro: ["Slot Machine turns a funny message into a carnival moment. Pull the lever, watch the reels spin, and enjoy the guaranteed jackpot — your message arrives with confetti and comic timing."],
+    examples: ["Pull the lever. I rigged it so you always win.", "Jackpot. The prize is a message that will make you laugh.", "Spin to unlock a joke that landed better than any text could."],
+    relatedUseCases: ["funny-roast-messages", "friendship-messages", "surprise-message-links"],
+    faqs: [
+      { question: "Is the slot machine actually random?", answer: "No — it is rigged to always hit jackpot so the message always delivers perfectly." },
+      { question: "Can I use it for non-funny messages?", answer: "You can, but the carnival theme works best for playful and funny content." },
+      { question: "Does it include sound effects?", answer: "The visual spin and confetti create the experience without requiring audio." }
+    ]
+  },
+  {
+    templateId: "secret-decoder",
+    title: "Redacted Decoder Secret Message Template",
+    description: "Use the Redacted Decoder template to hide a secret message behind classified black bars that reveal text under a movable decoder lens.",
+    intro: ["Redacted Decoder makes a message feel classified. Black bars cover the text until the recipient drags a decoder lens across them — reading your secret one strip at a time."],
+    examples: ["This document is classified. Drag the lens to decode the truth.", "Redacted: the part I was too scared to say. Lens required.", "Everything below is classified. Your job: decode what I actually meant."],
+    relatedUseCases: ["confession-messages", "surprise-message-links", "mystery-confession"],
+    faqs: [
+      { question: "How does the decoder lens work?", answer: "A circular lens follows the pointer and reveals the text under the black bars within its radius." },
+      { question: "Is it good for confessions?", answer: "Yes. The classified-document feel builds suspense for emotional or secret reveals." },
+      { question: "Can I customize the redacted text?", answer: "Yes. Write any message and it will appear as blacked-out text until decoded." }
+    ]
+  },
+  {
+    templateId: "birthday-cake",
+    title: "Cut the Cake Birthday Message Template",
+    description: "Use the Cut the Cake template to hide a birthday wish inside a 3D cake that splits open when the recipient drags a knife through it.",
+    intro: ["Cut the Cake turns a birthday wish into a 3D celebration. A realistic cake with frosting and a lit candle waits on screen. Dragging a knife across it splits the cake open, releasing falling crumbs and your hidden message."],
+    examples: ["Make a wish before you cut — the message inside is from me.", "This cake has one candle and one secret. Cut it open.", "Happy birthday. Now cut the cake to find out what I really wished for."],
+    relatedUseCases: ["birthday-messages", "surprise-message-links", "friendship-messages"],
+    faqs: [
+      { question: "Is the cake 3D?", answer: "Yes. It uses real-time 3D rendering with lighting, frosting material, and a candle flame animation." },
+      { question: "Does it work on mobile?", answer: "Yes. The 3D scene is optimized and the knife follows touch input." },
+      { question: "Can I reuse it for different birthdays?", answer: "Yes. Customize the message for each person and generate a new link." }
+    ]
+  },
+  {
+    templateId: "roast-wheel",
+    title: "Spin the Wheel Roast Message Template",
+    description: "Use the Spin the Wheel template to deliver a roast through a carnival wheel that always lands on the category holding your custom funny message.",
+    intro: ["Spin the Wheel delivers a roast with theatrical timing. A colorful carnival wheel spins through roast categories and always lands on the one with your custom message — making the delivery feel like fate."],
+    examples: ["Spin the wheel of misfortune. It is rigged in your favor.", "The wheel knows what you deserve. Spoiler: it is a roast.", "Landing on... the truth. Read your custom roast below."],
+    relatedUseCases: ["funny-roast-messages", "friendship-messages", "surprise-message-links"],
+    faqs: [
+      { question: "Is the wheel random?", answer: "It looks random but always lands on your custom roast category for perfect timing." },
+      { question: "Can I write a nice message instead of a roast?", answer: "Yes. The wheel works for any message, though the carnival theme suits playful content." },
+      { question: "How many wheel segments are there?", answer: "The wheel has multiple colorful segments but always stops on your chosen one." }
+    ]
+  },
+  {
+    templateId: "memory-flip",
+    title: "Flip & Match Memory Message Template",
+    description: "Use the Flip & Match template to hide a message behind a memory card game — finding the last matching pair triggers the final reveal.",
+    intro: ["Flip & Match turns your message into a memory game. Cards are laid face-down and the recipient flips them to find matching pairs. Finding the final pair unlocks the message you wrote."],
+    examples: ["Flip the cards. Every match brings you closer to what I wanted to say.", "Match the pairs to unlock the message I hid for you.", "This game has a prize at the end — the words I have been meaning to share."],
+    relatedUseCases: ["friendship-messages", "birthday-messages", "surprise-message-links"],
+    faqs: [
+      { question: "How many cards are in the game?", answer: "The game uses a grid of face-down cards that the recipient flips to find matching pairs." },
+      { question: "Is it good for emotional messages?", answer: "Yes. The nostalgic feel of a memory game pairs well with heartfelt reveals." },
+      { question: "Can the recipient skip the game?", answer: "The game is designed to be quick so the message feels earned without being frustrating." }
+    ]
+  },
+  {
+    templateId: "mystery-fog",
+    title: "Flashlight in the Fog Message Template",
+    description: "Use the Flashlight in the Fog template to hide a message behind darkness — the recipient drags a flashlight cone to explore and uncover hidden text.",
+    intro: ["Flashlight in the Fog creates suspense through darkness. The screen is covered in fog and the recipient moves a flashlight beam to reveal the hidden message piece by piece."],
+    examples: ["The screen is fogged over. Move the light to find what I hid.", "Some messages are clearer when you search for them. Start shining.", "Darkness, one flashlight, and the words I needed you to find."],
+    relatedUseCases: ["mystery-confession", "surprise-message-links", "confession-messages"],
+    faqs: [
+      { question: "How does the flashlight work?", answer: "A radial gradient follows the pointer or touch, revealing the text beneath the fog layer within its radius." },
+      { question: "Is this good for dramatic reveals?", answer: "Yes. The darkness metaphor works well for confessions, secrets, and emotional messages." },
+      { question: "Does it work on mobile?", answer: "Yes. Touch drag moves the flashlight naturally." }
+    ]
   }
 ];
 
