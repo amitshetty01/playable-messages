@@ -381,6 +381,20 @@ export const templates: Template[] = [
     description: "Your message is broken into draggable fragments. They drag each piece into place until the message is whole again."
   },
   {
+    id: "kitty-apology",
+    slug: "kitty-apology",
+    title: "Kitty Apology",
+    hook: "A tiny kitty brought a letter. Please don't be mad…",
+    categorySlugs: ["apology-fight-repair"],
+    bestFor: "apologies, fight repair, making amends, cute sorry",
+    length: "30 seconds",
+    tone: "Sorry",
+    theme: "Cute Pink",
+    status: "full",
+    formula: ["Kitty enters", "Cute comedy", "Letter appears", "Adorable sorry"],
+    description: "A cute kitty appears, does funny little actions, then reveals an apology letter in the most adorable way possible."
+  },
+  {
     id: "funny-slots",
     slug: "funny-slots",
     title: "Slot Machine",

@@ -23,5 +23,5 @@ export default async function CreateTemplatePage({ params }: { params: Promise<{
   const { templateId } = await params;
   const template = getTemplate(templateId);
   if (!template) notFound();
-  return <CreateForm initialTemplate={template} templates={templates} />;
+  return <CreateForm initialTemplate={template} templates={[template]} />;
 }
