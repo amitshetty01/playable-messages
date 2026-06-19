@@ -18,6 +18,7 @@ const TreasureMapGame = dynamic(() => import("@/components/games/TreasureMapGame
 const MemoryMatchGame = dynamic(() => import("@/components/games/MemoryMatchGame").then((m) => ({ default: m.MemoryMatchGame })), { ssr: false });
 const ClimbMountainGame = dynamic(() => import("@/components/games/ClimbMountainGame").then((m) => ({ default: m.ClimbMountainGame })), { ssr: false });
 const BlowOutCandlesGame = dynamic(() => import("@/components/games/BlowOutCandlesGame").then((m) => ({ default: m.BlowOutCandlesGame })), { ssr: false });
+const BirthdaySurpriseGame = dynamic(() => import("@/components/games/BirthdaySurpriseGame").then((m) => ({ default: m.BirthdaySurpriseGame })), { ssr: false });
 const BraidBraceletGame = dynamic(() => import("@/components/games/BraidBraceletGame").then((m) => ({ default: m.BraidBraceletGame })), { ssr: false });
 const SnowGlobeGame = dynamic(() => import("@/components/games/SnowGlobeGame").then((m) => ({ default: m.SnowGlobeGame })), { ssr: false });
 const ScratchCardGame = dynamic(() => import("@/components/games/ScratchCardGame").then((m) => ({ default: m.ScratchCardGame })), { ssr: false });
@@ -52,7 +53,7 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "the-secret-room": (props) => <TreasureMapGame {...props} />,
   "memory-maze": (props) => <MemoryMatchGame {...props} />,
   "roast-to-respect": (props) => <ClimbMountainGame {...props} />,
-  "birthday-surprise-journey": (props) => <BlowOutCandlesGame {...props} />,
+  "birthday-surprise-journey": (props) => <BirthdaySurpriseGame {...props} />,
   "memory-journey": (props) => <BraidBraceletGame {...props} />,
   "secret-letter": (props) => <SnowGlobeGame {...props} />,
   "surprise-room": (props) => <ScratchCardGame {...props} />,
