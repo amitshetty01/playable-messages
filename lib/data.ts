@@ -395,10 +395,24 @@ export const templates: Template[] = [
     description: "A cute kitty appears, does funny little actions, then reveals an apology letter in the most adorable way possible."
   },
   {
+    id: "come-closer",
+    slug: "come-closer",
+    title: "Come Closer Prank",
+    hook: "i want to show u something only see it if u are alone and in a dark room",
+    categorySlugs: ["funny-roast", "friendship-best-friend"],
+    bestFor: "funny pranks, teasing, playful roasts, meme-worthy moments",
+    length: "15 seconds",
+    tone: "Funny",
+    theme: "Minimal Black",
+    status: "full",
+    formula: ["Dark room setup", "Countdown 3-2-1", "BOOM flash", "Prank reveal"],
+    description: "Tricks them into going to a dark room, then a sudden 3-2-1 countdown leads to a full-screen brightness blast and a hilarious reveal."
+  },
+  {
     id: "funny-slots",
     slug: "funny-slots",
     title: "Slot Machine",
-    hook: "Pull the lever and see what hits 😏",
+    hook: "Pull the lever and see what hits \u{1F60F}",
     categorySlugs: ["funny-roast"],
     bestFor: "funny messages, jokes, playful roasts",
     length: "15 seconds",

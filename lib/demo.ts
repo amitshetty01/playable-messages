@@ -77,6 +77,11 @@ const DEMO_STEPS: Record<string, [string, string, string]> = {
     "Click or scroll to zoom in closer.",
     "At full zoom, every word becomes clear."
   ],
+  "come-closer": [
+    "The screen looks serious\u2026 almost suspicious.",
+    "You get told to go to a dark room alone. Obviously you go.",
+    "3\u2026 2\u2026 1\u2026 BOOM. Full brightness flash. You just got pranked."
+  ],
   "spin-to-reveal": [
     "Spin the wheel to see what fate chooses.",
     "Each segment unlocks a different theme.",

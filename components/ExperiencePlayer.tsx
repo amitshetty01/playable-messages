@@ -76,6 +76,7 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "love-beats": (props) => <GameAdapter {...props} />,
   "sorry-puzzle": (props) => <GameAdapter {...props} />,
   "kitty-apology": (props) => <GameAdapter {...props} />,
+  "come-closer": (props) => <GameAdapter {...props} />,
   "funny-slots": (props) => <GameAdapter {...props} />,
   "secret-decoder": (props) => <GameAdapter {...props} />,
   "birthday-cake": (props) => <GameAdapter {...props} />,

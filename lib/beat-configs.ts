@@ -63,6 +63,7 @@ export const GAME_CONFIGS: Record<string, GameConfig> = {
 export const GAME_SLUG_BY_TEMPLATE: Record<string, string> = {
   "love-beats": "love-crush",
   "sorry-puzzle": "apology-fight-repair",
+  "come-closer": "funny-roast",
   "funny-slots": "funny-roast",
   "secret-decoder": "mystery-confession",
   "birthday-cake": "birthday-special-days",

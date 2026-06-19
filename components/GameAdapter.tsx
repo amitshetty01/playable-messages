@@ -11,11 +11,13 @@ import { CutTheCakeGame } from "@/components/games/CutTheCakeGame";
 import { SpinWheelGame } from "@/components/games/SpinWheelGame";
 import { FlipMatchGame } from "@/components/games/FlipMatchGame";
 import { FlashlightFogGame } from "@/components/games/FlashlightFogGame";
+import { ComeCloserPrank } from "@/components/games/ComeCloserPrank";
 
 const GAME_MAP: Record<string, React.FC<any>> = {
   "love-beats": ScratchCardGame,
   "sorry-puzzle": PuzzlePiecesGame,
   "kitty-apology": KittyApologyGame,
+  "come-closer": ComeCloserPrank,
   "funny-slots": SlotMachineGame,
   "secret-decoder": RedactedDecoderGame,
   "birthday-cake": CutTheCakeGame,
