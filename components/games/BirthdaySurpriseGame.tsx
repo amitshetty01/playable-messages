@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { FinalScreen } from "@/components/FinalScreen";
 import type { ExperienceRecord, Template } from "@/lib/types";
 
 type Props = { template: Template; experience: ExperienceRecord; mode: "demo" | "generated" | "preview"; shareUrl?: string };
 
 const BTN = "inline-flex min-h-[48px] items-center rounded-full border border-white/20 bg-white/10 px-8 text-sm font-extrabold text-white/80 backdrop-blur-md transition-all hover:bg-white/20 active:scale-95";
+const BTN_BRIGHT = "inline-flex min-h-[48px] items-center rounded-full border border-amber-300/40 bg-amber-200/30 px-8 text-sm font-extrabold text-amber-900 backdrop-blur-md transition-all hover:bg-amber-300/40 active:scale-95";
 
 function playBirthdayMelody(ctx: AudioContext) {
   const master = ctx.createGain();
@@ -78,6 +80,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
   const [balloons, setBalloons] = useState<{ id: number; x: number; c: string; d: number }[]>([]);
   const [showCakeBtn, setShowCakeBtn] = useState(false);
   const [showBalloonBtn, setShowBalloonBtn] = useState(false);
+  const [showFinal, setShowFinal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const cakeRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
@@ -303,7 +306,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
             <div className="flex flex-col items-center gap-4">
               <p style={{ fontSize: "clamp(1.1rem,4vw,1.5rem)" }} className="font-display font-bold text-amber-800">Beautiful!</p>
               {showBalloonBtn && (
-                <button onClick={() => setStep(6)} className={BTN}>
+                <button onClick={() => setStep(6)} className={isBright ? BTN_BRIGHT : BTN}>
                   <span className="mr-2 text-xl">🎈</span> Add balloons
                 </button>
               )}
@@ -323,7 +326,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
             <div className="flex flex-col items-center gap-4">
               <p style={{ fontSize: "clamp(1.1rem,4vw,1.5rem)" }} className="font-display font-bold text-amber-800">So colorful!</p>
               {showCakeBtn && (
-                <button onClick={() => setStep(7)} className={BTN}>
+                <button onClick={() => setStep(7)} className={isBright ? BTN_BRIGHT : BTN}>
                   <span className="mr-2 text-xl">🎂</span> Let's cut the cake
                 </button>
               )}
@@ -458,7 +461,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
       )}
 
       {/* Step 8 — Letter */}
-      {step === 8 && (
+      {step === 8 && !showFinal && (
         <div className="relative z-10 mx-auto w-full max-w-2xl px-4" style={{ animation: "cgIn 0.8s ease-out both" }}>
           <div className="rounded-2xl border border-amber-200/30 bg-gradient-to-br from-amber-50/95 via-white/95 to-amber-100/95 p-6 sm:p-10 shadow-[0_8px_60px_rgba(0,0,0,0.3)] max-h-[80vh] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
             <div className="text-center mb-6">
@@ -472,9 +475,22 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
             </div>
             <div className="mt-8 border-t border-amber-200/40 pt-5 text-center">
               <p className="font-serif text-sm text-amber-600/70 italic">Create like this for someone else</p>
-              <button onClick={() => {}} className={`mt-5 ${BTN} border-amber-300/30 bg-amber-100/20 !text-amber-700 hover:bg-amber-100/40`}>Done</button>
+              <button onClick={() => setShowFinal(true)} className={`mt-5 rounded-full border border-amber-300/50 bg-amber-400/20 px-8 py-3 text-sm font-extrabold text-amber-800 backdrop-blur-md transition-all hover:bg-amber-400/30 active:scale-95`}>Done</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showFinal && (
+        <div className="relative z-10 mx-auto w-full max-w-lg px-4" style={{ animation: "cgIn 0.8s ease-out both" }}>
+          <FinalScreen
+            ctaMessage={experience.customMessages.ctaMessage}
+            experienceId={mode === "generated" ? experience.id : undefined}
+            finalMessage={experience.finalMessage}
+            shareUrl={shareUrl}
+            templateId={template.id}
+            templateTitle={template.title}
+          />
         </div>
       )}
 

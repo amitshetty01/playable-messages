@@ -3,7 +3,7 @@ export function pickTemplate(text: string): string {
   if (/sorry|apolog|forgive|regret|mistake|wrong|miss you/i.test(lower)) return "kitty-apology";
   if (/love|crush|like.*you|heart|beautiful|gorgeous|cute|sweet/i.test(lower)) return "love-chase";
   if (/prank|come closer|gotcha|fool|trick|got you/i.test(lower)) return "come-closer";
-  if (/lol|haha|funny|joke|roast|laugh/i.test(lower)) return "roast-to-respect";
+  if (/lol|haha|funny|joke|roast|laugh/i.test(lower)) return "come-closer";
   if (/friend|bestie|bff|buddy|pal/i.test(lower)) return "memory-journey";
   if (/birthday|happy.*day|celebrate/i.test(lower)) return "birthday-surprise-journey";
   if (/miss|memory|remember|nostalgia/i.test(lower)) return "memory-journey";

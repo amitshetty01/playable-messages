@@ -24,5 +24,5 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const template = getTemplate(data.templateId);
   if (!template) notFound();
 
-  return <CreateForm existingExperience={data} initialTemplate={template} templates={templates} />;
+  return <CreateForm existingExperience={data} initialTemplate={template} templates={[template]} />;
 }

@@ -12,7 +12,7 @@ const QUICK_TEMPLATES = [
   { emoji: "😂", label: "Funny", template: "come-closer", hint: "I made this just for you. Promise me you'll keep smiling like this." },
   { emoji: "🤫", label: "Secret", template: "secret-letter", hint: "I've been keeping something from you for a while now..." },
   { emoji: "🎂", label: "Birthday", template: "birthday-surprise-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
-  { emoji: "🏆", label: "Roast", template: "dont-smile-challenge", hint: "I bet you can't read this without smiling. Ready to lose?" },
+  { emoji: "🏆", label: "Roast", template: "come-closer", hint: "Come closer. I've been saving this one just for you." },
   { emoji: "💭", label: "Memory", template: "memory-journey", hint: "Remember that time we stayed up all night talking?" },
   { emoji: "🔥", label: "Mystery", template: "glitch-truth", hint: "There's something I've never told you before." },
 ];
@@ -78,7 +78,7 @@ export function QuickFlow() {
       <div className="mt-4 flex max-w-xl flex-wrap justify-center gap-2">
         {QUICK_TEMPLATES.map((t) => (
           <button
-            key={t.template}
+            key={t.label}
             type="button"
             onClick={() => pick(t)}
             className={`rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-all ${
