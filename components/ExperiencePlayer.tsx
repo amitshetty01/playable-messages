@@ -4,6 +4,7 @@ import { useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { getSceneFlow, buildSceneContext } from "@/lib/scene-registry";
 import { SceneErrorBoundary } from "@/components/SceneErrorBoundary";
+import { FullscreenExperience } from "@/components/FullscreenExperience";
 import type { AnalyticsEventType, ExperienceRecord, Template } from "@/lib/types";
 
 const SceneEngine = dynamic(() => import("@/components/SceneEngine").then((m) => ({ default: m.SceneEngine })), { ssr: false });
@@ -105,28 +106,41 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
     const context = buildSceneContext(experience, handleComplete, handleTrack);
     return (
       <SceneErrorBoundary>
-        <SceneEngine
-          flow={sceneFlow}
-          context={context}
-          theme={experience.theme}
-          mode={mode}
-        />
+        <FullscreenExperience templateId={template.id}>
+          <SceneEngine
+            flow={sceneFlow}
+            context={context}
+            theme={experience.theme}
+            mode={mode}
+          />
+        </FullscreenExperience>
       </SceneErrorBoundary>
     );
   }
 
   const FlowComponent = FLOWS[template.id];
   if (FlowComponent) {
+    if (template.id === "kitty-apology") {
+      return (
+        <SceneErrorBoundary>
+          {FlowComponent({ template, experience, mode, shareUrl })}
+        </SceneErrorBoundary>
+      );
+    }
     return (
       <SceneErrorBoundary>
-        {FlowComponent({ template, experience, mode, shareUrl })}
+        <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
+          {FlowComponent({ template, experience, mode, shareUrl })}
+        </FullscreenExperience>
       </SceneErrorBoundary>
     );
   }
 
   return (
     <SceneErrorBoundary>
-      <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
+      <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
+        <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
+      </FullscreenExperience>
     </SceneErrorBoundary>
   );
 }
