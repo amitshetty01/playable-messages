@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { initAudio } from "@/lib/sounds";
 
 type Phase =
   | "peek" | "enter" | "wave" | "stumble" | "present"
@@ -35,6 +36,7 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
     const tryFs = () => { if (document.fullscreenElement) return; el.requestFullscreen?.().catch(() => {}); };
     const onInteraction = () => {
       tryFs();
+      initAudio();
       if (audioRef.current && !audioReady) {
         audioRef.current.volume = 0.15;
         audioRef.current.loop = true;

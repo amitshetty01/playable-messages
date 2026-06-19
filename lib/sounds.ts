@@ -4,7 +4,13 @@ let audioCtx: AudioContext | null = null;
 
 function getCtx(): AudioContext {
   if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === "suspended") audioCtx.resume();
   return audioCtx;
+}
+
+export function initAudio() {
+  const ctx = getCtx();
+  if (ctx.state === "suspended") ctx.resume();
 }
 
 function playTone(freq: number, duration: number, type: OscillatorType, volume: number, ramp?: { to: number; time: number }) {

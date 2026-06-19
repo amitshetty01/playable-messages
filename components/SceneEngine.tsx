@@ -10,6 +10,7 @@ import { useAutoAdvance } from "@/lib/useAutoAdvance";
 import { useEasterEgg } from "@/lib/useEasterEgg";
 import { useSceneAnimation, AnimatedText } from "@/lib/useSceneAnimation";
 import { playSound, playToneSound } from "@/lib/flowSounds";
+import { initAudio } from "@/lib/sounds";
 import { haptic, hapticTone } from "@/lib/haptic";
 import type { SceneStep, SceneContext, SceneFlow } from "@/lib/scene-types";
 import type { ThemeName, Tone } from "@/lib/types";
@@ -161,14 +162,14 @@ function ChaseTitle({ text, attempts, onCaught }: { text: string; attempts: numb
 }
 
 const LOVE_DODGE_TEXTS = [
-  "You don't 💔",
-  "Nope 😏",
-  "Try again 😜",
-  "Not yet 💫",
-  "Catch me! 👀",
-  "Too slow 💨",
-  "Almost! ✨",
-  "Never! 😘",
+  "Not you 💔",
+  "Keep chasing 🌪️",
+  "Not meant for you 😏",
+  "This one runs forever 🏃",
+  "Can't catch this one ✨",
+  "Wrong path 💨",
+  "Some things never stop 👀",
+  "It's already gone 😘",
 ];
 
 function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () => void }) {
@@ -815,70 +816,102 @@ function EmojiBurst({ active }: { active: boolean }) {
   );
 }
 
-function CompletionOverlay({ finalMessage, templateId, mode }: { finalMessage: string; templateId: string; mode: string }) {
-  const [copied, setCopied] = useState(false);
-  const [shareError, setShareError] = useState("");
 
-  async function handleShare() {
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "A message for you", text: finalMessage, url });
-        return;
-      } catch { /* user cancelled */ }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setShareError("Could not share. Copy the URL manually.");
-    }
-  }
-
-  return (
-    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="animate-reveal-scale-3d mx-auto w-full max-w-lg px-6 text-center">
-        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-md">
-          <span className="text-5xl">💖</span>
-        </div>
-        <h2 className="font-display font-bold leading-tight text-white" style={{ fontSize: "clamp(1.25rem, 5vw, 3rem)" }}>{finalMessage}</h2>
-        <div className="mt-8 space-y-3">
-          <button
-            type="button"
-            onClick={handleShare}
-            className="inline-flex min-h-[56px] w-full max-w-xs items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-8 text-base font-extrabold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
-          >
-            {copied ? "✅ Copied!" : "🔗 Share this moment"}
-          </button>
-          {(mode === "demo" || mode === "preview") && (
-            <div>
-              <p className="mb-3 text-sm text-white/40">Loved this? Create your own interactive message too.</p>
-              <Link
-                className="inline-flex min-h-[56px] items-center gap-2 rounded-full bg-gradient-to-r from-white via-[#ffddec] to-[#d9f7f7] px-10 text-base font-extrabold text-[#21172c] shadow-[0_8px_30px_rgba(255,255,255,0.15)] transition-all hover:shadow-[0_12px_40px_rgba(255,255,255,0.2)] active:scale-95"
-                href={`/create/${templateId}`}
-              >
-                Create like this too
-              </Link>
-            </div>
-          )}
-          {shareError && <p className="text-sm text-rose-300">{shareError}</p>}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function SceneEngine({ flow, context, theme, mode }: Props) {
   const [step, setStep] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const [showFullscreenCelebration, setShowFullscreenCelebration] = useState(false);
+  const [showFinalScreen, setShowFinalScreen] = useState(false);
   const [transitionKey, setTransitionKey] = useState(0);
   const [shaking, setShaking] = useState(false);
   const [suspense, setSuspense] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const loveAudioRef = useRef<HTMLAudioElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [audioReady, setAudioReady] = useState(false);
+  const [loveReady, setLoveReady] = useState(false);
+  const [loveActive, setLoveActive] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showCTA, setShowCTA] = useState(false);
 
   const { customMessages, finalMessage, onComplete, onTrack, tone } = context;
   currentTone = tone;
+
+  useEffect(() => {
+    const attemptPlay = () => {
+      if (!audioRef.current || audioReady) return;
+      if (audioRef.current.readyState < 2) {
+        audioRef.current.addEventListener("canplaythrough", attemptPlay, { once: true });
+        return;
+      }
+      initAudio();
+      audioRef.current.volume = 0.3;
+      audioRef.current.loop = true;
+      audioRef.current.play().then(() => setAudioReady(true)).catch(() => {});
+    };
+    attemptPlay();
+    document.addEventListener("pointerdown", attemptPlay, { once: true });
+    return () => document.removeEventListener("pointerdown", attemptPlay);
+  }, [audioReady]);
+
+  useEffect(() => {
+    const love = new Audio("/audio/love-confession-bg.mp3");
+    love.volume = 0;
+    love.loop = true;
+    love.preload = "auto";
+    love.addEventListener("canplaythrough", () => setLoveReady(true), { once: true });
+    loveAudioRef.current = love;
+    return () => { love.pause(); loveAudioRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (currentRef.current?.id === "yes-no" && !loveActive && loveReady && loveAudioRef.current && audioRef.current) {
+      setLoveActive(true);
+      loveAudioRef.current.volume = 0;
+      loveAudioRef.current.currentTime = 0;
+      loveAudioRef.current.play().catch(() => {});
+      const crossfade = setInterval(() => {
+        if (!audioRef.current || !loveAudioRef.current) { clearInterval(crossfade); return; }
+        const curVol = audioRef.current.volume;
+        const loveVol = loveAudioRef.current.volume;
+        if (curVol <= 0.01 && loveVol >= 0.29) {
+          audioRef.current.volume = 0;
+          audioRef.current.pause();
+          loveAudioRef.current.volume = 0.3;
+          clearInterval(crossfade);
+          return;
+        }
+        audioRef.current.volume = Math.max(0, curVol - 0.015);
+        loveAudioRef.current.volume = Math.min(0.3, loveVol + 0.015);
+      }, 50);
+    }
+  }, [loveActive, loveReady, step]);
+
+  useEffect(() => {
+    if (showFinalScreen) {
+      setShowCTA(false);
+      const t = setTimeout(() => setShowCTA(true), 200);
+      return () => clearTimeout(t);
+    }
+  }, [showFinalScreen]);
+
+  useEffect(() => {
+    if (showFinalScreen || showFullscreenCelebration) {
+      const fade = setInterval(() => {
+        let anyActive = false;
+        if (audioRef.current && audioRef.current.volume > 0.01) {
+          audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.01);
+          anyActive = true;
+        } else if (audioRef.current) { audioRef.current.pause(); }
+        if (loveAudioRef.current && loveAudioRef.current.volume > 0.01) {
+          loveAudioRef.current.volume = Math.max(0, loveAudioRef.current.volume - 0.01);
+          anyActive = true;
+        } else if (loveAudioRef.current) { loveAudioRef.current.pause(); }
+        if (!anyActive) clearInterval(fade);
+      }, 50);
+    }
+  }, [showFinalScreen, showFullscreenCelebration]);
   const totalScenes = flow.scenes.length;
   const templateId = flow.templateId;
 
@@ -916,9 +949,16 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
       setTimeout(() => {
         setSuspense(false);
         setShowConfetti(true);
-        setCompleted(true);
+        setShowFullscreenCelebration(true);
+        if (containerRef.current) {
+          containerRef.current.requestFullscreen?.().catch(() => {});
+        }
+        setTimeout(() => {
+          if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+          setShowFullscreenCelebration(false);
+          setShowFinalScreen(true);
+        }, 600);
       }, 1200);
-      setTimeout(() => onComplete(), 3200);
       return;
     }
     playToneSound("whoosh", tone);
@@ -932,7 +972,8 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   }, [advance]);
 
   useAutoAdvance({
-    active: mode === "demo" && current?.interaction?.type === "auto",
+    active: current?.interaction?.type === "auto",
+    delay: current?.interaction?.delay ?? 4000,
     onAdvance: useCallback(() => {
       if (current?.interaction?.type === "auto") advance();
     }, [current, advance]),
@@ -940,20 +981,59 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
 
   const { message: eggMessage } = useEasterEgg(flow.templateId);
 
-  if (step >= totalScenes && !completed) return null;
+  if (step >= totalScenes && !showFinalScreen) return null;
 
   return (
     <>
+      <audio ref={audioRef} preload="auto" src="/audio/love-button-bg.mp3" />
+      <audio ref={loveAudioRef} preload="auto" src="/audio/love-confession-bg.mp3" />
       <ConfettiEffect active={showConfetti} />
-      <EmojiBurst active={completed} />
       <EggBanner message={eggMessage} />
       <div
+        ref={containerRef}
         key={transitionKey}
         className={`animate-scene-enter relative flex w-full flex-col ${shaking ? "animate-shake" : ""} ${mode === "preview" ? "min-h-full" : "min-h-[100dvh] overflow-hidden"}`}
       >
         <SceneBackground scene={current!} />
 
-        {suspense ? (
+        {showFinalScreen ? (
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8">
+            <div className="animate-reveal-scale-3d mx-auto w-full max-w-lg text-center">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-md">
+                <span className="text-4xl">💖</span>
+              </div>
+              <h2 className="font-display font-bold leading-tight text-white" style={{ fontSize: "clamp(1.25rem, 5vw, 2.5rem)" }}>
+                {finalMessage}
+              </h2>
+              <div className="mt-8 space-y-3" style={{ opacity: showCTA ? 1 : 0, transform: showCTA ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease, transform 0.5s ease" }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(window.location.href);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    } catch {}
+                  }}
+                  className="inline-flex min-h-[56px] w-full max-w-xs items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-8 text-base font-extrabold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
+                >
+                  {copied ? "✅ Copied!" : "🔗 Share this moment"}
+                </button>
+                {(mode === "demo" || mode === "preview") && (
+                  <div>
+                    <p className="mb-3 text-sm text-white/40">Make someone's heart skip a beat.</p>
+                    <Link
+                      className="inline-flex min-h-[56px] items-center gap-2 rounded-full bg-gradient-to-r from-white via-[#ffddec] to-[#d9f7f7] px-10 text-base font-extrabold text-[#21172c] shadow-[0_8px_30px_rgba(255,255,255,0.15)] transition-all hover:shadow-[0_12px_40px_rgba(255,255,255,0.2)] active:scale-95"
+                      href={`/create/${templateId}`}
+                    >
+                      Create for someone 💕
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : suspense ? (
           <div className="relative z-10 flex flex-1 items-center justify-center">
             <div className="text-center">
               <div className="flex gap-2">
@@ -963,8 +1043,6 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
               </div>
             </div>
           </div>
-        ) : completed ? (
-          <CompletionOverlay finalMessage={finalMessage} templateId={templateId} mode={mode} />
         ) : (
           <div className="relative z-10 flex flex-1 flex-col items-center overflow-y-auto px-5 pb-4 pt-4 sm:px-6">
             <SceneProp scene={current!} />
@@ -1024,6 +1102,25 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
         )}
 
       </div>
+
+      {/* Fullscreen celebration overlay */}
+      {showFullscreenCelebration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{
+          background: "radial-gradient(ellipse at 50% 50%, rgba(255,107,157,0.35) 0%, rgba(196,77,255,0.25) 40%, rgba(0,0,0,0.6) 100%)",
+          backdropFilter: "blur(4px)",
+        }}>
+          <EmojiBurst active={true} />
+          <div className="animate-reveal-scale-3d mx-auto w-full max-w-2xl px-8 text-center">
+            <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border-2 border-white/30 bg-white/15 backdrop-blur-md shadow-[0_0_60px_rgba(255,255,255,0.15)]">
+              <span className="text-6xl animate-pulse">💖</span>
+            </div>
+            <h1 className="font-display font-bold leading-tight text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]" style={{ fontSize: "clamp(2rem, 7vw, 4.5rem)" }}>
+              {finalMessage}
+            </h1>
+          </div>
+        </div>
+      )}
+
       <Watermark />
     </>
   );

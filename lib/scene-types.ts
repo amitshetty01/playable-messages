@@ -58,6 +58,7 @@ export type SceneInteraction = {
   choices?: SceneChoice[];
   count?: number;
   words?: string[];
+  delay?: number;
 };
 
 export type SceneStep = {
