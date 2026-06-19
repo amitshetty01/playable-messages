@@ -9,7 +9,7 @@ import type { ExperienceRecord } from "@/lib/types";
 const QUICK_TEMPLATES = [
   { emoji: "💖", label: "Love", template: "love-chase", hint: "I love the way you make me feel every single day." },
   { emoji: "💔", label: "Sorry", template: "kitty-apology", hint: "I'm sorry for what I said. I didn't mean it." },
-  { emoji: "😂", label: "Funny", template: "roast-to-respect", hint: "You're the most ridiculous person I know and I love it." },
+  { emoji: "😂", label: "Funny", template: "come-closer", hint: "I made this just for you. Promise me you'll keep smiling like this." },
   { emoji: "🤫", label: "Secret", template: "secret-letter", hint: "I've been keeping something from you for a while now..." },
   { emoji: "🎂", label: "Birthday", template: "birthday-surprise-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
   { emoji: "🏆", label: "Roast", template: "dont-smile-challenge", hint: "I bet you can't read this without smiling. Ready to lose?" },
