@@ -977,14 +977,14 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
                 onCaught={advance}
               />
             ) : (
-              <div className="flex w-full max-w-lg flex-1 flex-col items-center gap-3 sm:gap-4">
-                <div className={`flex w-full flex-1 flex-col items-center justify-center gap-2 sm:gap-3 text-${current?.content.align === "left" ? "left" : "center"}`}>
+              <div className="flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-2 sm:gap-3">
+                <div className={`flex w-full flex-col items-center justify-center gap-2 sm:gap-3 text-${current?.content.align === "left" ? "left" : "center"}`}>
                   {current?.content.title && <TitleText text={current.content.title} align={current.content.align} />}
                   {current?.content.body && <BodyText text={current.content.body} />}
                 </div>
 
                 {current?.interaction && current.interaction.type !== "auto" && (
-                  <div className="flex w-full shrink-0 justify-center pt-3 sm:pt-4">
+                  <div className="flex w-full shrink-0 justify-center pt-1">
                     {current.interaction.type === "love-chase" ? (
                       <LoveChaseInteraction label={current.interaction.label || "You love me 💖"} onTruth={advance} />
                     ) : current.interaction.type === "multi-tap" ? (
