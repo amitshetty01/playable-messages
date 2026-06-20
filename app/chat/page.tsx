@@ -16,6 +16,8 @@ type Message = {
   file_size: number | null;
   deleted: boolean;
   created_at: string;
+  edited_at?: string | null;
+  reactions?: Record<string, string[]>;
 };
 
 type RoomInfo = { roomId: string; code: string; createdAt: string };
@@ -66,6 +68,12 @@ export default function ChatPage() {
   const [uploading, setUploading] = useState(false);
 
   const [typingUsers, setTypingUsers] = useState<{ nickname: string; timestamp: number }[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
+  const REACTIONS = ["❤️", "😄", "👍", "🎉", "😢"];
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -343,6 +351,49 @@ export default function ChatPage() {
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   }
 
+  // ─── Edit message ───
+  function handleStartEdit(msg: Message) {
+    setEditingId(msg.id);
+    setEditContent(msg.content || "");
+  }
+
+  async function handleSaveEdit(messageId: number) {
+    if (!editContent.trim()) return;
+    await fetch("/api/chat/messages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messageId, sessionId: sessionIdRef.current, action: "edit", content: editContent.trim() }),
+    });
+    setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, content: editContent.trim(), edited_at: new Date().toISOString() } : m));
+    setEditingId(null);
+    setEditContent("");
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+    setEditContent("");
+  }
+
+  // ─── Reactions ───
+  async function handleReact(messageId: number, emoji: string) {
+    await fetch("/api/chat/messages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messageId, sessionId: sessionIdRef.current, action: "react", emoji }),
+    });
+    setMessages((prev) => prev.map((m) => {
+      if (m.id !== messageId) return m;
+      const reactions = { ...(m.reactions || {}) };
+      const users = [...(reactions[emoji] || [])];
+      const idx = users.indexOf(sessionIdRef.current);
+      if (idx >= 0) users.splice(idx, 1);
+      else users.push(sessionIdRef.current);
+      if (users.length) reactions[emoji] = users;
+      else delete reactions[emoji];
+      return { ...m, reactions };
+    }));
+  }
+
   // ─── Typing ───
   function handleContentChange(value: string) {
     setContent(value);
@@ -583,8 +634,8 @@ export default function ChatPage() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#0d0a15]">
       {/* ─── Header ─── */}
-      <div className="flex shrink-0 items-center justify-center border-b border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
-        <div className="flex w-full max-w-2xl items-center justify-between px-3 sm:px-0 py-2.5 sm:py-3.5">
+      <div className="flex shrink-0 flex-col border-b border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
+        <div className="flex w-full max-w-2xl items-center justify-between px-3 sm:px-0 py-2 sm:py-3 mx-auto">
           <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
           <div className="relative grid h-8 w-8 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/30 shadow-inner shadow-violet-500/10">
             <span className="text-sm sm:text-lg drop-shadow">🏠</span>
@@ -611,12 +662,37 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
-          <button type="button" onClick={handleLeaveRoom}
-            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 sm:px-3 text-[0.65rem] sm:text-[0.7rem] font-bold text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/80">
-            <span>🚪</span>
-            <span className="hidden sm:inline">Leave</span>
-          </button>
+          <div className="flex items-center gap-1">
+            <button type="button" onClick={() => setShowSearch((s) => { if (s) setSearchQuery(""); return !s; })}
+              className="grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-lg text-xs sm:text-sm text-white/40 transition-all hover:bg-white/[0.06] hover:text-white/70">
+              🔍
+            </button>
+            <button type="button" onClick={handleLeaveRoom}
+              className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 sm:px-3 text-[0.65rem] sm:text-[0.7rem] font-bold text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/80">
+              <span>🚪</span>
+              <span className="hidden sm:inline">Leave</span>
+            </button>
+          </div>
         </div>
+
+        {showSearch && (
+          <div className="border-t border-white/[0.04] px-3 py-1.5">
+            <div className="mx-auto flex max-w-2xl items-center gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search messages..."
+                autoFocus
+                className="flex-1 min-h-[32px] rounded-lg border border-white/[0.06] bg-white/[0.04] px-3 text-xs text-white/80 placeholder-white/30 outline-none transition-all focus:border-violet-500/40 focus:bg-white/[0.06]"
+              />
+              {searchQuery && (
+                <span className="text-[0.5rem] font-bold text-violet-300/50">{messages.filter((m) => m.content && m.content.toLowerCase().includes(searchQuery.toLowerCase())).length}</span>
+              )}
+              <button type="button" onClick={() => { setSearchQuery(""); setShowSearch(false); }} className="text-[0.55rem] font-bold text-red-400/50 hover:text-red-400">✕</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── Messages ─── */}
@@ -647,6 +723,8 @@ export default function ChatPage() {
             {messages.map((msg, idx) => {
               const isOwn = msg.session_id === sessionIdRef.current;
               const showDate = shouldShowDate(messages[idx - 1]?.created_at ?? "", msg.created_at);
+              const filteredOut = showSearch && searchQuery && msg.content && !msg.content.toLowerCase().includes(searchQuery.toLowerCase());
+              if (filteredOut) return null;
               return (
                 <div key={msg.id} className="mb-1 group">
                   {showDate && (
@@ -689,7 +767,22 @@ export default function ChatPage() {
                             : ""
                         }`}>
                           {msg.message_type === "text" ? (
-                            <div className="px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm leading-relaxed">{msg.content}</div>
+                            editingId === msg.id ? (
+                              <div className="flex items-center gap-2 px-2 py-1.5">
+                                <input
+                                  type="text"
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(msg.id); if (e.key === "Escape") handleCancelEdit(); }}
+                                  autoFocus
+                                  className="flex-1 min-h-[32px] rounded-lg border border-violet-500/30 bg-white/[0.06] px-3 text-xs text-white/90 outline-none"
+                                />
+                                <button type="button" onClick={() => handleSaveEdit(msg.id)} className="text-[0.55rem] font-bold text-emerald-400/70 hover:text-emerald-400">Save</button>
+                                <button type="button" onClick={handleCancelEdit} className="text-[0.55rem] font-bold text-red-400/50 hover:text-red-400">Cancel</button>
+                              </div>
+                            ) : (
+                              <div className="px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm leading-relaxed">{msg.content}</div>
+                            )
                           ) : msg.message_type === "image" || msg.message_type === "sticker" ? (
                             <div className={`overflow-hidden ${isOwn ? "rounded-[1.1rem] rounded-br-md sm:rounded-[1.25rem]" : "rounded-[1.1rem] rounded-bl-md sm:rounded-[1.25rem]"} border border-white/[0.04]`}>
                               <a href={msg.file_url || "#"} target="_blank" rel="noopener noreferrer" className="block">
@@ -731,17 +824,49 @@ export default function ChatPage() {
                         <div className={`mt-0.5 sm:mt-1 flex items-center gap-1.5 sm:gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
                           <span className="text-[0.45rem] sm:text-[0.5rem] font-medium tracking-wide text-white/45">
                             {formatTime(msg.created_at)}
+                            {msg.edited_at && <span className="ml-1 text-white/25">(edited)</span>}
                           </span>
                           {isOwn && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteMessage(msg.id)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-[0.5rem] sm:text-[0.55rem] text-red-400/50 hover:text-red-400"
-                            >
-                              Delete
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(msg)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[0.5rem] sm:text-[0.55rem] text-violet-300/50 hover:text-violet-300"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[0.5rem] sm:text-[0.55rem] text-red-400/50 hover:text-red-400"
+                              >
+                                Delete
+                              </button>
+                            </>
                           )}
                         </div>
+
+                        <div className={`mt-1 flex flex-wrap gap-1 ${isOwn ? "justify-end" : "justify-start"}`}>
+                            {REACTIONS.map((emoji) => {
+                              const users = msg.reactions?.[emoji] || [];
+                              const hasReacted = users.includes(sessionIdRef.current);
+                              return (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={() => handleReact(msg.id, emoji)}
+                                  className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[0.5rem] sm:text-[0.6rem] transition-all ${
+                                    hasReacted
+                                      ? "bg-violet-500/20 text-violet-200 shadow-sm shadow-violet-500/10"
+                                      : "bg-white/[0.03] text-white/40 hover:bg-white/[0.06] hover:text-white/60"
+                                  }`}
+                                >
+                                  <span>{emoji}</span>
+                                  {users.length > 0 && <span className="font-bold">{users.length}</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
                       </div>
                     </div>
                   )}

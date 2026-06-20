@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMessages, createMessage, deleteMessage } from "@/lib/chat-store";
+import { getMessages, createMessage, deleteMessage, editMessage, toggleReaction } from "@/lib/chat-store";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -25,11 +25,30 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const { messageId, sessionId } = await request.json();
+  const body = await request.json();
+  const { messageId, sessionId, action, content, emoji } = body;
   if (!messageId || !sessionId) {
     return NextResponse.json({ error: "messageId and sessionId are required" }, { status: 400 });
   }
 
+  if (action === "edit") {
+    if (!content) return NextResponse.json({ error: "content is required for edit" }, { status: 400 });
+    const result = await editMessage(messageId, sessionId, content);
+    if (result.error) {
+      const status = result.error === "You can only edit your own messages" ? 403 : 404;
+      return NextResponse.json({ error: result.error }, { status });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (action === "react") {
+    if (!emoji) return NextResponse.json({ error: "emoji is required for react" }, { status: 400 });
+    const result = await toggleReaction(messageId, sessionId, emoji);
+    if (result.error) return NextResponse.json({ error: result.error }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  }
+
+  // Default: delete
   const result = await deleteMessage(messageId, sessionId);
   if (result.error) {
     const status = result.error === "You can only delete your own messages" ? 403 : 404;

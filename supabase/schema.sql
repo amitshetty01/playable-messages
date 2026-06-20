@@ -127,3 +127,6 @@ with check (true);
 
 -- Enable realtime for new messages
 alter table chat_messages replica identity full;
+
+alter table chat_messages add column if not exists edited_at timestamptz;
+alter table chat_messages add column if not exists reactions jsonb not null default '{}'::jsonb;

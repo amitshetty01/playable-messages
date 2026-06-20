@@ -133,7 +133,8 @@ function ChaseTitle({ text, attempts, onCaught }: { text: string; attempts: numb
           type="button"
           onClick={handleAttempt}
           onMouseEnter={handleAttempt}
-          className="pointer-events-auto absolute whitespace-nowrap rounded-2xl px-6 py-4 text-sm font-extrabold tracking-wider backdrop-blur-md transition-all duration-200"
+          onFocus={handleAttempt}
+          className="pointer-events-auto absolute whitespace-nowrap rounded-2xl px-6 py-4 text-sm font-extrabold tracking-wider backdrop-blur-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60"
           style={{
             left: pos.left,
             top: pos.top,
@@ -208,7 +209,12 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
       <span
         onMouseEnter={handleMove}
         onTouchStart={handleMove}
-        className={`cursor-default whitespace-nowrap rounded-2xl px-6 py-3 text-sm font-extrabold tracking-wider backdrop-blur-md select-none ${
+        onFocus={handleMove}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(); } }}
+        tabIndex={0}
+        role="button"
+        aria-label="Dodge text, moves on interaction"
+        className={`cursor-default whitespace-nowrap rounded-2xl px-6 py-3 text-sm font-extrabold tracking-wider backdrop-blur-md select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 ${
           flying ? "fixed z-40" : "relative z-20"
         }`}
         style={
