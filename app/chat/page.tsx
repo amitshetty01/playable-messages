@@ -661,7 +661,7 @@ export default function ChatPage() {
               </span>
             </div>
           </div>
-        </div>
+          </div>
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => setShowSearch((s) => { if (s) setSearchQuery(""); return !s; })}
               className="grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-lg text-xs sm:text-sm text-white/40 transition-all hover:bg-white/[0.06] hover:text-white/70">
