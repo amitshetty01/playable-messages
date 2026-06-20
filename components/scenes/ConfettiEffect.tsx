@@ -38,7 +38,10 @@ export function ConfettiEffect({ active, duration = 3000 }: { active: boolean; d
             width: `${p.size}px`,
             height: `${p.size * 0.6}px`,
             background: p.color,
-            animation: `confetti-fall ${2 + Math.random() * 2}s ease-out forwards`,
+            animationName: "confetti-fall",
+            animationDuration: `${2 + Math.random() * 2}s`,
+            animationTimingFunction: "ease-out",
+            animationFillMode: "forwards",
             animationDelay: `${p.delay}s`,
             opacity: 0.9,
           }}

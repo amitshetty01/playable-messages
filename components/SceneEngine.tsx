@@ -220,7 +220,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
                 background: "rgba(255,255,255,0.08)",
                 border: "2px solid rgba(255,255,255,0.2)",
                 color: "white",
-                transition: "left 1s ease-in-out, top 1s ease-in-out",
+                transition: "left 0.25s ease-in-out, top 0.25s ease-in-out",
               }
             : {
                 background: "rgba(255,255,255,0.05)",
@@ -971,9 +971,16 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
     advance();
   }, [advance]);
 
+  const autoDelay = useMemo(() => {
+    if (current?.interaction?.type !== "auto") return 4000;
+    const titleLen = current.content?.title?.length ?? 0;
+    const bodyLen = current.content?.body?.length ?? 0;
+    return Math.min(5000, 800 + titleLen * 60 + bodyLen * 40);
+  }, [current]);
+
   useAutoAdvance({
     active: current?.interaction?.type === "auto",
-    delay: current?.interaction?.delay ?? 4000,
+    delay: autoDelay,
     onAdvance: useCallback(() => {
       if (current?.interaction?.type === "auto") advance();
     }, [current, advance]),

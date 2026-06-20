@@ -29,7 +29,7 @@ export function MovingButton({ label, onComplete }: { label: string; onComplete:
       <p className="mb-5 min-h-6 text-sm font-bold text-white/75">{notes[Math.max(0, attempts - 1)] || "Try pressing the forgiveness button."}</p>
       <div className="relative min-h-56 overflow-hidden rounded-[1.2rem] bg-white/[0.04] sm:min-h-72">
         <button
-          className="absolute w-auto -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25 bg-gradient-to-br from-white/25 to-white/10 px-5 py-3 font-extrabold text-white shadow-soft transition-[left,top,transform] duration-1000 hover:scale-105 sm:px-6 sm:py-4"
+          className="absolute w-auto -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25 bg-gradient-to-br from-white/25 to-white/10 px-5 py-3 font-extrabold text-white shadow-soft transition-[left,top,transform] duration-150 hover:scale-105 sm:px-6 sm:py-4"
           type="button"
           onClick={attempt}
           onPointerEnter={attempt}
