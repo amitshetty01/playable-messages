@@ -13,7 +13,7 @@ const QUICK_TEMPLATES = [
   { emoji: "🤫", label: "Secret", template: "secret-letter", hint: "I've been keeping something from you for a while now..." },
   { emoji: "🎂", label: "Birthday", template: "birthday-surprise-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
   { emoji: "🏆", label: "Roast", template: "come-closer", hint: "Come closer. I've been saving this one just for you." },
-  { emoji: "💭", label: "Memory", template: "memory-journey", hint: "Remember that time we stayed up all night talking?" },
+  { emoji: "💓", label: "Memory", template: "memory-maze", hint: "Every heartbeat holds a story. Some are just waiting to be unlocked." },
   { emoji: "🔥", label: "Mystery", template: "glitch-truth", hint: "There's something I've never told you before." },
 ];
 

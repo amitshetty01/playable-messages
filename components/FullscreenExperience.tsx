@@ -49,7 +49,7 @@ export function FullscreenExperience({
       {children}
 
       {/* Floating controls */}
-      <div className="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-in-out pointer-events-none" style={{ opacity: controlsVisible ? 1 : 0, transform: controlsVisible ? "translateY(0)" : "translateY(20px)" }}>
+      <div className="absolute bottom-0 left-0 right-0 z-[60] transition-all duration-500 ease-in-out pointer-events-none" style={{ opacity: controlsVisible ? 1 : 0, transform: controlsVisible ? "translateY(0)" : "translateY(20px)" }}>
         <div className="relative flex items-center justify-center gap-2 sm:gap-3 px-3 py-3 sm:px-5 sm:py-4" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)" }}>
           <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
             <button onClick={() => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); window.history.back(); }} className="flex items-center gap-1 sm:gap-1.5 rounded-full px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-white/80 transition-all hover:bg-white/15 hover:text-white" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
@@ -69,7 +69,7 @@ export function FullscreenExperience({
       </div>
 
       {/* Top close */}
-      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 transition-all duration-500" style={{ opacity: controlsVisible ? 1 : 0 }}>
+      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 z-[60] transition-all duration-500" style={{ opacity: controlsVisible ? 1 : 0 }}>
         <button onClick={() => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); window.history.back(); }} className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full text-white/60 transition-all hover:bg-white/15 hover:text-white" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)" }}>
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>

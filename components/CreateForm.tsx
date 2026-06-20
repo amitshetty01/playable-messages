@@ -47,6 +47,9 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     finalMessage: existingExperience?.finalMessage ?? defaultFinalMessage,
     ctaMessage: existingExperience?.customMessages.ctaMessage ?? defaultCustomMessages.ctaMessage,
     sceneTitles: (existingExperience?.customMessages.sceneTitles ?? []).join("\n"),
+    togetherSince: existingExperience?.togetherSince ?? "",
+    passwordQuestion: existingExperience?.passwordQuestion ?? "",
+    passwordAnswer: existingExperience?.passwordAnswer ?? "",
     expiryOption: "",
   };
 
@@ -108,6 +111,9 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         expiryOption: draft.expiryOption ?? initialFormState.expiryOption,
         relationshipTag: (draft as any).relationshipTag ?? initialFormState.relationshipTag,
         showCreatorName: (draft as any).showCreatorName ?? initialFormState.showCreatorName,
+        togetherSince: (draft as any).togetherSince ?? initialFormState.togetherSince,
+        passwordQuestion: (draft as any).passwordQuestion ?? initialFormState.passwordQuestion,
+        passwordAnswer: (draft as any).passwordAnswer ?? initialFormState.passwordAnswer,
       };
       setForm(restored);
       if (Array.isArray(draft.images)) setImages(draft.images);
@@ -144,6 +150,9 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
       templateUsed: template.id
     },
     images,
+    passwordQuestion: form.passwordQuestion || undefined,
+    passwordAnswer: form.passwordAnswer || undefined,
+    togetherSince: form.togetherSince || undefined,
   }), [form, existingExperience, isEdit, template.id, images]);
 
   async function submit() {
@@ -289,6 +298,20 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             ) : null}
           </div>
 
+          <div className="mt-4">
+            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">📅 Together since</p>
+            <input type="date" value={form.togetherSince} onChange={(e) => setForm((prev) => ({ ...prev, togetherSince: e.target.value }))} max={new Date().toISOString().split("T")[0]} className="input w-full md:w-64" />
+          </div>
+
+          <div className="mt-4 grid gap-5 md:grid-cols-2">
+            <Field label="🔑 Password question">
+              <input type="text" value={form.passwordQuestion} onChange={(e) => setForm((prev) => ({ ...prev, passwordQuestion: e.target.value }))} maxLength={200} className="input" placeholder='e.g. "What is my name?"' />
+            </Field>
+            <Field label="Password answer">
+              <input type="text" value={form.passwordAnswer} onChange={(e) => setForm((prev) => ({ ...prev, passwordAnswer: e.target.value }))} maxLength={80} className="input" placeholder="Leave blank to use their name" />
+            </Field>
+          </div>
+
           <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">💬 Message</p>
             <div className="grid gap-5 md:grid-cols-2">
@@ -319,7 +342,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           </div>
         </div>
 
-        {form.templateId === "memory-journey" && (
+        {(form.templateId === "memory-journey" || form.templateId === "memory-maze") && (
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <Field key={i} label={`Memory photo ${i + 1}`}>
@@ -333,20 +356,28 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                 ) : (
                   <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.04] text-xs text-white/40 transition-colors hover:border-white/30 hover:bg-white/[0.08]">
                     <span className="mb-1 text-lg">📷</span>
-                    Upload photo
+                    <span>Upload photo</span>
+                    <span className="mt-0.5 text-[10px] text-white/30">max 2MB per photo</span>
                     <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      if (file.size > 5 * 1024 * 1024) {
-                        setFieldErrors((prev) => ({ ...prev, [`image-${i}`]: "Max 5MB" }));
+                      if (file.size > 2 * 1024 * 1024) {
+                        setFieldErrors((prev) => ({ ...prev, [`image-${i}`]: "Max 2MB per photo" }));
                         return;
                       }
+                      const totalSize = images.reduce((sum, img) => sum + (img ? img.length : 0), 0);
                       setFieldErrors((prev) => { const next = { ...prev }; delete next[`image-${i}`]; return next; });
                       const reader = new FileReader();
                       reader.onload = async (ev) => {
                         const dataUrl = ev.target?.result as string;
                         const compressed = await compressImage(dataUrl);
-                        setImages((prev) => { const next = [...prev]; next[i] = compressed; return next; });
+                        const newImages = [...images]; newImages[i] = compressed;
+                        const newTotal = newImages.reduce((sum, img) => sum + (img ? img.length : 0), 0);
+                        if (newTotal > 8 * 1024 * 1024) {
+                          setFieldErrors((prev) => ({ ...prev, [`image-${i}`]: "Total photos exceed 8MB limit" }));
+                          return;
+                        }
+                        setImages(newImages);
                       };
                       reader.readAsDataURL(file);
                     }} />
@@ -355,7 +386,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
               </Field>
             ))}
             {fieldErrors["image-0"] || fieldErrors["image-1"] || fieldErrors["image-2"] || fieldErrors["image-3"] || fieldErrors["image-4"] || fieldErrors["image-5"] ? (
-              <p className="col-span-full text-xs font-bold text-rose-300">Images must be under 5MB</p>
+              <p className="col-span-full text-xs font-bold text-rose-300">{fieldErrors["image-0"] || fieldErrors["image-1"] || fieldErrors["image-2"] || fieldErrors["image-3"] || fieldErrors["image-4"] || fieldErrors["image-5"]}</p>
             ) : null}
           </div>
         )}

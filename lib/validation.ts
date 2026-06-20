@@ -57,6 +57,10 @@ export function normalizeExperiencePayload(body: Record<string, unknown>): Omit<
     finalMessage: max(body.finalMessage, defaultFinalMessage, 520),
     expiresAt: parseExpiresAt(body.expiresAt) ?? undefined,
     images,
+    customPassword: typeof body.customPassword === "string" ? body.customPassword.slice(0, 80) : undefined,
+    passwordQuestion: typeof body.passwordQuestion === "string" ? body.passwordQuestion.slice(0, 200) : undefined,
+    passwordAnswer: typeof body.passwordAnswer === "string" ? body.passwordAnswer.slice(0, 80) : undefined,
+    togetherSince: typeof body.togetherSince === "string" ? body.togetherSince.slice(0, 10) : undefined,
   };
 }
 

@@ -109,6 +109,10 @@ export type ExperienceRecord = {
   expiresAt?: string;
   analytics: ExperienceAnalytics;
   images?: string[];
+  customPassword?: string;
+  passwordQuestion?: string;
+  passwordAnswer?: string;
+  togetherSince?: string;
   reaction?: string;
 };
 

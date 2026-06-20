@@ -22,6 +22,10 @@ type ExperienceRow = {
   analytics: ExperienceAnalytics;
   images?: string[];
   reaction?: string;
+  custom_password?: string | null;
+  password_question?: string | null;
+  password_answer?: string | null;
+  together_since?: string | null;
 };
 
 const STORE_PATH = path.join(os.tmpdir(), "playable-messages-store.json");
@@ -61,6 +65,10 @@ function toRecord(row: ExperienceRow): ExperienceRecord {
     expiresAt: row.expires_at ?? undefined,
     analytics: row.analytics,
     images: row.images,
+    customPassword: row.custom_password ?? undefined,
+    passwordQuestion: row.password_question ?? undefined,
+    passwordAnswer: row.password_answer ?? undefined,
+    togetherSince: row.together_since ?? undefined,
     reaction: row.reaction ?? undefined,
   };
 }
@@ -85,6 +93,10 @@ export async function createExperience(body: Record<string, unknown>) {
       created_at: new Date().toISOString(),
       expires_at: input.expiresAt ?? null,
       analytics: emptyAnalytics(input.templateId),
+      custom_password: input.customPassword ?? null,
+      password_question: input.passwordQuestion ?? null,
+      password_answer: input.passwordAnswer ?? null,
+      together_since: input.togetherSince ?? null,
       images: input.images,
     };
     const store = await readLocalStore();
@@ -108,6 +120,10 @@ export async function createExperience(body: Record<string, unknown>) {
     final_message: input.finalMessage,
     analytics: emptyAnalytics(input.templateId),
     images: input.images,
+    custom_password: input.customPassword ?? null,
+    password_question: input.passwordQuestion ?? null,
+    password_answer: input.passwordAnswer ?? null,
+    together_since: input.togetherSince ?? null,
   };
   if (input.expiresAt) row.expires_at = input.expiresAt;
 
@@ -162,6 +178,10 @@ export async function updateExperience(body: Record<string, unknown>) {
       custom_messages: input.customMessages,
       final_message: input.finalMessage,
       expires_at: input.expiresAt ?? existing.expires_at,
+      custom_password: input.customPassword ?? existing.custom_password,
+      password_question: input.passwordQuestion ?? existing.password_question,
+      password_answer: input.passwordAnswer ?? existing.password_answer,
+      together_since: input.togetherSince ?? existing.together_since,
       images: input.images ?? existing.images
     };
     store.set(id, updated);
@@ -182,6 +202,10 @@ export async function updateExperience(body: Record<string, unknown>) {
     custom_messages: input.customMessages,
     final_message: input.finalMessage,
     images: input.images,
+    custom_password: input.customPassword ?? null,
+    password_question: input.passwordQuestion ?? null,
+    password_answer: input.passwordAnswer ?? null,
+    together_since: input.togetherSince ?? null,
   };
   if (input.expiresAt) updateRow.expires_at = input.expiresAt;
   const { data, error } = await supabase

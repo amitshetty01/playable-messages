@@ -14,7 +14,11 @@ create table if not exists generated_experiences (
   expires_at timestamptz,
   images jsonb not null default '[]'::jsonb,
   analytics jsonb not null default '{"opened":0,"completed":0,"selectedChoices":{},"finalCtaClicks":0,"templateUsed":""}'::jsonb,
-  reaction text not null default ''
+  reaction text not null default '',
+  together_since timestamptz,
+  custom_password text not null default '',
+  password_question text not null default '',
+  password_answer text not null default ''
 );
 
 alter table generated_experiences
@@ -25,6 +29,14 @@ alter table generated_experiences
 add column if not exists show_creator_name boolean not null default true;
 alter table generated_experiences
 add column if not exists reaction text not null default '';
+alter table generated_experiences
+add column if not exists together_since timestamptz;
+alter table generated_experiences
+add column if not exists custom_password text not null default '';
+alter table generated_experiences
+add column if not exists password_question text not null default '';
+alter table generated_experiences
+add column if not exists password_answer text not null default '';
 
 create table if not exists analytics_events (
   id bigserial primary key,

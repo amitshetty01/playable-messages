@@ -173,16 +173,16 @@ export const templates: Template[] = [
   {
     id: "memory-maze",
     slug: "memory-maze",
-    title: "Memory Match",
-    hook: "Flip the cards. Match the pairs. Unlock the memory.",
+    title: "Heart Vault",
+    hook: "Touch the beating heart. Speak the password. Enter a world of memories.",
     categorySlugs: ["friendship-best-friend", "birthday-special-days", "love-crush"],
-    bestFor: "friendship, birthday, memories, nostalgia",
+    bestFor: "friendship, birthday, memories, nostalgia, love",
     length: "2 minutes",
     tone: "Emotional",
     theme: "Dark Romantic",
     status: "full",
-    formula: ["Flip card 1", "Find the match", "Line revealed", "Keep going", "Full memory"],
-    description: "A flip-and-match card game where every matched pair reveals the next line, in order, until the whole memory's told."
+    formula: ["Touch the heart", "Knock knock", "Enter the password", "Blackout", "Memory world", "Final words"],
+    description: "A beating heart waits to be touched. Once you knock, a password screen appears — prove who you are to unlock a world of memories with photos, messages, and a final love note."
   },
   {
     id: "roast-to-respect",
