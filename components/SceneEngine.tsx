@@ -871,8 +871,10 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
     return () => { love.pause(); loveAudioRef.current = null; };
   }, []);
 
+  const loveSceneIndex = useMemo(() => flow.scenes.findIndex(s => s.id === "yes-no"), [flow.scenes]);
+
   useEffect(() => {
-    if (currentRef.current?.id === "yes-no" && !loveActive && loveReady && loveAudioRef.current && audioRef.current) {
+    if (loveSceneIndex >= 0 && step >= loveSceneIndex && !loveActive && loveReady && loveAudioRef.current && audioRef.current) {
       setLoveActive(true);
       loveAudioRef.current.volume = 0;
       loveAudioRef.current.currentTime = 0;
@@ -892,7 +894,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
         loveAudioRef.current.volume = Math.min(0.3, loveVol + 0.015);
       }, 50);
     }
-  }, [loveActive, loveReady, step]);
+  }, [loveActive, loveReady, step, loveSceneIndex]);
 
   useEffect(() => {
     if (showFinalScreen) {
@@ -1002,12 +1004,13 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
       <audio ref={loveAudioRef} preload="auto" src="/audio/love-confession-bg.mp3" />
       <ConfettiEffect active={showConfetti} />
       <EggBanner message={eggMessage} />
-      <div
-        ref={containerRef}
-        key={transitionKey}
-        className={`animate-scene-enter relative flex w-full flex-col ${shaking ? "animate-shake" : ""} ${mode === "preview" ? "min-h-full" : "min-h-[100dvh] overflow-hidden"}`}
-      >
+      <div className={`relative flex w-full flex-col ${mode === "preview" ? "min-h-full" : "min-h-[100dvh] overflow-hidden"}`}>
         <SceneBackground scene={current!} />
+        <div
+          ref={containerRef}
+          key={transitionKey}
+          className={`animate-scene-enter relative z-10 flex w-full flex-1 flex-col ${shaking ? "animate-shake" : ""}`}
+        >
 
         {showFinalScreen ? (
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8">
@@ -1114,6 +1117,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
           </div>
         )}
 
+        </div>
       </div>
 
       {/* Fullscreen celebration overlay */}
