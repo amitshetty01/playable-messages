@@ -197,10 +197,10 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
 
       {/* ─── KITTY ─── */}
       <div className="relative transition-all duration-[2000ms] ease-in-out" style={{
-        transform: isZoomed ? "scale(1.45) translateY(-6px)" : "scale(1) translateY(0)",
+        transform: isZoomed ? "scale(1.25) translateY(-6px)" : "scale(1) translateY(0)",
         transformOrigin: "center 50%",
       }}>
-        <svg viewBox="0 0 200 260" className="overflow-visible w-[150px] h-[195px] sm:w-[190px] sm:h-[247px] md:w-[220px] md:h-[286px]" style={{ filter: "drop-shadow(0 12px 40px rgba(200, 140, 120, 0.35))" }}>
+        <svg viewBox="0 0 200 260" className="overflow-visible w-[200px] h-[260px] sm:w-[250px] sm:h-[325px] md:w-[300px] md:h-[390px]" style={{ filter: "drop-shadow(0 12px 40px rgba(200, 140, 120, 0.35))" }}>
           <defs>
             <radialGradient id="fur" cx="48%" cy="30%" r="65%"><stop offset="0%" stopColor="#FFFAF2"/><stop offset="45%" stopColor="#FFF0E0"/><stop offset="100%" stopColor="#F0D5C0"/></radialGradient>
             <radialGradient id="earIn" cx="50%" cy="60%" r="55%"><stop offset="0%" stopColor="#FFD5D5"/><stop offset="100%" stopColor="#F0A8B0"/></radialGradient>
