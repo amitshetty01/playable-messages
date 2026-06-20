@@ -120,11 +120,11 @@ export async function createExperience(body: Record<string, unknown>) {
     final_message: input.finalMessage,
     analytics: emptyAnalytics(input.templateId),
     images: input.images,
-    custom_password: input.customPassword ?? null,
-    password_question: input.passwordQuestion ?? null,
-    password_answer: input.passwordAnswer ?? null,
-    together_since: input.togetherSince ?? null,
   };
+  if (input.customPassword) row.custom_password = input.customPassword;
+  if (input.passwordQuestion) row.password_question = input.passwordQuestion;
+  if (input.passwordAnswer) row.password_answer = input.passwordAnswer;
+  if (input.togetherSince) row.together_since = input.togetherSince;
   if (input.expiresAt) row.expires_at = input.expiresAt;
 
   const { data, error } = await supabase.from("generated_experiences").insert(row).select("*").single<ExperienceRow>();
@@ -202,11 +202,11 @@ export async function updateExperience(body: Record<string, unknown>) {
     custom_messages: input.customMessages,
     final_message: input.finalMessage,
     images: input.images,
-    custom_password: input.customPassword ?? null,
-    password_question: input.passwordQuestion ?? null,
-    password_answer: input.passwordAnswer ?? null,
-    together_since: input.togetherSince ?? null,
   };
+  if (input.customPassword) updateRow.custom_password = input.customPassword;
+  if (input.passwordQuestion) updateRow.password_question = input.passwordQuestion;
+  if (input.passwordAnswer) updateRow.password_answer = input.passwordAnswer;
+  if (input.togetherSince) updateRow.together_since = input.togetherSince;
   if (input.expiresAt) updateRow.expires_at = input.expiresAt;
   const { data, error } = await supabase
     .from("generated_experiences")
