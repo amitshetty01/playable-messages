@@ -58,7 +58,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "surprise-room", scenes };
+  return { templateId: "surprise-room-scenes", scenes };
 }
 
 export const surpriseRoomScenes = build;

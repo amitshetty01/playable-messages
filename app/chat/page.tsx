@@ -799,7 +799,7 @@ export default function ChatPage() {
             {pendingFile && (
               <div className="mb-2 flex items-center gap-2 rounded-xl border border-violet-500/20 bg-violet-500/5 px-2.5 sm:px-3 py-1.5 sm:py-2">
                 {pendingFile.file.type.startsWith("image/") ? (
-                  <img src={pendingFile.preview} alt="" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover" />
+                  <img src={pendingFile.preview} alt={pendingFile.file.name || "Upload preview"} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover" />
                 ) : (
                   <span className="text-base sm:text-lg">🎬</span>
                 )}

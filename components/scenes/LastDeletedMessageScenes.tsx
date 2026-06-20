@@ -49,7 +49,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "the-last-deleted-message", scenes };
+  return { templateId: "deleted-drafts", scenes };
 }
 
 export const lastDeletedMessageScenes = build;

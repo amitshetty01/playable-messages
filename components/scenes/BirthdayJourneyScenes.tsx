@@ -49,7 +49,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "birthday-surprise-journey", scenes };
+  return { templateId: "birthday-journey", scenes };
 }
 
 export const birthdayJourneyScenes = build;

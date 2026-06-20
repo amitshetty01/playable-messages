@@ -49,7 +49,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "secret-letter", scenes };
+  return { templateId: "secret-letter-scenes", scenes };
 }
 
 export const secretLetterScenes = build;

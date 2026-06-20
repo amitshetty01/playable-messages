@@ -74,7 +74,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "memory-journey", scenes };
+  return { templateId: "memory-scenes", scenes };
 }
 
 export const memoryJourneyScenes = build;

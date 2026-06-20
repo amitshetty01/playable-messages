@@ -49,7 +49,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "roast-to-respect", scenes };
+  return { templateId: "roast-scenes", scenes };
 }
 
 export const roastToRespectScenes = build;

@@ -49,7 +49,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
   ];
 
-  return { templateId: "dont-smile-challenge", scenes };
+  return { templateId: "dont-smile-scenes", scenes };
 }
 
 export const dontSmileChallengeScenes = build;
