@@ -1063,7 +1063,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
               />
             ) : (
               <div className="flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-2 sm:gap-3">
-                <div className={`flex w-full flex-col items-center justify-center gap-2 sm:gap-3 text-${current?.content.align === "left" ? "left" : "center"}`}>
+                <div className={`flex w-full flex-col items-center justify-center gap-2 sm:gap-3 text-${current?.content.align === "left" ? "left" : "center"} ${current?.interaction?.type === "love-chase" ? "animate-heart-pulse" : ""}`}>
                   {current?.content.title && <TitleText text={current.content.title} align={current.content.align} />}
                   {current?.content.body && <BodyText text={current.content.body} />}
                 </div>
