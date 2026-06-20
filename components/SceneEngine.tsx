@@ -220,7 +220,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
                 background: "rgba(255,255,255,0.08)",
                 border: "2px solid rgba(255,255,255,0.2)",
                 color: "white",
-                transition: "left 0.25s ease-in-out, top 0.25s ease-in-out",
+                transition: "left 0.5s ease-in-out, top 0.5s ease-in-out",
               }
             : {
                 background: "rgba(255,255,255,0.05)",
