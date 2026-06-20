@@ -7,6 +7,7 @@ const links = [
   { href: "/categories", label: "Categories" },
   { href: "/templates", label: "Templates" },
   { href: "/my-experiences", label: "My messages" },
+  { href: "/chat", label: "Private Chat" },
 ];
 
 export function Header() {

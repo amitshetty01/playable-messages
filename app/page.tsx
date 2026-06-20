@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
@@ -48,6 +49,17 @@ export default function HomePage() {
           <BrowseFlow />
         </section>
       )}
+
+      {/* ─── Secret space ─── */}
+      <div className="mt-16 text-center">
+        <Link
+          href="/chat"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[0.65rem] font-bold text-white/15 transition-all hover:bg-white/5 hover:text-white/40"
+        >
+          <span>🔒</span>
+          <span>Secret space</span>
+        </Link>
+      </div>
 
     </div>
   );

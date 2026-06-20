@@ -70,3 +70,60 @@ drop policy if exists "Public can insert analytics events" on analytics_events;
 create policy "Public can insert analytics events"
 on analytics_events for insert
 with check (true);
+
+-- ─── Private Chat (Rooms + Messages) ───
+
+create table if not exists chat_rooms (
+  id text primary key,
+  code text unique not null,
+  created_at timestamptz not null default now()
+);
+
+alter table chat_rooms enable row level security;
+
+drop policy if exists "Anyone can read chat rooms" on chat_rooms;
+create policy "Anyone can read chat rooms"
+on chat_rooms for select
+using (true);
+
+drop policy if exists "Anyone can insert chat rooms" on chat_rooms;
+create policy "Anyone can insert chat rooms"
+on chat_rooms for insert
+with check (true);
+
+create table if not exists chat_messages (
+  id bigserial primary key,
+  room_id text references chat_rooms(id) on delete cascade not null,
+  session_id text not null,
+  nickname text not null,
+  message_type text not null default 'text',
+  content text,
+  file_url text,
+  file_name text,
+  file_size integer,
+  deleted boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_chat_messages_room_id on chat_messages(room_id);
+
+alter table chat_messages enable row level security;
+
+drop policy if exists "Anyone can read chat messages" on chat_messages;
+create policy "Anyone can read chat messages"
+on chat_messages for select
+using (true);
+
+drop policy if exists "Anyone can insert chat messages" on chat_messages;
+create policy "Anyone can insert chat messages"
+on chat_messages for insert
+with check (true);
+
+drop policy if exists "Anyone can update chat messages" on chat_messages;
+create policy "Anyone can update chat messages"
+on chat_messages for update
+using (true)
+with check (true);
+
+-- Enable realtime for new messages
+alter table chat_messages replica identity full;
