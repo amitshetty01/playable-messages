@@ -231,6 +231,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
     const isFast = dodgeCountRef.current > 5;
     const nx = 5 + Math.random() * (isFast ? 75 : 80);
     const ny = 5 + Math.random() * (isFast ? 70 : 75);
+    setFlying(true);
     setPos({ left: `${nx}%`, top: `${ny}%` });
 
     const rot = (Math.random() - 0.5) * (isFast ? 40 : 24);
