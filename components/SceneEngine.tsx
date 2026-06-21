@@ -227,6 +227,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
   }
 
   function handleMove(e: React.MouseEvent | React.TouchEvent | React.FocusEvent) {
+    if (!flying && "clientX" in e && e.type === "mouseenter") return;
     dodgeCountRef.current++;
     const isFast = dodgeCountRef.current > 5;
     const nx = 5 + Math.random() * (isFast ? 75 : 80);
@@ -315,6 +316,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
       )}
 
       <span
+        onMouseEnter={handleMove}
         onClick={handleMove}
         onTouchStart={handleMove}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(e as unknown as React.MouseEvent); } }}
