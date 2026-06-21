@@ -14,7 +14,7 @@ const QUICK_TEMPLATES = [
   { emoji: "🎂", label: "Birthday", template: "birthday-surprise-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
   { emoji: "🏆", label: "Roast", template: "come-closer", hint: "Come closer. I've been saving this one just for you." },
   { emoji: "💓", label: "Memory", template: "memory-maze", hint: "Every heartbeat holds a story. Some are just waiting to be unlocked." },
-  { emoji: "🔥", label: "Mystery", template: "glitch-truth", hint: "There's something I've never told you before." },
+  { emoji: "🔥", label: "Mystery", template: "escape-me", hint: "There's something hidden inside. Can you find it?" },
 ];
 
 export function QuickFlow() {

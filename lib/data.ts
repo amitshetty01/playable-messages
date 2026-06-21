@@ -744,6 +744,20 @@ export const templates: Template[] = [
     formula: ["Enter room", "Pick a box", "Drag to open", "Final surprise"],
     description: "Step into a private room with four boxes. Pick one, drag it open. Each box holds something different."
   },
+  {
+    id: "escape-me",
+    slug: "escape-me",
+    title: "Escape Me",
+    hook: "Tap the arrows. Clear the heart. Unlock what's hidden inside.",
+    categorySlugs: ["love-crush", "mystery-confession", "friendship-best-friend"],
+    bestFor: "love, mystery, friendship, emotional reveals",
+    length: "30 seconds",
+    tone: "Romantic",
+    theme: "Dark Romantic",
+    status: "full",
+    formula: ["Heart of arrows", "Tap to remove", "Clear the path", "Message revealed"],
+    description: "A heart made of arrow pieces. Tap each arrow in the right order to clear the walls and unlock a hidden personal message inside."
+  },
 ];
 
 const templateRouteAliases: Record<string, string> = {

@@ -40,6 +40,7 @@ const GravityFlip = dynamic(() => import("@/components/experience/GravityFlip").
 const EchoChamber = dynamic(() => import("@/components/experience/EchoChamber").then((m) => ({ default: m.EchoChamber })), { ssr: false });
 const BalanceScale = dynamic(() => import("@/components/experience/BalanceScale").then((m) => ({ default: m.BalanceScale })), { ssr: false });
 const GameAdapter = dynamic(() => import("@/components/GameAdapter").then((m) => ({ default: m.GameAdapter })), { ssr: false });
+const EscapeMeGame = dynamic(() => import("@/components/games/EscapeMeGame").then((m) => ({ default: m.EscapeMeGame })), { ssr: false });
 
 type Mode = "demo" | "generated" | "preview";
 
@@ -84,6 +85,7 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "roast-wheel": (props) => <GameAdapter {...props} />,
   "memory-flip": (props) => <GameAdapter {...props} />,
   "mystery-fog": (props) => <GameAdapter {...props} />,
+  "escape-me": (props) => <EscapeMeGame {...props} />,
 };
 
 export function ExperiencePlayer({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) {
@@ -122,7 +124,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
 
   const FlowComponent = FLOWS[template.id];
   if (FlowComponent) {
-    if (template.id === "kitty-apology") {
+    if (template.id === "kitty-apology" || template.id === "escape-me") {
       return (
         <SceneErrorBoundary>
           {FlowComponent({ template, experience, mode, shareUrl })}
