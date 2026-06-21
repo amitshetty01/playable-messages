@@ -38,7 +38,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     {
       id: "one",
       background: { type: "pulse-glow", gradient: "from-[#0d0d1a] via-[#1a102e] to-[#0a0512]", color: "rgba(255,95,183,0.2)" },
-      prop: { type: "sparkle", animation: "shake" },
+      prop: { type: "sparkle", animation: "reveal-scale" },
       content: { title: "1" },
       interaction: { type: "auto", action: "next", label: "", delay: 700 },
     },

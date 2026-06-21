@@ -3,13 +3,11 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useUndoRedo } from "@/lib/useUndoRedo";
 import { ExperiencePlayer } from "@/components/ExperiencePlayer";
-import { ThemeSelector } from "@/components/ThemeSelector";
-import { ToneSelector } from "@/components/ToneSelector";
-import { categories, defaultCustomMessages, defaultFinalMessage, getTemplateCategory } from "@/lib/data";
+import { defaultCustomMessages, defaultFinalMessage, getTemplateCategory } from "@/lib/data";
 import { saveExperience } from "@/lib/my-experiences";
 import { compressImage } from "@/lib/compressImage";
 import { Spinner } from "@/components/Spinner";
-import type { Category, ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
+import type { ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
 import { RELATIONSHIP_TAGS, ANON_TONES } from "@/lib/types";
 
 const EXPIRY_OPTIONS = [
@@ -47,9 +45,6 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     finalMessage: existingExperience?.finalMessage ?? defaultFinalMessage,
     ctaMessage: existingExperience?.customMessages.ctaMessage ?? defaultCustomMessages.ctaMessage,
     sceneTitles: (existingExperience?.customMessages.sceneTitles ?? []).join("\n"),
-    togetherSince: existingExperience?.togetherSince ?? "",
-    passwordQuestion: existingExperience?.passwordQuestion ?? "",
-    passwordAnswer: existingExperience?.passwordAnswer ?? "",
     expiryOption: "",
   };
 
@@ -62,7 +57,6 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [draftToast, setDraftToast] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
   const draftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -111,9 +105,6 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         expiryOption: draft.expiryOption ?? initialFormState.expiryOption,
         relationshipTag: (draft as any).relationshipTag ?? initialFormState.relationshipTag,
         showCreatorName: (draft as any).showCreatorName ?? initialFormState.showCreatorName,
-        togetherSince: (draft as any).togetherSince ?? initialFormState.togetherSince,
-        passwordQuestion: (draft as any).passwordQuestion ?? initialFormState.passwordQuestion,
-        passwordAnswer: (draft as any).passwordAnswer ?? initialFormState.passwordAnswer,
       };
       setForm(restored);
       if (Array.isArray(draft.images)) setImages(draft.images);
@@ -150,9 +141,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
       templateUsed: template.id
     },
     images,
-    passwordQuestion: form.passwordQuestion || undefined,
-    passwordAnswer: form.passwordAnswer || undefined,
-    togetherSince: form.togetherSince || undefined,
+
   }), [form, existingExperience, isEdit, template.id, images]);
 
   async function submit() {
@@ -298,20 +287,6 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             ) : null}
           </div>
 
-          <div className="mt-4">
-            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">📅 Together since</p>
-            <input type="date" value={form.togetherSince} onChange={(e) => setForm((prev) => ({ ...prev, togetherSince: e.target.value }))} max={new Date().toISOString().split("T")[0]} className="input w-full md:w-64" />
-          </div>
-
-          <div className="mt-4 grid gap-5 md:grid-cols-2">
-            <Field label="🔑 Password question">
-              <input type="text" value={form.passwordQuestion} onChange={(e) => setForm((prev) => ({ ...prev, passwordQuestion: e.target.value }))} maxLength={200} className="input" placeholder='e.g. "What is my name?"' />
-            </Field>
-            <Field label="Password answer">
-              <input type="text" value={form.passwordAnswer} onChange={(e) => setForm((prev) => ({ ...prev, passwordAnswer: e.target.value }))} maxLength={80} className="input" placeholder="Leave blank to use their name" />
-            </Field>
-          </div>
-
           <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">💬 Message</p>
             <div className="grid gap-5 md:grid-cols-2">
@@ -391,39 +366,16 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           </div>
         )}
 
-        <div className="mt-4 flex items-center gap-2">
-          <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-2 text-sm font-bold text-white/50 transition-colors hover:text-white/80">
-            {showAdvanced ? "−" : "+"} Advanced settings
-          </button>
-          <div className="ml-auto flex gap-1.5">
-            <button type="button" onClick={undo} disabled={!canUndo} className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 bg-white/10 text-xs font-bold text-white/60 transition-all hover:border-white/30 hover:text-white/90 disabled:opacity-30 disabled:pointer-events-none" title="Undo (Ctrl+Z)">
-              ↩
-            </button>
-            <button type="button" onClick={redo} disabled={!canRedo} className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 bg-white/10 text-xs font-bold text-white/60 transition-all hover:border-white/30 hover:text-white/90 disabled:opacity-30 disabled:pointer-events-none" title="Redo (Ctrl+Shift+Z)">
-              ↪
-            </button>
-          </div>
-        </div>
-
-        {showAdvanced && (
-          <div className="mt-5 grid gap-5 md:grid-cols-2">
-            <Field label="Category">
-              <select value={form.category} onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))} className="input">
-                {categories.map((item: Category) => <option className="bg-ink" key={item.slug} value={item.slug}>{item.name}</option>)}
-              </select>
-            </Field>
-            <ToneSelector value={form.tone} onChange={(value: Tone) => setForm((prev) => ({ ...prev, tone: value }))} />
-            <ThemeSelector value={form.theme} onChange={(value: ThemeName) => setForm((prev) => ({ ...prev, theme: value }))} />
-            <Field label="Scene headings (one per line — overrides default titles)" full>
-              <textarea value={form.sceneTitles} onChange={(event) => setForm((prev) => ({ ...prev, sceneTitles: event.target.value }))} className="input min-h-28 py-3" placeholder="First memory...&#10;A funny moment...&#10;The big one..." />
-            </Field>
+        <div className="mt-6">
+          <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">🔗 Link settings</p>
+          <div className="grid gap-5 md:grid-cols-2">
             <Field label="Link expiry">
               <select value={form.expiryOption} onChange={(event) => setForm((prev) => ({ ...prev, expiryOption: event.target.value }))} className="input">
                 {EXPIRY_OPTIONS.map((opt) => <option className="bg-ink" key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </Field>
           </div>
-        )}
+        </div>
 
         {error ? <p className="mt-5 rounded-2xl border border-rose-200/30 bg-rose-300/10 p-4 text-sm font-bold text-rose-100" role="alert">{error}</p> : null}
 

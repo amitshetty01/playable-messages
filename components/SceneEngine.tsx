@@ -830,7 +830,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   const [showFullscreenCelebration, setShowFullscreenCelebration] = useState(false);
   const [showFinalScreen, setShowFinalScreen] = useState(false);
   const [transitionKey, setTransitionKey] = useState(0);
-  const [shaking, setShaking] = useState(false);
+
   const [suspense, setSuspense] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const loveAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -941,11 +941,6 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   const current = step < flow.scenes.length ? fillScene(flow.scenes[step]) : null;
   currentRef.current = current;
 
-  const triggerShake = useCallback(() => {
-    setShaking(true);
-    setTimeout(() => setShaking(false), 500);
-  }, []);
-
   const advance = useCallback(() => {
     const cur = currentRef.current;
     if (!cur) return;
@@ -970,10 +965,9 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
       return;
     }
     playToneSound("whoosh", tone);
-    triggerShake();
     setStep((s) => Math.min(s + 1, flow.scenes.length));
     setTransitionKey((k) => k + 1);
-  }, [onComplete, onTrack, triggerShake]);
+  }, [onComplete, onTrack]);
 
   const handleChoice = useCallback((_choiceId: string) => {
     advance();
@@ -1009,7 +1003,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
         <div
           ref={containerRef}
           key={transitionKey}
-          className={`animate-scene-enter relative z-10 flex w-full flex-1 flex-col ${shaking ? "animate-shake" : ""}`}
+          className="animate-scene-enter relative z-10 flex w-full flex-1 flex-col"
         >
 
         {showFinalScreen ? (

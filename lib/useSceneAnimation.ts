@@ -41,6 +41,8 @@ export function AnimatedText({
 }: AnimatedStyleProps) {
   const show = useSceneAnimation(delay);
 
+  const scaleDist = distance >= 30 ? 0.85 : 1;
+
   return createElement(
     as,
     {
@@ -48,7 +50,9 @@ export function AnimatedText({
       style: {
         ...style,
         opacity: show ? 1 : 0,
-        transform: show ? "translateY(0)" : `translateY(${distance}px)`,
+        transform: show
+          ? "translateY(0) scale(1)"
+          : `translateY(${distance}px) scale(${scaleDist})`,
         transition: `opacity ${duration}ms cubic-bezier(0.22, 1, 0.36, 1), transform ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`,
       },
     },
