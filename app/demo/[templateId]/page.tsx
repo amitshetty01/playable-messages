@@ -28,6 +28,17 @@ export default async function DemoPage({ params }: { params: Promise<{ templateI
   const { templateId } = await params;
   const template = getTemplate(templateId);
   if (!template) notFound();
+  if (template.status === "coming-soon") {
+    return (
+      <div className="flex min-h-[50dvh] flex-col items-center justify-center text-center">
+        <div className="rounded-[2rem] border border-white/15 bg-white/10 p-10 backdrop-blur-2xl">
+          <h1 className="text-2xl font-bold text-white">{template.title}</h1>
+          <p className="mt-3 text-white/60">This template is coming soon.</p>
+          <Link className="premium-button mt-6 inline-flex" href="/templates">Browse available templates</Link>
+        </div>
+      </div>
+    );
+  }
   const experience = createDemoExperience(template);
 
   const isSceneEngine = SCENE_ENGINE_TEMPLATES.includes(template.id) || SCENE_ENGINE_TEMPLATES.includes(templateId);

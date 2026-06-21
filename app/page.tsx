@@ -5,7 +5,7 @@ import Link from "next/link";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
-
+import { AdsterraAd } from "@/components/AdsterraAd";
 export default function HomePage() {
   const [showGuided, setShowGuided] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
@@ -17,6 +17,11 @@ export default function HomePage() {
       <section className="section-fade min-h-[80dvh] pt-12 sm:pt-20">
         <QuickFlow />
       </section>
+
+      <div className="mt-10 flex flex-col items-center gap-4">
+        <AdsterraAd type="rectangle" />
+        <AdsterraAd type="rectangle" />
+      </div>
 
       {/* ─── Escape hatches ─── */}
       <div className="mt-10 flex flex-col items-center gap-3 text-center">
@@ -59,6 +64,12 @@ export default function HomePage() {
           <span>🔒</span>
           <span>Secret space</span>
         </Link>
+      </div>
+
+      <div className="mt-12 flex flex-wrap justify-center gap-4">
+        <AdsterraAd type="square" />
+        <AdsterraAd type="square" />
+        <AdsterraAd type="square" />
       </div>
 
     </div>

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { templates } from "@/lib/data";
 import { pickTemplate } from "@/lib/pickTemplate";
 import { Spinner } from "@/components/Spinner";
+import { NativeAd } from "@/components/NativeAd";
 
 export function BrowseFlow() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -55,28 +56,40 @@ export function BrowseFlow() {
     );
   }
 
+  const activeTemplates = templates.filter((t) => t.status !== "coming-soon");
+
   return (
     <div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {templates.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => { setSelectedId(t.id); setMessage(""); }}
-            className={`group rounded-2xl border p-5 text-left transition-all ${
-              selectedId === t.id
-                ? "border-white/40 bg-white/12 shadow-lg"
-                : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
-            }`}
-          >
-            <h3 className="text-sm font-extrabold tracking-[-0.02em]">{t.title}</h3>
-            <p className="mt-2 text-xs leading-5 text-white/55">{t.description}</p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-white/40">{t.tone}</span>
-              <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-white/40">{t.length}</span>
-            </div>
-          </button>
-        ))}
+        {activeTemplates.flatMap((t, i) => {
+          const items: React.ReactNode[] = [
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => { setSelectedId(t.id); setMessage(""); }}
+              className={`group rounded-2xl border p-5 text-left transition-all ${
+                selectedId === t.id
+                  ? "border-white/40 bg-white/12 shadow-lg"
+                  : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
+              }`}
+            >
+              <h3 className="text-sm font-extrabold tracking-[-0.02em]">{t.title}</h3>
+              <p className="mt-2 text-xs leading-5 text-white/55">{t.description}</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-white/40">{t.tone}</span>
+                <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-white/40">{t.length}</span>
+              </div>
+            </button>,
+          ];
+          if ((i + 1) % 6 === 0) {
+            items.push(
+              <div key={`ad-${i}`} className="col-span-full">
+                <NativeAd />
+              </div>,
+            );
+          }
+          return items;
+        })}
       </div>
 
       {selected && (

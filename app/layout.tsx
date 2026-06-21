@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { SoundToggleWrapper } from "@/components/SoundToggleWrapper";
 import { SoundWelcome } from "@/components/SoundWelcome";
 import { CookieBanner } from "@/components/CookieBanner";
+import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
 import { defaultDescription, defaultOgImage, siteName } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Header />
+        <ResponsiveBannerAd />
         <main id="content" className="mx-auto min-h-[calc(100svh-220px)] w-full max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
           {children}
         </main>

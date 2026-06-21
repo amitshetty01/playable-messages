@@ -82,7 +82,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Emotional",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Static hiss", "Tune the dial", "Frequency locks", "Message comes through"],
     description: "Like finding an old radio station that's been playing the whole time. Good for regret, missing someone, or anything that took a while to find the words for."
   },
@@ -96,7 +96,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Card 1", "Card 2", "Card 3", "Final reveal"],
     description: "Three face-down cards on the table, each flip revealing a little more and raising the stakes, until the last card holds the real message."
   },
@@ -110,7 +110,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Mystery",
     theme: "Neon Glitch",
-    status: "full",
+    status: "coming-soon",
     formula: ["Frozen block", "Chip the ice", "Deep cracks", "Shatter and reveal"],
     description: "Tap or drag chips real cracks into the ice until it shatters and the words break free. Same truth fighting to get out, just colder and more physical."
   },
@@ -124,7 +124,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Funny",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Shake once", "Shake again", "One more", "Real answer"],
     description: "A fortune ball gets shaken for a few cheeky non-answers before it finally lands on the real one."
   },
@@ -138,7 +138,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Sorry",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Storm rises", "Breathe in", "Hold", "Release", "Message clear"],
     description: "A stormy scene the recipient has to breathe through with an on-screen guide. Hold and release until it settles and the apology becomes legible."
   },
@@ -152,7 +152,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Funny",
     theme: "Clean White",
-    status: "full",
+    status: "coming-soon",
     formula: ["Grab the rope", "Pull hard", "Keep pulling", "Message won"],
     description: "A rope with real resistance on the other end. They have to actually work for it, pulling steadily until they win the message back."
   },
@@ -166,7 +166,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Unfold map", "Drag compass", "Find the X", "Buried treasure"],
     description: "A hand-drawn map with a compass they drag around until it locks onto an X, and the ground opens to show what's buried."
   },
@@ -194,7 +194,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Savage",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Base camp", "Steep climb", "Teasing stop", "Near the top", "Summit reveal"],
     description: "A few teasing checkpoint comments on the way up, then something quiet and sincere waiting at the summit beside a little planted flag."
   },
@@ -208,7 +208,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Birthday",
     theme: "Cute Pink",
-    status: "full",
+    status: "coming-soon",
     formula: ["Candle 1", "Candle 2", "Candle 3", "Candle 4", "Message in icing"],
     description: "Click or hold to blow out candles on a cake one by one, and the message appears in icing once the last one's out."
   },
@@ -222,7 +222,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Emotional",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["Strand 1", "Strand 2", "Strand 3", "Weave together", "Charm reveals"],
     description: "Drag three colored strands over each other to weave a friendship bracelet, with the finished charm revealing the message."
   },
@@ -236,7 +236,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Shake the globe", "Snow swirls", "Settling", "Message etched"],
     description: "Shake the snow globe, let the snow settle, and the message is etched into the glass like it's always been waiting there."
   },
@@ -250,7 +250,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Silver coating", "Scratch here", "Keep going", "Message revealed"],
     description: "Drag to scratch off a silver coating like a lottery ticket, uncovering the message stroke by stroke."
   },
@@ -264,7 +264,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Mystery",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["First domino", "Chain reaction", "Words fall", "Message complete"],
     description: "Tap the first domino and watch the chain react across the screen, each fallen piece revealing the next word until the sentence has toppled into place."
   },
@@ -278,7 +278,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Emotional",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Fold the paper", "Aim", "Fling", "Landing spot", "Message unfolds"],
     description: "Fold it, fling it across the screen, and wherever it lands, it unfolds to show the message."
   },
@@ -292,7 +292,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Mystery",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["First flash", "Second flash", "Third flash", "Final flash", "Strip prints"],
     description: "A countdown and a flash, four times over, like an old photo booth strip, with each flash capturing one line until the full strip prints out."
   },
@@ -306,7 +306,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Funny",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Cookie 1", "Cookie 2", "Cookie 3", "Real fortune"],
     description: "Crack one open for a joke fortune, then another, then a third — the real message is folded inside the last one."
   },
@@ -320,7 +320,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Mystery",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["Waves recede", "Trace the words", "Tide returns", "Fleeting message"],
     description: "Waves wash over a beach, and they have to trace the message in the sand with a finger before the tide comes back and erases it."
   },
@@ -334,7 +334,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Grab the string", "Pull", "Confetti burst", "Banner reveals"],
     description: "Pull the string, confetti goes off, and a little banner unfurls with your words on it."
   },
@@ -362,7 +362,7 @@ export const templates: Template[] = [
     length: "20 seconds",
     tone: "Romantic",
     theme: "Cute Pink",
-    status: "full",
+    status: "coming-soon",
     formula: ["Scratch card", "Message reveal", "Reaction"],
     description: "A heart-shaped scratch card hides your message. They drag their finger across it like a lottery ticket to reveal what you wrote."
   },
@@ -376,7 +376,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Sorry",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Scattered pieces", "Drag to assemble", "Message revealed"],
     description: "Your message is broken into draggable fragments. They drag each piece into place until the message is whole again."
   },
@@ -418,7 +418,7 @@ export const templates: Template[] = [
     length: "15 seconds",
     tone: "Funny",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Pull lever", "Reels spin", "Jackpot", "Message"],
     description: "A rigged slot machine that always hits jackpot. Pull the lever, watch the reels land, and get your message delivered with confetti."
   },
@@ -432,7 +432,7 @@ export const templates: Template[] = [
     length: "20 seconds",
     tone: "Mystery",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Blacked-out text", "Decoder lens", "Full reveal"],
     description: "Your message appears as a classified document with black bars. They drag a decoder lens across the bars to read what's underneath."
   },
@@ -460,7 +460,7 @@ export const templates: Template[] = [
     length: "15 seconds",
     tone: "Savage",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Spin wheel", "Land on category", "Roast revealed"],
     description: "A carnival wheel spins through roast categories. It always lands on the one that triggers your custom roast with comedic timing."
   },
@@ -474,7 +474,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Emotional",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Flip cards", "Find match", "Message revealed"],
     description: "A classic memory matching game. Flip cards to find matching pairs — finding the last pair triggers your message."
   },
@@ -488,7 +488,7 @@ export const templates: Template[] = [
     length: "20 seconds",
     tone: "Mystery",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Foggy screen", "Flashlight sweep", "Message revealed"],
     description: "The screen starts fogged over. They drag to move a flashlight cone — exploring the darkness until the hidden message emerges."
   },
@@ -502,7 +502,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Romantic",
     theme: "Cute Pink",
-    status: "full",
+    status: "coming-soon",
     formula: ["Pick a petal", "Sync the heartbeat", "Words arrive in rhythm", "Final message"],
     description: "Tap to find the sender's heartbeat rhythm. Once synced, their message arrives word by word, pulsing in time with your heartbeat."
   },
@@ -516,7 +516,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Emotional",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Developing photos", "Choose which to lift", "Memories revealed", "Handwritten finale"],
     description: "A stack of polaroid photos hides your message. The recipient lifts each photo to reveal a memory, ending with a handwritten final message on the back of the last photo."
   },
@@ -530,7 +530,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Mystery",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["Metallic layer", "Scratch to reveal", "Words emerge", "Final message"],
     description: "A metallic scratch card hiding your message. They scratch the surface to reveal what you wrote underneath."
   },
@@ -544,7 +544,7 @@ export const templates: Template[] = [
     length: "45 seconds",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Enter maze", "Navigate tunnels", "Reach the goal", "Message unlocked"],
     description: "A simple maze with a hidden message at the exit. Navigate the ball through walls to reach your words."
   },
@@ -558,7 +558,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Romantic",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["Watch the pattern", "Tap dot or dash", "Match the code", "Words unlocked"],
     description: "A rhythmic code-breaking experience. Match dot and dash patterns to decode each word of your message."
   },
@@ -572,7 +572,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Sorry",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Frost wall", "Touch to melt", "Words thaw", "Full message"],
     description: "An icy wall covers your words. The recipient melts it with their touch, revealing your message gradually like thawing frost."
   },
@@ -586,7 +586,7 @@ export const templates: Template[] = [
     length: "45 seconds",
     tone: "Savage",
     theme: "Neon Glitch",
-    status: "full",
+    status: "coming-soon",
     formula: ["Lock 1", "Find the tension", "Lock 2", "Lock 3", "Chest opens"],
     description: "A tension-based lockpicking game. Drag the pick to find three hidden sweet spots and unlock your message."
   },
@@ -600,7 +600,7 @@ export const templates: Template[] = [
     length: "20 seconds",
     tone: "Funny",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Floating words", "Flip gravity", "Words fall", "Message assembled"],
     description: "Your message is scattered in zero gravity. Each flip pulls the words back down until they form your full message."
   },
@@ -614,7 +614,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Funny",
     theme: "Clean White",
-    status: "full",
+    status: "coming-soon",
     formula: ["Word prompt", "Type it back", "Echo animation", "Message built"],
     description: "Each word of your message must be echoed back. Type what you see and watch it grow into a full message."
   },
@@ -628,7 +628,7 @@ export const templates: Template[] = [
     length: "45 seconds",
     tone: "Emotional",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["See the weight", "Drag word tokens", "Balance the scale", "Message unlocks"],
     description: "A balance scale with word-weights. Drag the right words onto the pan to match the weight and unlock the message."
   },
@@ -642,7 +642,7 @@ export const templates: Template[] = [
     length: "20 seconds",
     tone: "Birthday",
     theme: "Cute Pink",
-    status: "full",
+    status: "coming-soon",
     formula: ["Lighting candles", "Make a wish", "Blow them out", "Message revealed"],
     description: "A birthday cake with candles. Each candle holds a word of the message. Blow them out one by one to read the full birthday wish."
   },
@@ -684,7 +684,7 @@ export const templates: Template[] = [
     length: "40 seconds",
     tone: "Emotional",
     theme: "Minimal Black",
-    status: "full",
+    status: "coming-soon",
     formula: ["Typing", "Funny draft", "Safe draft", "Risky draft", "Real message"],
     description: "Four drafts of a message. Only the last one was honest. Restore each draft to uncover the real words."
   },
@@ -698,7 +698,7 @@ export const templates: Template[] = [
     length: "1 minute",
     tone: "Emotional",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["Begin journey", "Scratch memories", "Final letter"],
     description: "A journey through shared memories. Scratch each polaroid to relive the moment. The final letter says what words alone couldn't."
   },
@@ -712,7 +712,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Funny",
     theme: "Neon Glitch",
-    status: "full",
+    status: "coming-soon",
     formula: ["Roast mode", "Mild", "Medium", "Spicy", "Truth"],
     description: "Three rounds of roasting. Flip coins to advance. The final message hits different."
   },
@@ -726,7 +726,7 @@ export const templates: Template[] = [
     length: "40 seconds",
     tone: "Mystery",
     theme: "Cinematic Purple",
-    status: "full",
+    status: "coming-soon",
     formula: ["Sealed letter", "Break seal x3", "Letter opens", "Message revealed"],
     description: "A sealed letter with three wax seals. Break each seal to unlock a piece of the message hidden inside."
   },
@@ -740,7 +740,7 @@ export const templates: Template[] = [
     length: "45 seconds",
     tone: "Mystery",
     theme: "Dark Romantic",
-    status: "full",
+    status: "coming-soon",
     formula: ["Enter room", "Pick a box", "Drag to open", "Final surprise"],
     description: "Step into a private room with four boxes. Pick one, drag it open. Each box holds something different."
   },
@@ -759,6 +759,12 @@ export const templates: Template[] = [
     description: "A heart made of arrow pieces. Tap each arrow in the right order to clear the walls and unlock a hidden personal message inside."
   },
 ];
+
+templates.sort((a, b) => {
+  if (a.status === "full" && b.status !== "full") return -1;
+  if (a.status !== "full" && b.status === "full") return 1;
+  return 0;
+});
 
 const templateRouteAliases: Record<string, string> = {
   "secret-room": "the-secret-room"

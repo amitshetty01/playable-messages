@@ -35,7 +35,7 @@ export type Template = {
   length: string;
   tone: Tone;
   theme: ThemeName;
-  status: "full" | "placeholder";
+  status: "full" | "placeholder" | "coming-soon";
   formula: string[];
   description: string;
 };

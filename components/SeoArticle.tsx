@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TemplateCard } from "@/components/TemplateCard";
+import { BannerAd } from "@/components/BannerAd";
 import type { FaqItem } from "@/lib/seo-content";
 import type { Template } from "@/lib/types";
 
@@ -45,6 +46,10 @@ export function SeoArticle({ eyebrow, h1, intro, examples, relatedTemplates, faq
           {examples.map((example) => <blockquote className="rounded-[1.4rem] border border-white/15 bg-white/10 p-4 text-white/75" key={example}>{example}</blockquote>)}
         </div>
       </section>
+
+      <div className="flex justify-center">
+        <BannerAd />
+      </div>
 
       <section>
         <div className="mb-5">
