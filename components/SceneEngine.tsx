@@ -315,10 +315,8 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
       )}
 
       <span
-        onMouseEnter={handleMove}
-        onTouchStart={handleMove}
-        onFocus={handleMove}
         onClick={handleMove}
+        onTouchStart={handleMove}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(e as unknown as React.MouseEvent); } }}
         tabIndex={0}
         role="button"
