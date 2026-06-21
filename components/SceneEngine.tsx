@@ -175,6 +175,35 @@ const LOVE_DODGE_TEXTS = [
   ["Almost… 😈",        "rgba(196,77,255,1)"],
 ];
 
+function FallingHearts() {
+  const hearts = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 12,
+      dur: 8 + Math.random() * 7,
+      size: 14 + Math.random() * 18,
+      drift: (Math.random() - 0.5) * 80,
+    })), []);
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {hearts.map(h => (
+        <div key={h.id}
+          className="absolute"
+          style={{
+            left: `${h.left}%`,
+            top: "-30px",
+            fontSize: h.size,
+            opacity: 0.5,
+            animation: `heart-fall ${h.dur}s ease-in ${h.delay}s infinite`,
+            "--drift": `${h.drift}px`,
+          } as React.CSSProperties}
+        >💕</div>
+      ))}
+    </div>
+  );
+}
+
 function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () => void }) {
   const [flying, setFlying] = useState(false);
   const [pos, setPos] = useState({ left: "50%", top: "50%" });
@@ -226,7 +255,10 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
   const [currentText, currentColor] = LOVE_DODGE_TEXTS[flying ? textIndex : 0];
 
   return (
-    <div className="relative flex w-full flex-col items-center gap-6 px-4 sm:px-8">
+    <div className="relative flex w-full flex-row items-center justify-between gap-3 px-2 sm:px-6">
+      {/* Falling hearts background */}
+      <FallingHearts />
+
       {/* Chase particles */}
       {particles.map(p => (
         <div key={p.id} className="pointer-events-none fixed z-50"
@@ -245,7 +277,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
       <button
         type="button"
         onClick={handleTruth}
-        className={`z-20 overflow-hidden rounded-2xl border border-white/20 px-10 py-5 text-base font-extrabold tracking-wider text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${
+        className={`z-20 shrink-0 overflow-hidden rounded-2xl border border-white/20 px-7 py-4 text-sm font-extrabold tracking-wider text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${
           burst ? "scale-125 opacity-0" : ""
         }`}
         style={{
@@ -282,38 +314,39 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
       )}
 
       {/* Dodge text */}
-      <span
-        onMouseEnter={handleMove}
-        onTouchStart={handleMove}
-        onFocus={handleMove}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(e as unknown as React.MouseEvent); } }}
-        tabIndex={0}
-        role="button"
-        aria-label="Dodge text, moves on interaction"
-        className={`cursor-default whitespace-nowrap rounded-2xl px-7 py-4 text-sm font-extrabold tracking-wider backdrop-blur-md select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 ${
-          flying ? "fixed z-40" : "relative z-20"
-        }`}
-        style={
-          flying
-            ? {
-                left: pos.left,
-                top: pos.top,
-                transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-                background: `linear-gradient(135deg, ${currentColor}22, ${currentColor}44)`,
-                border: `2px solid ${currentColor}`,
-                color: "white",
-                boxShadow: `0 0 25px ${currentColor}44, inset 0 0 30px ${currentColor}22`,
-                transition: "left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease, background 0.4s ease, border 0.3s ease, box-shadow 0.4s ease",
-              }
-            : {
-                background: "rgba(255,255,255,0.05)",
-                border: "1px dashed rgba(255,255,255,0.15)",
-                color: "rgba(255,255,255,0.5)",
-              }
-        }
-      >
-        <span className="text-base sm:text-lg">{currentText}</span>
-      </span>
+
+        <span
+          onMouseEnter={handleMove}
+          onTouchStart={handleMove}
+          onFocus={handleMove}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(e as unknown as React.MouseEvent); } }}
+          tabIndex={0}
+          role="button"
+          aria-label="Dodge text, moves on interaction"
+          className={`cursor-default whitespace-nowrap rounded-2xl px-5 py-3 text-sm font-extrabold tracking-wider backdrop-blur-md select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 ${
+            flying ? "fixed z-40" : "relative z-20 shrink-0"
+          }`}
+          style={
+            flying
+              ? {
+                  left: pos.left,
+                  top: pos.top,
+                  transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                  background: `linear-gradient(135deg, ${currentColor}22, ${currentColor}44)`,
+                  border: `2px solid ${currentColor}`,
+                  color: "white",
+                  boxShadow: `0 0 25px ${currentColor}44, inset 0 0 30px ${currentColor}22`,
+                  transition: "left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease, background 0.4s ease, border 0.3s ease, box-shadow 0.4s ease",
+                }
+              : {
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px dashed rgba(255,255,255,0.15)",
+                  color: "rgba(255,255,255,0.5)",
+                }
+          }
+        >
+          <span className="text-base sm:text-lg">{currentText}</span>
+        </span>
     </div>
   );
 }
