@@ -163,58 +163,134 @@ function ChaseTitle({ text, attempts, onCaught }: { text: string; attempts: numb
 }
 
 const LOVE_DODGE_TEXTS = [
-  "Not you 💔",
-  "Keep chasing 🌪️",
-  "Not meant for you 😏",
-  "This one runs forever 🏃",
-  "Can't catch this one ✨",
-  "Wrong path 💨",
-  "Some things never stop 👀",
-  "It's already gone 😘",
+  ["Not you 💔",        "rgba(255,107,157,0.8)"],
+  ["Keep chasing 🌪️",  "rgba(255,209,102,0.8)"],
+  ["Not meant for you 😏","rgba(196,77,255,0.8)"],
+  ["This one runs forever 🏃","rgba(255,107,157,0.9)"],
+  ["Can't catch this one ✨","rgba(151,218,223,0.8)"],
+  ["Wrong path 💨",     "rgba(255,95,183,0.8)"],
+  ["Some things never stop 👀","rgba(180,130,255,0.9)"],
+  ["It's already gone 😘","rgba(255,107,157,1)"],
+  ["Giving up yet? 🫣", "rgba(255,50,50,0.9)"],
+  ["Almost… 😈",        "rgba(196,77,255,1)"],
 ];
 
 function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () => void }) {
   const [flying, setFlying] = useState(false);
   const [pos, setPos] = useState({ left: "50%", top: "50%" });
+  const [rotation, setRotation] = useState(0);
   const [textIndex, setTextIndex] = useState(0);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; angle: number; dist: number }[]>([]);
+  const [burst, setBurst] = useState(false);
   const textIndexRef = useRef(0);
+  const pidRef = useRef(0);
+  const dodgeCountRef = useRef(0);
 
-  function handleMove() {
-    if (!flying) {
-      setFlying(true);
-      setPos({
-        left: `${15 + Math.random() * 70}%`,
-        top: `${10 + Math.random() * 70}%`,
-      });
-    } else {
-      setPos({
-        left: `${5 + Math.random() * 80}%`,
-        top: `${5 + Math.random() * 75}%`,
-      });
-    }
-    textIndexRef.current = (textIndexRef.current + 1) % LOVE_DODGE_TEXTS.length;
-    setTextIndex(textIndexRef.current);
+  function spawnParticles(cx: number, cy: number) {
+    const count = 3 + Math.floor(Math.random() * 3);
+    const newP = Array.from({ length: count }, () => ({
+      id: ++pidRef.current,
+      x: cx, y: cy,
+      angle: Math.random() * Math.PI * 2,
+      dist: 20 + Math.random() * 40,
+    }));
+    setParticles(prev => [...prev.slice(-15), ...newP]);
   }
 
+  function handleMove(e: React.MouseEvent | React.TouchEvent | React.FocusEvent) {
+    dodgeCountRef.current++;
+    const isFast = dodgeCountRef.current > 5;
+    const nx = 5 + Math.random() * (isFast ? 75 : 80);
+    const ny = 5 + Math.random() * (isFast ? 70 : 75);
+    setPos({ left: `${nx}%`, top: `${ny}%` });
+
+    const rot = (Math.random() - 0.5) * (isFast ? 40 : 24);
+    setRotation(rot);
+
+    textIndexRef.current = (textIndexRef.current + 1) % LOVE_DODGE_TEXTS.length;
+    setTextIndex(textIndexRef.current);
+
+    if ("clientX" in e) {
+      spawnParticles((e as React.MouseEvent).clientX, (e as React.MouseEvent).clientY);
+    } else if ("touches" in e && (e as React.TouchEvent).touches.length) {
+      const t = (e as React.TouchEvent).touches[0];
+      spawnParticles(t.clientX, t.clientY);
+    }
+  }
+
+  function handleTruth() {
+    setBurst(true);
+    setTimeout(() => { onTruth(); setBurst(false); }, 600);
+  }
+
+  const [currentText, currentColor] = LOVE_DODGE_TEXTS[flying ? textIndex : 0];
+
   return (
-    <div className="relative flex w-full items-center justify-between px-4 sm:px-8">
+    <div className="relative flex w-full flex-col items-center gap-6 px-4 sm:px-8">
+      {/* Chase particles */}
+      {particles.map(p => (
+        <div key={p.id} className="pointer-events-none fixed z-50"
+          style={{
+            left: p.x, top: p.y,
+            animation: "love-chase-particle 0.7s ease-out forwards",
+            "--tx": `${Math.cos(p.angle) * p.dist}px`,
+            "--ty": `${Math.sin(p.angle) * p.dist}px`,
+          } as React.CSSProperties}
+        >
+          <span style={{ fontSize: 10 + Math.random() * 6 }}>💕</span>
+        </div>
+      ))}
+
+      {/* Yes button */}
       <button
         type="button"
-        onClick={onTruth}
-        className="z-20 overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-[#ff6b9d] to-[#c44dff] px-8 py-4 text-sm font-extrabold tracking-wider text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+        onClick={handleTruth}
+        className={`z-20 overflow-hidden rounded-2xl border border-white/20 px-10 py-5 text-base font-extrabold tracking-wider text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${
+          burst ? "scale-125 opacity-0" : ""
+        }`}
+        style={{
+          background: burst
+            ? "transparent"
+            : "linear-gradient(135deg, #ff6b9d, #c44dff)",
+          boxShadow: burst
+            ? "none"
+            : "0 0 30px rgba(196,77,255,0.4), 0 4px 20px rgba(0,0,0,0.3)",
+          transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease",
+        }}
       >
-        {label}
+        {burst ? "💖" : label}
       </button>
 
+      {/* Heart burst on truth */}
+      {burst && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          {Array.from({ length: 18 }).map((_, i) => {
+            const angle = (i / 18) * Math.PI * 2;
+            const dist = 60 + Math.random() * 100;
+            return (
+              <span key={i} className="absolute text-2xl"
+                style={{
+                  animation: "love-chase-burst 0.7s ease-out forwards",
+                  "--hx": `${Math.cos(angle) * dist}px`,
+                  "--hy": `${Math.sin(angle) * dist}px`,
+                  "--hd": `${Math.random() * 0.3}s`,
+                } as React.CSSProperties}
+              >💖</span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Dodge text */}
       <span
         onMouseEnter={handleMove}
         onTouchStart={handleMove}
         onFocus={handleMove}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(); } }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(e as unknown as React.MouseEvent); } }}
         tabIndex={0}
         role="button"
         aria-label="Dodge text, moves on interaction"
-        className={`cursor-default whitespace-nowrap rounded-2xl px-6 py-3 text-sm font-extrabold tracking-wider backdrop-blur-md select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 ${
+        className={`cursor-default whitespace-nowrap rounded-2xl px-7 py-4 text-sm font-extrabold tracking-wider backdrop-blur-md select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 ${
           flying ? "fixed z-40" : "relative z-20"
         }`}
         style={
@@ -222,20 +298,21 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
             ? {
                 left: pos.left,
                 top: pos.top,
-                transform: "translate(-50%, -50%)",
-                background: "rgba(255,255,255,0.08)",
-                border: "2px solid rgba(255,255,255,0.2)",
+                transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                background: `linear-gradient(135deg, ${currentColor}22, ${currentColor}44)`,
+                border: `2px solid ${currentColor}`,
                 color: "white",
-                transition: "left 0.25s ease-in-out, top 0.25s ease-in-out",
+                boxShadow: `0 0 25px ${currentColor}44, inset 0 0 30px ${currentColor}22`,
+                transition: "left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease, background 0.4s ease, border 0.3s ease, box-shadow 0.4s ease",
               }
             : {
                 background: "rgba(255,255,255,0.05)",
                 border: "1px dashed rgba(255,255,255,0.15)",
-                color: "white",
+                color: "rgba(255,255,255,0.5)",
               }
         }
       >
-        <span className="text-base sm:text-lg">{LOVE_DODGE_TEXTS[flying ? textIndex : 0]}</span>
+        <span className="text-base sm:text-lg">{currentText}</span>
       </span>
     </div>
   );
