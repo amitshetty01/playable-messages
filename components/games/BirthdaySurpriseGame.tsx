@@ -219,18 +219,11 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
   const MIN_SLICES = 2;
   const balloonColors = ["#ff6b8a","#60a5fa","#fbbf24","#34d399","#c084fc","#fb923c","#f472b6","#38bdf8"];
 
-  const ensureAudio = useCallback(async () => {
+  const getAudio = useCallback(() => {
     if (!audioRef.current) {
-      try {
-        audioRef.current = new AudioContext();
-      } catch (e) {
-        console.error("AudioContext creation failed:", e);
-        return null;
-      }
+      try { audioRef.current = new (window.AudioContext || (window as any).webkitAudioContext)(); } catch (e) { return null; }
     }
-    if (audioRef.current.state === "suspended") {
-      try { await audioRef.current.resume(); } catch (e) { console.error("AudioContext resume failed:", e); }
-    }
+    if (audioRef.current.state === "suspended") audioRef.current.resume();
     return audioRef.current;
   }, []);
 
@@ -280,40 +273,43 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     return () => clearInterval(interval);
   }, [balloonsShown, step]);
 
-  const playSound = useCallback(async (fn: (ctx: AudioContext) => void) => {
-    const ctx = await ensureAudio();
+  const playSound = useCallback((fn: (ctx: AudioContext) => void) => {
+    const ctx = getAudio();
     if (ctx) { try { fn(ctx); } catch (e) { console.error("Sound error:", e); } }
-  }, [ensureAudio]);
+  }, [getAudio]);
 
-  const hYes = useCallback(async () => {
-    await playSound(playSparkle);
+  const hYes = useCallback(() => {
+    playSound(playSparkle);
     setStep(3);
   }, [playSound]);
 
-  const hLight = useCallback(async () => {
+  const hLight = useCallback(() => {
     setLightOn(true);
-    await playSound(playCheer);
+    playSound(playCheer);
     setTimeout(() => setStep(4), 2200);
   }, [playSound]);
 
-  const hMusic = useCallback(async () => {
+  const hMusic = useCallback(() => {
     if (musicPlaying) return;
     setMusicPlaying(true);
-    await playSound(playBirthdayMelody);
+    const ctx = getAudio();
+    if (ctx) {
+      setTimeout(() => { try { playBirthdayMelody(ctx); } catch (e) { console.error("Music error:", e); } }, 150);
+    }
     setTimeout(() => setStep(5), 5500);
-  }, [musicPlaying, playSound]);
+  }, [musicPlaying, getAudio]);
 
-  const hDecorate = useCallback(async () => {
+  const hDecorate = useCallback(() => {
     setDecorated(true);
     const cs = ["#ff6b8a","#ffd700","#ff8a6b","#c084fc","#60a5fa","#f472b6"];
     setRibbons(Array.from({length:16},(_,i)=>({id:i,x:Math.random()*90+5,y:Math.random()*90+5,c:cs[i%cs.length],d:i*0.1})));
-    await playSound(playCheer);
+    playSound(playCheer);
     setTimeout(() => { setShowBalloonBtn(true); }, 1200);
   }, [playSound]);
 
-  const hBalloons = useCallback(async () => {
+  const hBalloons = useCallback(() => {
     setBalloonsShown(true);
-    await playSound(playCheer);
+    playSound(playCheer);
     setTimeout(() => setShowCakeBtn(true), 1200);
   }, [playSound]);
 
@@ -325,7 +321,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     setKnifePos({ x: Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)), y: Math.max(5, Math.min(95, ((clientY - r.top) / r.height) * 100)) });
   }, [cutDone]);
 
-  const hCut = useCallback(async () => {
+  const hCut = useCallback(() => {
     if (cutDone) return;
     if (cutCount >= 7) return;
     const newLines = [...cutLines, knifePos.x];
@@ -333,12 +329,10 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     setCutLines(newLines);
     const next = cutCount + 1;
     setCutCount(next);
-    await playSound(playSparkle);
+    playSound(playSparkle);
     if (next >= MIN_SLICES) {
       setCutDone(true);
-      setTimeout(() => {
-        setStep(8);
-      }, 1000);
+      setTimeout(() => { setStep(8); }, 1000);
     }
   }, [cutCount, cutLines, knifePos.x, cutDone, playSound]);
 
@@ -366,26 +360,18 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     >
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E\")" }} />
 
-      {/* Continuous floating balloons */}
-      {(balloonsShown || step >= 6) && floatBalloons.map((b) => {
-        const elapsed = (Date.now() - b.startTime) / 1000;
-        const duration = 10;
-        const progress = (elapsed % duration) / duration;
-        const bottom = ((1 - progress) * 110 - 10);
-        const opacity = progress < 0.1 ? progress * 10 : progress > 0.8 ? (1 - progress) * 5 : 1;
-        return (
-          <div key={b.id} className="absolute pointer-events-none z-0" style={{
-            left: `${b.x}%`,
-            bottom: `${bottom}%`,
-            opacity,
-            transition: "none",
-          }}>
-            <div style={{ animation: `cgSway 4s ease-in-out ${b.id % 3}s infinite` }}>
-              <BalloonSVG color={b.color} size={b.size} />
-            </div>
+      {/* Continuous floating balloons — pure CSS, bottom→top with fade */}
+      {(balloonsShown || step >= 6) && floatBalloons.map((b) => (
+        <div key={b.id} className="absolute pointer-events-none z-0" style={{
+          left: `${b.x}%`,
+          bottom: 0,
+          animation: `cgBalloonRise 12s linear ${(Date.now() - b.startTime) / 1000}s both`,
+        }}>
+          <div style={{ animation: `cgSway 4s ease-in-out ${b.id % 3}s infinite` }}>
+            <BalloonSVG color={b.color} size={b.size} />
           </div>
-        );
-      })}
+        </div>
+      ))}
 
       {/* Ribbons */}
       {ribbons.map(r => (
@@ -818,6 +804,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         @keyframes cgFlicker { 0%, 100% { opacity: 1; transform: scaleY(1) scaleX(1); } 25% { opacity: 0.6; transform: scaleY(0.8) scaleX(1.1); } 50% { opacity: 0.9; transform: scaleY(1.1) scaleX(0.9); } 75% { opacity: 0.5; transform: scaleY(0.75) scaleX(1.05); } }
         @keyframes cgBar { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
         @keyframes cgRibbon { from { opacity: 0; transform: scale(0) rotate(0deg); } to { opacity: 1; transform: scale(1) rotate(var(--r,25deg)); } }
+        @keyframes cgBalloonRise { 0% { transform: translateY(0) scale(0.3); opacity: 0; } 8% { transform: translateY(-12vh) scale(0.6); opacity: 0.8; } 25% { transform: translateY(-35vh) scale(0.85); opacity: 1; } 50% { transform: translateY(-60vh) scale(1); opacity: 0.85; } 75% { transform: translateY(-85vh) scale(0.9); opacity: 0.4; } 100% { transform: translateY(-120vh) scale(0.7); opacity: 0; } }
         @keyframes cgSway { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(4px); } 75% { transform: translateX(-4px); } }
         @keyframes cgSwing { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } }
         @keyframes cgDropIn { 0% { opacity: 0; transform: translateY(-200px) scale(0.5); } 60% { opacity: 1; transform: translateY(8px) scale(1.02); } 80% { transform: translateY(-4px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
