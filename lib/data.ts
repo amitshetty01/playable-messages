@@ -670,7 +670,7 @@ export const templates: Template[] = [
     length: "30 seconds",
     tone: "Funny",
     theme: "Soft Pastel",
-    status: "full",
+    status: "coming-soon",
     formula: ["Challenge accepted", "Smash emojis", "Final round", "Message revealed"],
     description: "A smile challenge. Smash emojis through increasingly tough rounds without breaking your poker face."
   },
