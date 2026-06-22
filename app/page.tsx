@@ -37,7 +37,7 @@ export default function HomePage() {
           onClick={() => { setShowBrowse(!showBrowse); if (!showBrowse) setShowGuided(false); }}
           className="text-sm text-white/40 underline underline-offset-4 transition-colors hover:text-white/70"
         >
-          {showBrowse ? "− Close template browser" : "Browse template styles"}
+          {showBrowse ? "− Close" : "See what's coming soon →"}
         </button>
       </div>
 

@@ -1,32 +1,27 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { pickTemplate } from "@/lib/pickTemplate";
 import { ExperiencePreview } from "@/components/ExperiencePreview";
 import { Spinner } from "@/components/Spinner";
 import type { ExperienceRecord } from "@/lib/types";
 
 const QUICK_TEMPLATES = [
-  { emoji: "💖", label: "Love", template: "love-chase", hint: "I love the way you make me feel every single day." },
-  { emoji: "💔", label: "Sorry", template: "kitty-apology", hint: "I'm sorry for what I said. I didn't mean it." },
-  { emoji: "😂", label: "Funny", template: "come-closer", hint: "I made this just for you. Promise me you'll keep smiling like this." },
-  { emoji: "🎂", label: "Birthday", template: "birthday-surprise-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
-  { emoji: "🏆", label: "Roast", template: "come-closer", hint: "Come closer. I've been saving this one just for you." },
-  { emoji: "💓", label: "Memory", template: "memory-maze", hint: "Every heartbeat holds a story. Some are just waiting to be unlocked." },
-  { emoji: "🔥", label: "Mystery", template: "escape-me", hint: "There's something hidden inside. Can you find it?" },
+  { emoji: "💖", label: "Love", slug: "love", hint: "I love the way you make me feel every single day." },
+  { emoji: "💔", label: "Sorry", slug: "sorry", hint: "I'm sorry for what I said. I didn't mean it." },
+  { emoji: "😂", label: "Funny", slug: "funny", hint: "I made this just for you. Promise me you'll keep smiling like this." },
+  { emoji: "🎂", label: "Birthday", slug: "birthday", hint: "Happy birthday to the person who makes life brighter just by being in it." },
+  { emoji: "🏆", label: "Roast", slug: "roast", hint: "Come closer. I've been saving this one just for you." },
+  { emoji: "💓", label: "Memory", slug: "memory", hint: "Every heartbeat holds a story. Some are just waiting to be unlocked." },
+  { emoji: "🔥", label: "Mystery", slug: "mystery", hint: "There's something hidden inside. Can you find it?" },
 ];
 
 export function QuickFlow() {
   const [text, setText] = useState("");
-  const [templateId, setTemplateId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [experience, setExperience] = useState<ExperienceRecord | null>(null);
-
-  const pick = useCallback((t: typeof QUICK_TEMPLATES[number]) => {
-    setText(t.hint);
-    setTemplateId(t.template);
-  }, []);
 
   const generate = useCallback(async () => {
     const msg = text.trim();
@@ -38,7 +33,7 @@ export function QuickFlow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          templateId: templateId || pickTemplate(msg),
+          templateId: pickTemplate(msg),
           finalMessage: msg,
           showCreatorName: true,
           customMessages: { landingText: msg.slice(0, 120), buttonText: "Open", steps: ["Here's something for you..."], ctaMessage: "Made with 💖" },
@@ -49,10 +44,10 @@ export function QuickFlow() {
       setExperience(json.experience);
     } catch { setError("Something went wrong."); }
     finally { setLoading(false); }
-  }, [text, templateId]);
+  }, [text]);
 
   if (experience) {
-    return <ExperiencePreview experience={experience} onClose={() => { setExperience(null); setText(""); setTemplateId(null); }} />;
+    return <ExperiencePreview experience={experience} onClose={() => { setExperience(null); setText(""); }} />;
   }
 
   return (
@@ -76,18 +71,13 @@ export function QuickFlow() {
 
       <div className="mt-4 flex max-w-xl flex-wrap justify-center gap-2">
         {QUICK_TEMPLATES.map((t) => (
-          <button
+          <Link
             key={t.label}
-            type="button"
-            onClick={() => pick(t)}
-            className={`rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide transition-all ${
-              templateId === t.template
-                ? "border-white/40 bg-white/15 text-white"
-                : "border-white/10 bg-white/[0.04] text-white/50 hover:border-white/20 hover:bg-white/[0.08] hover:text-white/70"
-            }`}
+            href={`/mood/${t.slug}`}
+            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold tracking-wide text-white/50 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white/70"
           >
             {t.emoji} {t.label}
-          </button>
+          </Link>
         ))}
       </div>
 

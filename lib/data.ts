@@ -770,6 +770,37 @@ const templateRouteAliases: Record<string, string> = {
   "secret-room": "the-secret-room"
 };
 
+export type Mood = {
+  slug: string;
+  name: string;
+  emoji: string;
+  tones: Tone[];
+  categorySlugs: string[];
+  description: string;
+};
+
+export const moods: Mood[] = [
+  { slug: "love", name: "Love", emoji: "💖", tones: ["Romantic"], categorySlugs: ["love-crush"], description: "Romantic, crush, confession, missing someone, or relationship messages." },
+  { slug: "sorry", name: "Sorry", emoji: "💔", tones: ["Sorry"], categorySlugs: ["apology-fight-repair"], description: "For saying sorry, fixing mood, calming anger, or restarting a conversation." },
+  { slug: "funny", name: "Funny", emoji: "😂", tones: ["Funny"], categorySlugs: ["funny-roast"], description: "For playful roasts, attitude jokes, dramatic reactions, and shareable fun." },
+  { slug: "birthday", name: "Birthday", emoji: "🎂", tones: ["Birthday"], categorySlugs: ["birthday-special-days"], description: "For birthdays, anniversaries, congratulations, achievements, and special memories." },
+  { slug: "roast", name: "Roast", emoji: "🏆", tones: ["Savage"], categorySlugs: ["funny-roast"], description: "For playful roasts, attitude jokes, and savage comebacks." },
+  { slug: "memory", name: "Memory", emoji: "💓", tones: ["Emotional", "Friendship"], categorySlugs: ["friendship-best-friend"], description: "For best friends, inside jokes, emotional friendship messages, and appreciation." },
+  { slug: "mystery", name: "Mystery", emoji: "🔥", tones: ["Mystery"], categorySlugs: ["mystery-confession"], description: "For suspenseful reveals, hidden messages, emotional secrets, and dramatic storytelling." },
+];
+
+export function getMood(slug: string) {
+  return moods.find((m) => m.slug === slug);
+}
+
+export function getTemplatesByMood(moodSlug: string) {
+  const mood = getMood(moodSlug);
+  if (!mood) return [];
+  return templates.filter(
+    (t) => mood.tones.includes(t.tone) || t.categorySlugs.some((cs) => mood.categorySlugs.includes(cs))
+  );
+}
+
 export function getCategory(slug: string) {
   return categories.find((category) => category.slug === slug);
 }
