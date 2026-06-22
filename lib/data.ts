@@ -797,7 +797,7 @@ export function getTemplatesByMood(moodSlug: string) {
   const mood = getMood(moodSlug);
   if (!mood) return [];
   return templates.filter(
-    (t) => mood.tones.includes(t.tone) || t.categorySlugs.some((cs) => mood.categorySlugs.includes(cs))
+    (t) => t.status === "full" && (mood.tones.includes(t.tone) || t.categorySlugs.some((cs) => mood.categorySlugs.includes(cs)))
   );
 }
 

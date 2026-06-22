@@ -16,7 +16,7 @@ export default function NotFound() {
         <p className="text-sm font-bold tracking-[0.08em] text-white/50">Not found</p>
         <h1 className="display-title mt-3 text-4xl font-bold sm:text-5xl">This experience disappeared.</h1>
         <p className="mt-4 text-white/70">The page may have moved, or the link may be incomplete.</p>
-        <Link className="premium-button mt-6" href="/categories">Explore experiences</Link>
+        <Link className="premium-button mt-6" href="/templates">Explore experiences</Link>
       </div>
     </div>
   );
