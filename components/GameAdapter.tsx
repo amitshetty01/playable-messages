@@ -45,6 +45,10 @@ export function GameAdapter({
           message={experience.finalMessage}
           tone={experience.tone}
           onComplete={onComplete}
+          template={template}
+          experience={experience}
+          mode={mode}
+          shareUrl={shareUrl}
         />
       )}
     </GamePlayer>

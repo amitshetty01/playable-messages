@@ -114,6 +114,27 @@ export type ExperienceRecord = {
   passwordAnswer?: string;
   togetherSince?: string;
   reaction?: string;
+  templateData?: Record<string, any>;
+};
+
+export type EditableFieldType = "text" | "textarea" | "image" | "password" | "date" | "time" | "number" | "color";
+
+export type EditableField = {
+  key: string;
+  label: string;
+  type: EditableFieldType;
+  required?: boolean;
+  placeholder?: string;
+  maxLength?: number;
+  helpText?: string;
+  defaultValue?: string;
+  imageCount?: number;
+};
+
+export type TemplateConfig = {
+  id: string;
+  name: string;
+  editableFields: EditableField[];
 };
 
 export type AnalyticsEventType =

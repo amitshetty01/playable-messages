@@ -487,7 +487,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
             <p style={{ fontSize: "clamp(1rem,4vw,1.3rem)" }} className="font-display font-bold text-white/60">Want to see it?</p>
             <div className="flex gap-4">
               <button onClick={hYes} className="inline-flex min-h-[48px] min-w-[100px] items-center justify-center rounded-full bg-gradient-to-r from-emerald-400/20 to-emerald-500/10 border border-emerald-400/30 px-8 text-sm font-extrabold text-emerald-300 backdrop-blur-md transition-all hover:bg-emerald-400/30 active:scale-95">Yes</button>
-              <button onClick={hYes} className="inline-flex min-h-[48px] min-w-[100px] items-center justify-center rounded-full bg-gradient-to-r from-rose-400/20 to-rose-500/10 border border-rose-400/30 px-8 text-sm font-extrabold text-rose-300 backdrop-blur-md transition-all hover:bg-rose-400/30 active:scale-95">No</button>
+              {/* No button intentionally omitted - game flow is linear */}
             </div>
           </div>}
         </div>

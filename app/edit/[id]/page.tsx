@@ -30,7 +30,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
       <div className="mb-6 flex justify-center">
         <AdsterraAd type="rectangle" />
       </div>
-      <CreateForm existingExperience={data} initialTemplate={template} templates={[template]} />
+      <CreateForm existingExperience={data} initialTemplate={template} templates={templates} />
       <div className="mt-10 flex flex-col items-center gap-4">
         <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />

@@ -93,6 +93,7 @@ export function PolaroidStack({ template, experience, mode, shareUrl }: Props) {
   const photoRef = useRef<HTMLDivElement>(null);
   const holdRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const userImages = experience.images?.filter(Boolean) ?? [];
   const steps = experience.customMessages.steps;
   const photos: Photo[] = steps.slice(0, 4).map((text, i) => ({
     id: i,
@@ -342,8 +343,12 @@ export function PolaroidStack({ template, experience, mode, shareUrl }: Props) {
                     className={`w-36 transition-all duration-200 ${isPicked ? "scale-95 opacity-40" : "hover:scale-105"}`}
                   >
                     <div className="rounded-sm p-2 pb-5 shadow-lg" style={{ backgroundColor: POLAROID_COLORS[photo.id % POLAROID_COLORS.length] }}>
-                      <div className="aspect-square w-full rounded-sm bg-gradient-to-br from-white/90 to-stone-200 flex items-center justify-center">
-                        <span className="text-2xl">📷</span>
+                      <div className="aspect-square w-full rounded-sm bg-gradient-to-br from-white/90 to-stone-200 flex items-center justify-center overflow-hidden">
+                        {userImages[photo.id] ? (
+                          <img src={userImages[photo.id]} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-2xl">📷</span>
+                        )}
                       </div>
                       <p className="mt-1 text-center text-[9px] font-bold tracking-wider text-stone-500 uppercase truncate">{photo.caption}</p>
                     </div>
@@ -386,7 +391,11 @@ export function PolaroidStack({ template, experience, mode, shareUrl }: Props) {
                       }}>
                         <div className="w-52 rounded-sm p-3 pb-8 shadow-xl sm:w-60" style={{ backgroundColor: POLAROID_COLORS[photo.id % POLAROID_COLORS.length] }}>
                           <div className="aspect-square w-full rounded-sm bg-gradient-to-br from-white/90 to-stone-200 flex items-center justify-center overflow-hidden">
-                            <div className="h-full w-full" style={{ background: `linear-gradient(135deg, ${["#fce4ec","#f3e5f5","#e8eaf6","#e0f2f1","#fff3e0"][photo.id % 5]} 0%, transparent 100%)` }} />
+                            {userImages[photo.id] ? (
+                              <img src={userImages[photo.id]} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full" style={{ background: `linear-gradient(135deg, ${["#fce4ec","#f3e5f5","#e8eaf6","#e0f2f1","#fff3e0"][photo.id % 5]} 0%, transparent 100%)` }} />
+                            )}
                           </div>
                           <p className="mt-2 text-center text-[10px] font-bold tracking-wider text-stone-500 uppercase">{photo.caption}</p>
                         </div>

@@ -462,6 +462,7 @@ export function MemoryMatchGame({ template, experience, mode, shareUrl }: Props)
   const passwordQuestion = experience.passwordQuestion || "Only one person has the permission to go inside.";
   const expectedPassword = experience.passwordAnswer?.toLowerCase().trim() || experience.customPassword?.toLowerCase().trim() || experience.receiverName?.toLowerCase().trim() || experience.creatorName?.toLowerCase().trim() || "";
   const memories = splitMessage(message, 6).filter(Boolean);
+  const userImages = experience.images?.filter(Boolean) ?? [];
   const timeTarget = experience.togetherSince ? computeTimeSince(experience.togetherSince) ?? { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 } : { years: 1, months: 2, days: 15, hours: 12, minutes: 34, seconds: 56 };
 
   useEffect(() => {
@@ -621,7 +622,7 @@ export function MemoryMatchGame({ template, experience, mode, shareUrl }: Props)
             <div className={`mt-14 space-y-12 transition-all duration-700 delay-300 ${fadeIn ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
               {memories.map((memory, i) => (
                 <div key={i} data-memory-card>
-                  <MemoryCard imgSrc={`${PICSUM_BASE}/${PHOTO_SEEDS[i % PHOTO_SEEDS.length]}${PICSUM_SIZE}`} title={MEMORY_TITLES[i % MEMORY_TITLES.length]} message={memory} index={i} />
+                  <MemoryCard imgSrc={userImages[i] || `${PICSUM_BASE}/${PHOTO_SEEDS[i % PHOTO_SEEDS.length]}${PICSUM_SIZE}`} title={MEMORY_TITLES[i % MEMORY_TITLES.length]} message={memory} index={i} />
                 </div>
               ))}
             </div>

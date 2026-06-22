@@ -34,5 +34,5 @@ export default async function CreateTemplatePage({ params }: { params: Promise<{
       </div>
     );
   }
-  return <CreateForm initialTemplate={template} templates={[template]} />;
+  return <CreateForm initialTemplate={template} templates={templates} />;
 }

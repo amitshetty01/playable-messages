@@ -15,6 +15,7 @@ export function FlashlightFogGame({
 }) {
   const [pos, setPos] = useState({ x: 50, y: 50 });
   const [active, setActive] = useState(false);
+  const activeRef = useRef(false);
   const [explored, setExplored] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const exploredCells = useRef(new Set<string>());
@@ -24,6 +25,7 @@ export function FlashlightFogGame({
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       setActive(true);
+      activeRef.current = true;
       handleMove(e);
     },
     [] // eslint-disable-line react-hooks/exhaustive-deps
@@ -31,7 +33,7 @@ export function FlashlightFogGame({
 
   const handleMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!active) return;
+      if (!activeRef.current) return;
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
       const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -54,10 +56,10 @@ export function FlashlightFogGame({
         }
       }
     },
-    [active, tone, onComplete]
+    [tone, onComplete]
   );
 
-  const handlePointerUp = useCallback(() => setActive(false), []);
+  const handlePointerUp = useCallback(() => { setActive(false); activeRef.current = false; }, []);
 
   const progress = explored / (GRID * GRID);
 

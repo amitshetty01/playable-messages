@@ -22,6 +22,8 @@ export function PhotoBoothGame({ template, experience, mode, shareUrl }: Props) 
   const tone = experience.tone;
   const message = experience.finalMessage;
   const fragments = splitMessage(message, 4);
+  const userImages = experience.images?.filter(Boolean) ?? [];
+  const hasImages = userImages.length > 0;
   const [started, setStarted] = useState(false);
   const [flash, setFlash] = useState(false);
   const [slots, setSlots] = useState<string[]>([]);
@@ -85,14 +87,25 @@ export function PhotoBoothGame({ template, experience, mode, shareUrl }: Props) 
               <div className="relative w-56 rounded-2xl border-2 border-white/15 bg-black/40 p-4 sm:w-64">
                 <div className="space-y-3">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className={`flex h-14 items-center justify-center rounded-lg border border-dashed text-sm font-bold transition-all duration-500 ${
+                    <div key={i} className={`relative flex h-14 items-center justify-center rounded-lg border border-dashed text-sm font-bold transition-all duration-500 overflow-hidden ${
                       i < slots.length
                         ? "border-white/30 bg-white/10 text-white/90"
                         : i === slots.length && slots.length < 4
                           ? "border-amber-400/40 text-white/30"
                           : "border-white/10 text-white/20"
                     }`}>
-                      {i < slots.length ? <TypewriterText text={slots[i]} speed={15} /> : <span>Photo {i + 1}</span>}
+                      {i < slots.length ? (
+                        hasImages && userImages[i] ? (
+                          <>
+                            <img src={userImages[i]} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
+                            <span className="relative z-10"><TypewriterText text={slots[i]} speed={15} /></span>
+                          </>
+                        ) : (
+                          <TypewriterText text={slots[i]} speed={15} />
+                        )
+                      ) : (
+                        <span>Photo {i + 1}</span>
+                      )}
                     </div>
                   ))}
                 </div>

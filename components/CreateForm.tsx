@@ -2,11 +2,13 @@
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useUndoRedo } from "@/lib/useUndoRedo";
+import { DynamicFieldEditor } from "@/components/DynamicFieldEditor";
 import { ExperiencePlayer } from "@/components/ExperiencePlayer";
 import { defaultCustomMessages, defaultFinalMessage, getTemplateCategory } from "@/lib/data";
 import { saveExperience } from "@/lib/my-experiences";
 import { compressImage } from "@/lib/compressImage";
 import { Spinner } from "@/components/Spinner";
+import { getTemplateConfig } from "@/lib/template-configs";
 import type { ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
 import { RELATIONSHIP_TAGS, ANON_TONES } from "@/lib/types";
 
@@ -46,11 +48,16 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     ctaMessage: existingExperience?.customMessages.ctaMessage ?? defaultCustomMessages.ctaMessage,
     sceneTitles: (existingExperience?.customMessages.sceneTitles ?? []).join("\n"),
     expiryOption: "",
+    customPassword: existingExperience?.customPassword ?? "",
+    passwordQuestion: existingExperience?.passwordQuestion ?? "Only one person has the permission to go inside.",
+    passwordAnswer: existingExperience?.passwordAnswer ?? "",
+    togetherSince: existingExperience?.togetherSince ?? "",
   };
 
   const { state: form, setState: setForm, undo, redo, canUndo, canRedo } = useUndoRedo(initialFormState);
 
   const template = templates.find((item) => item.id === form.templateId) ?? initialTemplate;
+  const templateConfig = getTemplateConfig(form.templateId);
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -58,6 +65,15 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [draftToast, setDraftToast] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
+  const [templateData, setTemplateData] = useState<Record<string, any>>(() => {
+    if (!existingExperience) return {};
+    const td: Record<string, any> = {};
+    if (existingExperience.images?.length) td.photos = existingExperience.images;
+    if (existingExperience.customPassword) td.password = existingExperience.customPassword;
+    if (existingExperience.passwordQuestion) td.passwordQuestion = existingExperience.passwordQuestion;
+    if (existingExperience.togetherSince) td.startDate = existingExperience.togetherSince;
+    return td;
+  });
   const draftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -72,9 +88,9 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
 
   const saveDraft = useCallback(() => {
     if (isEdit) return;
-    const draft = { ...form, images };
+    const draft = { ...form, images, templateData };
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch { /* storage full */ }
-  }, [form, images, isEdit]);
+  }, [form, images, templateData, isEdit]);
 
   useEffect(() => {
     if (isEdit) return;
@@ -105,9 +121,14 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         expiryOption: draft.expiryOption ?? initialFormState.expiryOption,
         relationshipTag: (draft as any).relationshipTag ?? initialFormState.relationshipTag,
         showCreatorName: (draft as any).showCreatorName ?? initialFormState.showCreatorName,
+        customPassword: (draft as any).customPassword ?? initialFormState.customPassword,
+        passwordQuestion: (draft as any).passwordQuestion ?? initialFormState.passwordQuestion,
+        passwordAnswer: (draft as any).passwordAnswer ?? initialFormState.passwordAnswer,
+        togetherSince: (draft as any).togetherSince ?? initialFormState.togetherSince,
       };
       setForm(restored);
       if (Array.isArray(draft.images)) setImages(draft.images);
+      if ((draft as any).templateData) setTemplateData((draft as any).templateData);
       setDraftToast(true);
       setTimeout(() => setDraftToast(false), 4000);
     } catch { /* invalid draft */ }
@@ -140,9 +161,25 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
       finalCtaClicks: 0,
       templateUsed: template.id
     },
-    images,
+    images: templateData.photos || templateData.images || templateData.photo
+      ? (Array.isArray(templateData.photos || templateData.images || templateData.photo)
+        ? (templateData.photos || templateData.images || templateData.photo)
+        : [templateData.photos || templateData.images || templateData.photo])
+      : images,
+    customPassword: templateData.password || form.customPassword || undefined,
+    passwordQuestion: templateData.passwordQuestion || form.passwordQuestion || undefined,
+    passwordAnswer: templateData.passwordAnswer || form.passwordAnswer || undefined,
+    togetherSince: templateData.startDate || templateData.togetherSince || form.togetherSince || undefined,
+    templateData,
 
-  }), [form, existingExperience, isEdit, template.id, images]);
+  }), [form, existingExperience, isEdit, template.id, images, templateData]);
+
+  const handleTemplateFieldChange = useCallback((key: string, value: any) => {
+    setTemplateData((prev) => ({ ...prev, [key]: value }));
+    if (key === "photos" || key === "images" || key === "photo") {
+      setImages(Array.isArray(value) ? value : value ? [value] : []);
+    }
+  }, []);
 
   async function submit() {
     setIsSubmitting(true);
@@ -154,6 +191,14 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     if (!form.creatorName.trim()) errors.creatorName = "Who's sending this?";
     const stepCount = form.steps.split("\n").filter(Boolean).length;
     if (!stepCount) errors.steps = "Add at least one step message.";
+    for (const field of templateConfig.editableFields) {
+      if (field.required) {
+        const val = templateData[field.key];
+        if (!val || (typeof val === "string" && !val.trim()) || (Array.isArray(val) && val.length === 0)) {
+          errors[field.key] = `${field.label} is required.`;
+        }
+      }
+    }
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setIsSubmitting(false);
@@ -244,9 +289,14 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
               <select value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;
               const anon = ANON_TONES.includes(next.tone);
-              setForm((prev) => ({ ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin", showCreatorName: !anon }));
+              setForm((prev) => ({
+                ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin", showCreatorName: !anon,
+                customPassword: "", passwordQuestion: "Only one person has the permission to go inside.", passwordAnswer: "", togetherSince: "",
+              }));
+              setImages([]);
+              setTemplateData({});
             }} className="input">
-              {templates.map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
+              {[...templates].sort((a, b) => a.status === "full" ? -1 : b.status === "full" ? 1 : 0).map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <p className="mt-2 text-sm leading-5 text-white/50">{template.description}</p>
           </Field>
@@ -317,52 +367,15 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           </div>
         </div>
 
-        {(form.templateId === "memory-journey" || form.templateId === "memory-maze") && (
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <Field key={i} label={`Memory photo ${i + 1}`}>
-                {images[i] ? (
-                  <div className="relative overflow-hidden rounded-2xl border border-white/15">
-                    <img src={images[i]} alt={`Memory ${i + 1}`} className="h-32 w-full object-cover" />
-                    <button type="button" onClick={() => setImages((prev) => { const next = [...prev]; next[i] = ""; return next; })} className="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-xs text-white/70 hover:text-white">
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[0.04] text-xs text-white/40 transition-colors hover:border-white/30 hover:bg-white/[0.08]">
-                    <span className="mb-1 text-lg">📷</span>
-                    <span>Upload photo</span>
-                    <span className="mt-0.5 text-[10px] text-white/30">max 2MB per photo</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (file.size > 2 * 1024 * 1024) {
-                        setFieldErrors((prev) => ({ ...prev, [`image-${i}`]: "Max 2MB per photo" }));
-                        return;
-                      }
-                      const totalSize = images.reduce((sum, img) => sum + (img ? img.length : 0), 0);
-                      setFieldErrors((prev) => { const next = { ...prev }; delete next[`image-${i}`]; return next; });
-                      const reader = new FileReader();
-                      reader.onload = async (ev) => {
-                        const dataUrl = ev.target?.result as string;
-                        const compressed = await compressImage(dataUrl);
-                        const newImages = [...images]; newImages[i] = compressed;
-                        const newTotal = newImages.reduce((sum, img) => sum + (img ? img.length : 0), 0);
-                        if (newTotal > 8 * 1024 * 1024) {
-                          setFieldErrors((prev) => ({ ...prev, [`image-${i}`]: "Total photos exceed 8MB limit" }));
-                          return;
-                        }
-                        setImages(newImages);
-                      };
-                      reader.readAsDataURL(file);
-                    }} />
-                  </label>
-                )}
-              </Field>
-            ))}
-            {fieldErrors["image-0"] || fieldErrors["image-1"] || fieldErrors["image-2"] || fieldErrors["image-3"] || fieldErrors["image-4"] || fieldErrors["image-5"] ? (
-              <p className="col-span-full text-xs font-bold text-rose-300">{fieldErrors["image-0"] || fieldErrors["image-1"] || fieldErrors["image-2"] || fieldErrors["image-3"] || fieldErrors["image-4"] || fieldErrors["image-5"]}</p>
-            ) : null}
+        {templateConfig.editableFields.length > 0 && (
+          <div>
+            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">✨ Template Settings</p>
+            <DynamicFieldEditor
+              fields={templateConfig.editableFields}
+              values={templateData}
+              onChange={handleTemplateFieldChange}
+              errors={fieldErrors}
+            />
           </div>
         )}
 

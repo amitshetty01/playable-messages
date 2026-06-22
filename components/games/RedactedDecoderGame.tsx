@@ -12,15 +12,23 @@ export function RedactedDecoderGame({
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [revealed, setRevealed] = useState(0);
   const [active, setActive] = useState(false);
+  const activeRef = useRef(false);       // synchronous flag for move handler
   const totalChars = message.length;
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handlePointerDown = useCallback(() => setActive(true), []);
-  const handlePointerUp = useCallback(() => setActive(false), []);
+  const handlePointerDown = useCallback(() => {
+    setActive(true);
+    activeRef.current = true;
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    setActive(false);
+    activeRef.current = false;
+  }, []);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!active) return;
+      if (!activeRef.current) return;
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
       const x = e.clientX - rect.left;
@@ -45,7 +53,7 @@ export function RedactedDecoderGame({
         setTimeout(() => onComplete(), 500);
       }
     },
-    [active, totalChars, onComplete]
+    [totalChars, onComplete]
   );
 
   useEffect(() => {
