@@ -10,7 +10,7 @@ const QUICK_TEMPLATES = [
   { emoji: "💖", label: "Love", template: "love-chase", hint: "I love the way you make me feel every single day." },
   { emoji: "💔", label: "Sorry", template: "kitty-apology", hint: "I'm sorry for what I said. I didn't mean it." },
   { emoji: "😂", label: "Funny", template: "come-closer", hint: "I made this just for you. Promise me you'll keep smiling like this." },
-  { emoji: "🎂", label: "Birthday", template: "birthday-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
+  { emoji: "🎂", label: "Birthday", template: "birthday-surprise-journey", hint: "Happy birthday to the person who makes life brighter just by being in it." },
   { emoji: "🏆", label: "Roast", template: "come-closer", hint: "Come closer. I've been saving this one just for you." },
   { emoji: "💓", label: "Memory", template: "memory-maze", hint: "Every heartbeat holds a story. Some are just waiting to be unlocked." },
   { emoji: "🔥", label: "Mystery", template: "escape-me", hint: "There's something hidden inside. Can you find it?" },

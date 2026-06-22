@@ -208,7 +208,7 @@ export const templates: Template[] = [
     length: "2 minutes",
     tone: "Birthday",
     theme: "Cute Pink",
-    status: "coming-soon",
+    status: "full",
     formula: ["Candle 1", "Candle 2", "Candle 3", "Candle 4", "Message in icing"],
     description: "Click or hold to blow out candles on a cake one by one, and the message appears in icing once the last one's out."
   },
