@@ -296,7 +296,11 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
               setImages([]);
               setTemplateData({});
             }} className="input">
-              {[...templates].sort((a, b) => a.status === "full" ? -1 : b.status === "full" ? 1 : 0).map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
+              {[...templates].sort((a, b) => {
+                if (a.status === "full" && b.status !== "full") return -1;
+                if (a.status !== "full" && b.status === "full") return 1;
+                return a.title.localeCompare(b.title);
+              }).map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <p className="mt-2 text-sm leading-5 text-white/50">{template.description}</p>
           </Field>

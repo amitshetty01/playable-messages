@@ -763,7 +763,7 @@ export const templates: Template[] = [
 templates.sort((a, b) => {
   if (a.status === "full" && b.status !== "full") return -1;
   if (a.status !== "full" && b.status === "full") return 1;
-  return 0;
+  return a.title.localeCompare(b.title);
 });
 
 const templateRouteAliases: Record<string, string> = {
