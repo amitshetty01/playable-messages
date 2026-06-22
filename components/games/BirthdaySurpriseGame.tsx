@@ -11,53 +11,35 @@ const BTN_BRIGHT = "inline-flex min-h-[48px] items-center rounded-full border bo
 
 function playBirthdayMelody(ctx: AudioContext) {
   const master = ctx.createGain();
-  master.gain.setValueAtTime(0.1, ctx.currentTime);
-  master.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 10);
+  master.gain.setValueAtTime(0.12, ctx.currentTime);
+  master.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 12);
   master.connect(ctx.destination);
-  const melody = [
-    { f: 523, t: 0, d: 0.25 }, { f: 587, t: 0.3, d: 0.25 },
-    { f: 659, t: 0.6, d: 0.25 }, { f: 698, t: 0.9, d: 0.25 },
-    { f: 784, t: 1.2, d: 0.4 }, { f: 784, t: 1.7, d: 0.2 },
-    { f: 698, t: 2.0, d: 0.25 }, { f: 659, t: 2.3, d: 0.25 },
-    { f: 587, t: 2.6, d: 0.3 }, { f: 523, t: 3.0, d: 0.3 },
-    { f: 784, t: 3.4, d: 0.4 }, { f: 659, t: 3.9, d: 0.3 },
-    { f: 587, t: 4.3, d: 0.25 }, { f: 523, t: 4.6, d: 0.25 },
-    { f: 1047, t: 5.0, d: 0.5 }, { f: 784, t: 5.6, d: 0.3 },
-    { f: 659, t: 6.0, d: 0.25 }, { f: 784, t: 6.3, d: 0.25 },
-    { f: 1047, t: 6.7, d: 0.6 }, { f: 880, t: 7.4, d: 0.3 },
-    { f: 784, t: 7.8, d: 0.25 }, { f: 659, t: 8.1, d: 0.25 },
-    { f: 784, t: 8.4, d: 0.25 }, { f: 1047, t: 8.8, d: 0.8 },
+
+  const notes = [
+    [523, 0, 0.3], [587, 0.35, 0.3], [659, 0.7, 0.3],
+    [784, 1.1, 0.5], [784, 1.7, 0.2], [698, 2.0, 0.25],
+    [659, 2.3, 0.25], [587, 2.6, 0.3], [523, 3.0, 0.4],
+    [784, 3.5, 0.5], [659, 4.1, 0.3], [587, 4.5, 0.25],
+    [523, 4.8, 0.25], [1047, 5.2, 0.6], [784, 5.9, 0.3],
+    [880, 6.3, 0.3], [784, 6.7, 0.25], [659, 7.0, 0.25],
+    [784, 7.3, 0.3], [1047, 7.7, 0.8],
   ];
-  const chord = [523, 659, 784];
-  melody.forEach(({ f, t, d }) => {
+
+  notes.forEach(([freq, time, dur]) => {
     const o = ctx.createOscillator();
-    o.type = t < 5.0 ? "triangle" : "sine";
-    o.frequency.value = f;
+    o.type = "triangle";
+    o.frequency.value = freq as number;
     const g = ctx.createGain();
+    const t = time as number;
+    const d = dur as number;
     g.gain.setValueAtTime(0, ctx.currentTime + t);
-    g.gain.linearRampToValueAtTime(0.1, ctx.currentTime + t + 0.04);
+    g.gain.linearRampToValueAtTime(0.12, ctx.currentTime + t + 0.05);
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + d);
     o.connect(g);
     g.connect(master);
     o.start(ctx.currentTime + t);
     o.stop(ctx.currentTime + t + d + 0.1);
   });
-  [0, 2.0, 4.0, 6.0, 8.0].forEach((ct) => {
-    chord.forEach((f, ci) => {
-      const o = ctx.createOscillator();
-      o.type = "sine";
-      o.frequency.value = f * 0.5;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0.02, ctx.currentTime + ct);
-      g.gain.linearRampToValueAtTime(0.04, ctx.currentTime + ct + 0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + ct + 1.5);
-      o.connect(g);
-      g.connect(master);
-      o.start(ctx.currentTime + ct);
-      o.stop(ctx.currentTime + ct + 1.6);
-    });
-  });
-  return master;
 }
 
 function playCheer(ctx: AudioContext) {
@@ -94,56 +76,41 @@ function playSparkle(ctx: AudioContext) {
 
 function PhotoGrid({ images }: { images: string[] }) {
   const n = images.length;
-  const layout = useMemo(() => {
-    if (n === 1) return [{ c: "col-span-2 row-span-2", w: 0 }];
-    if (n === 2) return images.map((_, i) => ({ c: "col-span-1 row-span-2", w: i }));
-    if (n === 3) return images.map((_, i) => ({ c: i === 0 ? "col-span-2 row-span-2" : "col-span-1 row-span-1", w: i }));
-    if (n <= 6) return images.map((_, i) => ({ c: "col-span-1 row-span-1", w: i }));
-    return images.map((_, i) => ({ c: i < 2 ? "col-span-2 row-span-2" : "col-span-1 row-span-1", w: i }));
-  }, [images]);
-
   return (
     <div className="grid grid-cols-4 gap-2 w-full max-w-2xl mx-auto px-4" style={{ gridAutoRows: "minmax(100px,auto)" }}>
-      {images.slice(0, 10).map((src, i) => (
-        <div
-          key={i}
-          className={`${layout[i]?.c || "col-span-1 row-span-1"} overflow-hidden rounded-xl shadow-lg`}
-          style={{
-            animation: `cgUp 0.6s ease-out ${i * 0.12}s both`,
-            transform: `rotate(${(i % 3 === 0 ? -1 : i % 3 === 1 ? 1 : 0) * (0.5 + Math.random() * 0.5)}deg)`,
-          }}
-        >
-          <img
-            src={src}
-            alt={`Memory ${i + 1}`}
-            className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
-            loading="lazy"
-          />
-        </div>
-      ))}
+      {images.slice(0, 10).map((src, i) => {
+        let cls = "col-span-1 row-span-1";
+        if (n === 2) cls = "col-span-2 row-span-2";
+        else if (n === 3) cls = i === 0 ? "col-span-2 row-span-2" : "col-span-1 row-span-1";
+        else if (n <= 6) cls = "col-span-1 row-span-1";
+        else if (i < 2) cls = "col-span-2 row-span-2";
+        return (
+          <div
+            key={i}
+            className={`${cls} overflow-hidden rounded-xl shadow-lg`}
+            style={{
+              animation: `cgUp 0.6s ease-out ${i * 0.12}s both`,
+              transform: `rotate(${(i % 3 === 0 ? -1 : i % 3 === 1 ? 1 : 0) * (0.5 + Math.random() * 0.5)}deg)`,
+            }}
+          >
+            <img src={src} alt={`Memory ${i + 1}`} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" loading="lazy" />
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function LightBulb({ id, x, y, delay }: { id: number; x: number; y: number; delay: number }) {
+function LightBulb({ x, y, delay }: { x: number; y: number; delay: number }) {
   return (
-    <div
-      className="absolute pointer-events-none"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        animation: `cgIn 0.5s ease-out ${delay}s both`,
-      }}
-    >
-      <svg viewBox="0 0 40 60" className="h-16 w-12 drop-shadow-2xl" style={{ animation: `cgSwing 3s ease-in-out ${delay}s infinite` }}>
+    <div className="absolute pointer-events-none" style={{ left: `${x}%`, top: `${y}%`, animation: `cgIn 0.5s ease-out ${delay}s both` }}>
+      <svg viewBox="0 0 40 60" className="h-14 w-11 drop-shadow-2xl" style={{ animation: "cgSwing 3s ease-in-out infinite" }}>
         <defs>
-          <radialGradient id={`bg-${id}`} cx="50%" cy="30%" r="50%">
-            <stop offset="0%" stopColor="#fef08a" />
-            <stop offset="60%" stopColor="#facc15" />
-            <stop offset="100%" stopColor="#eab308" />
+          <radialGradient id={`bl-${x}-${y}`} cx="50%" cy="30%" r="50%">
+            <stop offset="0%" stopColor="#fef08a" /><stop offset="60%" stopColor="#facc15" /><stop offset="100%" stopColor="#eab308" />
           </radialGradient>
         </defs>
-        <ellipse cx="20" cy="22" rx="13" ry="16" fill={`url(#bg-${id})`} />
+        <ellipse cx="20" cy="22" rx="13" ry="16" fill={`url(#bl-${x}-${y})`} />
         <rect x="16" y="40" width="8" height="6" rx="1" fill="#a16207" />
         <path d="M12 46 Q20 56 28 46" fill="none" stroke="#a16207" strokeWidth="2" />
         <ellipse cx="16" cy="16" rx="4" ry="5" fill="rgba(255,255,255,0.35)" />
@@ -153,19 +120,19 @@ function LightBulb({ id, x, y, delay }: { id: number; x: number; y: number; dela
   );
 }
 
-function BalloonSVG({ color }: { color: string }) {
+function BalloonSVG({ color, size = 1 }: { color: string; size?: number }) {
   return (
-    <svg viewBox="0 0 40 64" className="h-28 w-20 drop-shadow-xl">
+    <svg viewBox="0 0 40 64" className="drop-shadow-xl" style={{ width: `${20 * size}px`, height: `${32 * size}px` }}>
       <defs>
-        <radialGradient id={`bl-${color.slice(1)}`} cx="35%" cy="25%" r="60%">
+        <radialGradient id={`bg-${color.slice(1)}`} cx="35%" cy="25%" r="60%">
           <stop offset="0%" stopColor="rgba(255,255,255,0.5)" />
           <stop offset="40%" stopColor={color} />
           <stop offset="100%" stopColor={`${color}99`} />
         </radialGradient>
       </defs>
-      <ellipse cx="20" cy="24" rx="16" ry="22" fill={`url(#bl-${color.slice(1)})`} />
+      <ellipse cx="20" cy="24" rx="16" ry="22" fill={`url(#bg-${color.slice(1)})`} />
       <polygon points="20,46 14,54 26,54" fill={color} opacity="0.7" />
-      <path d="M20 54 Q18 60 20 64 Q22 60 20 54" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8" />
+      <path d="M20 54 Q18 60 20 64 Q22 60 20 54" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
       <ellipse cx="14" cy="16" rx="4" ry="6" fill="rgba(255,255,255,0.35)" />
       <path d="M10 28 Q6 32 8 36" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
       <path d="M30 28 Q34 32 32 36" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
@@ -175,30 +142,49 @@ function BalloonSVG({ color }: { color: string }) {
 
 function KnifeSVG() {
   return (
-    <svg viewBox="0 0 30 80" className="h-32 w-14 drop-shadow-xl">
+    <svg viewBox="0 0 100 60" className="h-20 w-36 drop-shadow-2xl">
       <defs>
-        <linearGradient id="knife-blade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#d4d4d4" />
-          <stop offset="30%" stopColor="#f5f5f5" />
-          <stop offset="60%" stopColor="#e5e5e5" />
+        <linearGradient id="knife-steel" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f5f5f5" />
+          <stop offset="35%" stopColor="#e8e8e8" />
+          <stop offset="50%" stopColor="#ffffff" />
+          <stop offset="65%" stopColor="#d4d4d4" />
           <stop offset="100%" stopColor="#a3a3a3" />
         </linearGradient>
         <linearGradient id="knife-handle" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#5c4033" />
+          <stop offset="0%" stopColor="#4a3728" />
+          <stop offset="20%" stopColor="#6b4c3b" />
           <stop offset="50%" stopColor="#8b6914" />
-          <stop offset="100%" stopColor="#5c4033" />
+          <stop offset="80%" stopColor="#6b4c3b" />
+          <stop offset="100%" stopColor="#3e2723" />
+        </linearGradient>
+        <linearGradient id="knife-rivet" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#d4d4d4" />
+          <stop offset="50%" stopColor="#a3a3a3" />
+          <stop offset="100%" stopColor="#737373" />
+        </linearGradient>
+        <linearGradient id="blade-edge" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#d4d4d4" />
         </linearGradient>
       </defs>
-      <path d="M12 2 L8 42 L22 42 L18 2 Z" fill="url(#knife-blade)" stroke="#a3a3a3" strokeWidth="0.5" />
-      <path d="M12 2 Q15 0 18 2" fill="none" stroke="#a3a3a3" strokeWidth="0.5" />
-      <polygon points="6,42 2,56 14,56 10,44" fill="url(#knife-handle)" stroke="#3e2723" strokeWidth="0.5" />
-      <polygon points="20,42 16,56 28,56 24,44" fill="url(#knife-handle)" stroke="#3e2723" strokeWidth="0.5" />
-      <circle cx="15" cy="50" r="2" fill="#a16207" opacity="0.5" />
-      <rect x="10" y="56" width="10" height="2" rx="1" fill="#3e2723" />
-      <line x1="9" y1="44" x2="7" y2="54" stroke="#a16207" strokeWidth="0.5" opacity="0.3" />
+      <path d="M62 10 L98 10 L98 50 L62 50 Z" fill="url(#knife-handle)" rx="3" />
+      <rect x="62" y="10" width="36" height="40" rx="3" fill="url(#knife-handle)" />
+      <rect x="62" y="10" width="36" height="40" rx="3" fill="none" stroke="#3e2723" strokeWidth="1" />
+      <circle cx="72" cy="30" r="3" fill="url(#knife-rivet)" />
+      <circle cx="88" cy="30" r="3" fill="url(#knife-rivet)" />
+      <rect x="60" y="10" width="4" height="40" fill="#3e2723" rx="1" />
+      <path d="M55 10 L62 5 L62 55 L55 50 Z" fill="#a3a3a3" />
+      <path d="M2 12 L55 10 L55 50 L2 48 Z" fill="url(#knife-steel)" stroke="#a3a3a3" strokeWidth="0.5" />
+      <path d="M2 12 L40 6 L70 10 L55 10 Z" fill="url(#blade-edge)" opacity="0.6" />
+      <path d="M2 12 L40 6" fill="none" stroke="#8a8a8a" strokeWidth="0.8" />
+      <path d="M55 10 L55 50" fill="none" stroke="#8a8a8a" strokeWidth="0.5" opacity="0.5" />
+      <rect x="2" y="12" width="53" height="36" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.3" />
     </svg>
   );
 }
+
+type FloatBalloon = { id: number; x: number; color: string; delay: number; size: number };
 
 export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: Props) {
   const [step, setStep] = useState(0);
@@ -209,17 +195,18 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [decorated, setDecorated] = useState(false);
   const [balloonsShown, setBalloonsShown] = useState(false);
+  const [floatBalloons, setFloatBalloons] = useState<FloatBalloon[]>([]);
   const [cutCount, setCutCount] = useState(0);
   const [knifePos, setKnifePos] = useState({ x: 50, y: 50 });
   const [showLetter, setShowLetter] = useState(false);
   const [ribbons, setRibbons] = useState<{ id: number; x: number; y: number; c: string; d: number }[]>([]);
-  const [balloons, setBalloons] = useState<{ id: number; x: number; c: string; d: number }[]>([]);
   const [showCakeBtn, setShowCakeBtn] = useState(false);
   const [showBalloonBtn, setShowBalloonBtn] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
   const [showMemories, setShowMemories] = useState(false);
   const [cutLines, setCutLines] = useState<number[]>([]);
   const [cutDone, setCutDone] = useState(false);
+  const [cakeAnim, setCakeAnim] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const cakeRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
@@ -227,6 +214,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
   const isBright = lightOn || step >= 4;
   const images = experience.images || [];
   const MIN_SLICES = 2;
+  const balloonColors = ["#ff6b8a","#60a5fa","#fbbf24","#34d399","#c084fc","#fb923c","#f472b6","#38bdf8"];
 
   const ctx = useCallback(() => {
     if (!audioRef.current) audioRef.current = new AudioContext();
@@ -254,6 +242,32 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     if (step === 2) { const t = setTimeout(() => setShowYesNo(true), 2500); return () => clearTimeout(t); }
   }, [step]);
 
+  useEffect(() => {
+    if (step === 7 && cakeAnim < 4) {
+      const t = setTimeout(() => setCakeAnim((p) => p + 1), 600);
+      return () => clearTimeout(t);
+    }
+  }, [step, cakeAnim]);
+
+  useEffect(() => {
+    if (!balloonsShown || step < 6) return;
+    const interval = setInterval(() => {
+      setFloatBalloons((prev) => {
+        const now = Date.now();
+        const fresh = prev.filter((b) => now - b.delay < 8000);
+        if (fresh.length >= 25) return fresh;
+        return [...fresh, {
+          id: now + Math.random(),
+          x: Math.random() * 90 + 5,
+          color: balloonColors[Math.floor(Math.random() * balloonColors.length)],
+          delay: now,
+          size: 0.6 + Math.random() * 0.6,
+        }];
+      });
+    }, 600);
+    return () => clearInterval(interval);
+  }, [balloonsShown, step]);
+
   const hYes = useCallback(() => {
     try { playSparkle(ctx()); } catch {}
     setStep(3);
@@ -268,8 +282,11 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
   const hMusic = useCallback(() => {
     if (musicPlaying) return;
     setMusicPlaying(true);
-    try { playBirthdayMelody(ctx()); } catch {}
-    setTimeout(() => setStep(5), 5000);
+    try {
+      const audioCtx = ctx();
+      playBirthdayMelody(audioCtx);
+    } catch (e) { console.error("Music error:", e); }
+    setTimeout(() => setStep(5), 5500);
   }, [musicPlaying, ctx]);
 
   const hDecorate = useCallback(() => {
@@ -282,8 +299,6 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
 
   const hBalloons = useCallback(() => {
     setBalloonsShown(true);
-    const cs = ["#ff6b8a","#60a5fa","#fbbf24","#34d399","#c084fc","#fb923c"];
-    setBalloons(Array.from({length:14},(_,i)=>({id:i,x:Math.random()*80+10,c:cs[i%cs.length],d:i*0.12})));
     try { playCheer(ctx()); } catch {}
     setTimeout(() => setShowCakeBtn(true), 1200);
   }, [ctx]);
@@ -298,8 +313,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
 
   const hCut = useCallback(() => {
     if (cutDone) return;
-    const maxCuts = 7;
-    if (cutCount >= maxCuts) return;
+    if (cutCount >= 7) return;
     const newLines = [...cutLines, knifePos.x];
     newLines.sort((a, b) => a - b);
     setCutLines(newLines);
@@ -329,22 +343,18 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     >
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E\")" }} />
 
-      {/* Light bulbs */}
-      {lightOn && step === 3 && (
-        <>
-          {[
-            { x: 12, y: 8, d: 0 }, { x: 88, y: 8, d: 0.15 },
-            { x: 25, y: 3, d: 0.3 }, { x: 75, y: 3, d: 0.45 },
-            { x: 50, y: 1, d: 0.6 },
-          ].map((b, i) => (
-            <LightBulb key={i} id={i} x={b.x} y={b.y} delay={b.d} />
-          ))}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: "radial-gradient(circle at 50% 0%, rgba(250,204,21,0.12) 0%, transparent 60%)",
-            animation: "cgIn 0.8s ease-out both",
-          }} />
-        </>
-      )}
+      {/* Continuous floating balloons (background, step >= 6) */}
+      {(balloonsShown || step >= 6) && floatBalloons.map((b) => (
+        <div key={b.id} className="absolute pointer-events-none z-0" style={{
+          left: `${b.x}%`,
+          bottom: "-10%",
+          animation: `cgFloatUp ${6 + b.size * 2}s linear ${(Date.now() - b.delay) / 1000}s both`,
+        }}>
+          <div style={{ animation: `cgSway 3s ease-in-out ${b.id % 2}s infinite` }}>
+            <BalloonSVG color={b.color} size={b.size} />
+          </div>
+        </div>
+      ))}
 
       {/* Ribbons */}
       {ribbons.map(r => (
@@ -355,18 +365,22 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         </div>
       ))}
 
-      {/* Balloons */}
-      {balloons.map((b, i) => (
-        <div key={b.id} className="absolute pointer-events-none" style={{
-          left: `${b.x}%`,
-          bottom: "-15%",
-          animation: `cgBalloonRise ${3 + i * 0.15}s ease-out ${b.d}s both`,
-        }}>
-          <div style={{ animation: "cgSway 2.5s ease-in-out infinite" }}>
-            <BalloonSVG color={b.c} />
-          </div>
-        </div>
-      ))}
+      {/* Light bulbs */}
+      {lightOn && step === 3 && (
+        <>
+          {[
+            { x: 12, y: 8, d: 0 }, { x: 88, y: 8, d: 0.15 },
+            { x: 25, y: 3, d: 0.3 }, { x: 75, y: 3, d: 0.45 },
+            { x: 50, y: 1, d: 0.6 }, { x: 5, y: 12, d: 0.2 }, { x: 95, y: 12, d: 0.35 },
+          ].map((b, i) => (
+            <LightBulb key={i} x={b.x} y={b.y} delay={b.d} />
+          ))}
+          <div className="absolute inset-0 pointer-events-none z-0" style={{
+            background: "radial-gradient(circle at 50% 0%, rgba(250,204,21,0.12) 0%, transparent 60%)",
+            animation: "cgIn 0.8s ease-out both",
+          }} />
+        </>
+      )}
 
       {/* Step 0 — Three connected lines */}
       {step === 0 && (
@@ -387,7 +401,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         </div>
       )}
 
-      {/* Step 1 — Special note */}
+      {/* Step 1 */}
       {step === 1 && (
         <div className="relative z-10 mx-auto max-w-lg px-6 text-center" style={{ animation: "cgIn 0.8s ease-out both" }}>
           <p style={{ fontSize: "clamp(1.1rem,4vw,1.6rem)", animation: "cgUp 0.8s ease-out both" }} className="font-display font-bold leading-relaxed text-white/80">
@@ -397,7 +411,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         </div>
       )}
 
-      {/* Step 2 — I made this + Yes/No */}
+      {/* Step 2 */}
       {step === 2 && (
         <div className="relative z-10 mx-auto max-w-lg px-6 text-center" style={{ animation: "cgIn 0.8s ease-out both" }}>
           <p style={{ fontSize: "clamp(1.5rem,6vw,2.5rem)", animation: "cgUp 0.8s ease-out both" }} className="font-display font-bold leading-relaxed text-white/90">
@@ -506,93 +520,149 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         </div>
       )}
 
-      {/* Step 7 — Cake */}
+      {/* Step 7 — Animated Cake Assembly + Cutting */}
       {step === 7 && (
         <div className="relative z-10 mx-auto w-full max-w-lg px-6 text-center" style={{ animation: "cgIn 0.8s ease-out both" }}>
           <p style={{ fontSize: "clamp(1rem,4vw,1.4rem)" }} className="font-display font-bold text-amber-900 mb-6">
-            {cutCount === 0 ? "Click on the cake to slice it!" : `${slices} slice${slices > 1 ? "s" : ""}! Keep clicking to cut more`}
+            {cakeAnim < 4 ? "Building your cake..." : cutCount === 0 ? "Tap the cake to slice it!" : `${slices} slice${slices > 1 ? "s" : ""}! Tap to cut more`}
           </p>
           <div ref={cakeRef}
-            className="relative mx-auto h-72 w-full max-w-sm cursor-crosshair rounded-2xl overflow-hidden sm:h-80 touch-none"
-            style={{ background: "linear-gradient(180deg, rgba(251,191,36,0.1) 0%, rgba(217,119,6,0.05) 100%)" }}
-            onMouseMove={hMove}
-            onTouchMove={hMove}
-            onClick={hCut}
-            onTouchEnd={(e) => { e.preventDefault(); hCut(); }}
+            className="relative mx-auto h-72 w-full max-w-sm rounded-2xl overflow-hidden sm:h-80 touch-none"
+            style={{ background: cakeAnim >= 4 ? "linear-gradient(180deg, rgba(251,191,36,0.1) 0%, rgba(217,119,6,0.05) 100%)" : "transparent" }}
+            onMouseMove={cakeAnim >= 4 ? hMove : undefined}
+            onTouchMove={cakeAnim >= 4 ? hMove : undefined}
+            onClick={cakeAnim >= 4 ? hCut : undefined}
+            onTouchEnd={cakeAnim >= 4 ? (e) => { e.preventDefault(); hCut(); } : undefined}
           >
-            {/* Plate */}
-            <div className="absolute bottom-1 left-1/2 h-5 w-11/12 -translate-x-1/2 rounded-[50%] bg-gradient-to-b from-white/20 to-white/5 border border-white/10 shadow-lg" />
+            {/* Plate - appears after cake */}
+            {cakeAnim >= 1 && (
+              <div className="absolute bottom-1 left-1/2 h-5 w-11/12 -translate-x-1/2 rounded-[50%] bg-gradient-to-b from-white/20 to-white/5 border border-white/10 shadow-lg"
+                style={{ animation: "cgDropIn 0.5s ease-out both" }} />
+            )}
 
-            {/* Bottom tier */}
-            <div className="absolute bottom-6 left-1/2 h-28 w-4/5 -translate-x-1/2 rounded-t-[2.5rem]" style={{
-              background: "linear-gradient(160deg, #fde68a 0%, #fbbf24 40%, #d97706 70%, #b45309 100%)",
-              border: "1px solid rgba(251,191,36,0.3)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-            }}>
-              <div className="absolute -top-3 left-0 right-0 h-6 rounded-t-[2.5rem]" style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
-                boxShadow: "0 2px 8px rgba(255,255,255,0.3)",
-              }} />
-              <div className="absolute -bottom-1 left-[10%] h-3 w-3 rounded-full bg-white/40" />
-              <div className="absolute -bottom-1 left-[30%] h-4 w-2.5 rounded-full bg-white/35" />
-              <div className="absolute -bottom-1 left-[55%] h-3.5 w-3 rounded-full bg-white/40" />
-              <div className="absolute -bottom-1 left-[75%] h-2.5 w-2.5 rounded-full bg-white/35" />
-              {[15,35,50,65,85].map(x => (
-                <div key={x} className="absolute top-4 w-1.5 h-1.5 rounded-full" style={{ left: `${x}%`, background: ["#ff6b8a","#60a5fa","#34d399","#fbbf24","#c084fc"][Math.floor(x/15)%5] }} />
-              ))}
-            </div>
-
-            {/* Middle tier */}
-            <div className="absolute bottom-[7.5rem] left-1/2 h-20 w-3/5 -translate-x-1/2 rounded-t-[2rem]" style={{
-              background: "linear-gradient(160deg, #fef3c7 0%, #fde68a 35%, #fbbf24 70%, #d97706 100%)",
-              border: "1px solid rgba(251,191,36,0.3)",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-            }}>
-              <div className="absolute -top-2.5 left-0 right-0 h-5 rounded-t-[2rem]" style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
-              }} />
-              <div className="absolute -bottom-1 left-[20%] h-2.5 w-2 rounded-full bg-white/35" />
-              <div className="absolute -bottom-1 left-[50%] h-3 w-2.5 rounded-full bg-white/40" />
-              <div className="absolute -bottom-1 left-[75%] h-2 w-2 rounded-full bg-white/35" />
-            </div>
-
-            {/* Top tier */}
-            <div className="absolute bottom-[11rem] left-1/2 h-16 w-2/5 -translate-x-1/2 rounded-t-[1.5rem]" style={{
-              background: "linear-gradient(160deg, #fef3c7 0%, #fde68a 30%, #fbbf24 65%, #d97706 100%)",
-              border: "1px solid rgba(251,191,36,0.3)",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            }}>
-              <div className="absolute -top-2 left-0 right-0 h-4 rounded-t-[1.5rem]" style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
-              }} />
-            </div>
-
-            {/* Cherry */}
-            <div className="absolute bottom-[12.5rem] left-1/2 h-7 w-7 -translate-x-1/2 rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-lg z-10" />
-            <div className="absolute bottom-[13.3rem] left-1/2 h-4 w-1 -translate-x-1/2 bg-green-700/40 rounded-full z-10" style={{ transform: "translateX(-50%) rotate(-15deg)" }} />
-
-            {/* Candle with improved flame */}
-            <div className="absolute bottom-[13.8rem] left-1/2 h-10 w-3 -translate-x-1/2" style={{
-              background: "linear-gradient(180deg, #fcd34d, #f59e0b, #d97706)",
-              borderRadius: "2px",
-              border: "1px solid rgba(251,191,36,0.3)",
-            }}>
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                <div className="h-6 w-3" style={{
-                  background: "linear-gradient(180deg, #fff7ed 0%, #fef08a 30%, #facc15 60%, #eab308 100%)",
-                  borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
-                  animation: "cgFlicker 0.4s ease-in-out infinite",
-                  boxShadow: "0 0 6px rgba(250,204,21,0.6), 0 0 12px rgba(250,204,21,0.3)",
+            {/* Bottom tier - drops from top */}
+            {cakeAnim >= 1 && (
+              <div className="absolute bottom-6 left-1/2 h-28 w-4/5 -translate-x-1/2 rounded-t-[2.5rem]"
+                style={{
+                  background: "linear-gradient(160deg, #fde68a 0%, #fbbf24 40%, #d97706 70%, #b45309 100%)",
+                  border: "1px solid rgba(251,191,36,0.3)",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                  animation: "cgDropIn 0.6s ease-out both",
+                }}>
+                <div className="absolute -top-3 left-0 right-0 h-6 rounded-t-[2.5rem]" style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
+                  boxShadow: "0 2px 8px rgba(255,255,255,0.3)",
                 }} />
-                <div className="h-1 w-1 rounded-full bg-amber-300/30" style={{
-                  animation: "cgPulse 1s ease-in-out infinite",
-                  boxShadow: "0 0 20px rgba(250,204,21,0.4), 0 0 40px rgba(250,204,21,0.15)",
-                }} />
+                <div className="absolute -bottom-1 left-[10%] h-3 w-3 rounded-full bg-white/40" />
+                <div className="absolute -bottom-1 left-[30%] h-4 w-2.5 rounded-full bg-white/35" />
+                <div className="absolute -bottom-1 left-[55%] h-3.5 w-3 rounded-full bg-white/40" />
+                <div className="absolute -bottom-1 left-[75%] h-2.5 w-2.5 rounded-full bg-white/35" />
+                {[15,35,50,65,85].map(x => (
+                  <div key={x} className="absolute top-4 w-1.5 h-1.5 rounded-full" style={{ left: `${x}%`, background: ["#ff6b8a","#60a5fa","#34d399","#fbbf24","#c084fc"][Math.floor(x/15)%5] }} />
+                ))}
               </div>
-            </div>
+            )}
+
+            {/* Middle tier - drops from top */}
+            {cakeAnim >= 2 && (
+              <div className="absolute bottom-[7.5rem] left-1/2 h-20 w-3/5 -translate-x-1/2 rounded-t-[2rem]"
+                style={{
+                  background: "linear-gradient(160deg, #fef3c7 0%, #fde68a 35%, #fbbf24 70%, #d97706 100%)",
+                  border: "1px solid rgba(251,191,36,0.3)",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                  animation: "cgDropIn 0.6s ease-out both",
+                }}>
+                <div className="absolute -top-2.5 left-0 right-0 h-5 rounded-t-[2rem]" style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
+                }} />
+                <div className="absolute -bottom-1 left-[20%] h-2.5 w-2 rounded-full bg-white/35" />
+                <div className="absolute -bottom-1 left-[50%] h-3 w-2.5 rounded-full bg-white/40" />
+                <div className="absolute -bottom-1 left-[75%] h-2 w-2 rounded-full bg-white/35" />
+              </div>
+            )}
+
+            {/* Top tier - drops from top */}
+            {cakeAnim >= 3 && (
+              <div className="absolute bottom-[11rem] left-1/2 h-16 w-2/5 -translate-x-1/2 rounded-t-[1.5rem]"
+                style={{
+                  background: "linear-gradient(160deg, #fef3c7 0%, #fde68a 30%, #fbbf24 65%, #d97706 100%)",
+                  border: "1px solid rgba(251,191,36,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                  animation: "cgDropIn 0.6s ease-out both",
+                }}>
+                <div className="absolute -top-2 left-0 right-0 h-4 rounded-t-[1.5rem]" style={{
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
+                }} />
+                {/* Sprinkles on top tier */}
+                {[25,50,75].map(x => (
+                  <div key={x} className="absolute top-2 w-1.5 h-1.5 rounded-full" style={{ left: `${x}%`, background: ["#ff6b8a","#60a5fa","#34d399"][Math.floor(x/25)%3] }} />
+                ))}
+              </div>
+            )}
+
+            {/* Cream falling from above */}
+            {cakeAnim >= 2 && cakeAnim < 4 && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ animation: "cgIn 0.3s ease-out both" }}>
+                {Array.from({length:20},(_,i)=>(
+                  <div key={i} className="absolute rounded-full bg-white/40" style={{
+                    width: `${4 + Math.random() * 8}px`,
+                    height: `${4 + Math.random() * 8}px`,
+                    left: `${Math.random() * 100}%`,
+                    top: `${-5 - Math.random() * 10}%`,
+                    animation: `cgCreamFall ${1 + Math.random()}s ease-in ${i * 0.08}s both`,
+                  }} />
+                ))}
+              </div>
+            )}
+
+            {/* Cherry - drops from top after tiers */}
+            {cakeAnim >= 3 && (
+              <>
+                <div className="absolute bottom-[12.5rem] left-1/2 h-7 w-7 -translate-x-1/2 rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-lg z-10"
+                  style={{ animation: "cgDropIn 0.5s ease-out 0.6s both" }} />
+                <div className="absolute bottom-[13.3rem] left-1/2 h-4 w-1 -translate-x-1/2 bg-green-700/40 rounded-full z-10"
+                  style={{ transform: "translateX(-50%) rotate(-15deg)", animation: "cgIn 0.3s ease-out 0.8s both" }} />
+              </>
+            )}
+
+            {/* Candle + flame - drops from top */}
+            {cakeAnim >= 4 && (
+              <div className="absolute bottom-[13.8rem] left-1/2 -translate-x-1/2" style={{ animation: "cgDropIn 0.5s ease-out both" }}>
+                <div className="h-10 w-3 rounded-sm" style={{
+                  background: "linear-gradient(180deg, #fcd34d, #f59e0b, #d97706)",
+                  border: "1px solid rgba(251,191,36,0.3)",
+                }}>
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                    <div className="h-6 w-3" style={{
+                      background: "linear-gradient(180deg, #fff7ed 0%, #fef08a 30%, #facc15 60%, #eab308 100%)",
+                      borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
+                      animation: "cgFlicker 0.4s ease-in-out infinite",
+                      boxShadow: "0 0 6px rgba(250,204,21,0.6), 0 0 12px rgba(250,204,21,0.3)",
+                    }} />
+                    <div className="h-1 w-1 rounded-full bg-amber-300/30" style={{
+                      animation: "cgPulse 1s ease-in-out infinite",
+                      boxShadow: "0 0 20px rgba(250,204,21,0.4), 0 0 40px rgba(250,204,21,0.15)",
+                    }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sparkles fall during assembly */}
+            {cakeAnim >= 1 && cakeAnim < 5 && (
+              <div className="absolute inset-0 pointer-events-none">
+                {Array.from({length:12},(_,i)=>(
+                  <div key={i} className="absolute text-lg" style={{
+                    left: `${10 + Math.random() * 80}%`,
+                    top: `${-5 - Math.random() * 10}%`,
+                    animation: `cgSparkleFall ${1.5 + Math.random()}s ease-in ${i * 0.15}s both`,
+                  }}>✨</div>
+                ))}
+              </div>
+            )}
 
             {/* Cut lines */}
-            {cutLines.map((pos, i) => (
+            {cakeAnim >= 4 && cutLines.map((pos, i) => (
               <div key={i} className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[15%] bottom-[8%] w-0.5 bg-white/50" style={{
                   left: `${pos}%`,
@@ -603,27 +673,27 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
               </div>
             ))}
 
-            {/* Slice count indicator */}
-            {cutCount > 0 && (
+            {/* Slice count */}
+            {cakeAnim >= 4 && cutCount > 0 && (
               <div className="absolute top-4 right-4 rounded-full bg-white/30 backdrop-blur-sm px-3 py-1 text-xs font-bold text-amber-900/80 z-30">
                 {slices} slice{slices > 1 ? "s" : ""}
               </div>
             )}
 
             {/* Knife */}
-            {!cutDone && (
-              <div className="absolute z-20 pointer-events-none transition-all duration-75" style={{ left: `${knifePos.x}%`, top: `${knifePos.y}%`, transform: "translate(-50%,-50%) rotate(12deg)" }}>
+            {cakeAnim >= 4 && !cutDone && (
+              <div className="absolute z-20 pointer-events-none transition-all duration-75" style={{ left: `${knifePos.x}%`, top: `${knifePos.y}%`, transform: "translate(-50%,-50%) rotate(15deg)" }}>
                 <KnifeSVG />
               </div>
             )}
 
             {/* Hint */}
-            {!cutDone && (
+            {cakeAnim >= 4 && !cutDone && (
               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-amber-900/70 backdrop-blur-sm" style={{ animation: "cgPulse 2s ease-in-out infinite" }}>
-                {cutCount === 0 ? "Tap to cut a slice" : "Tap for another slice"}
+                {cutCount === 0 ? "Tap to slice" : "Tap for another slice"}
               </div>
             )}
-            {cutDone && (
+            {cakeAnim >= 4 && cutDone && (
               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-amber-900/70 backdrop-blur-sm">
                 {slices} perfect slices! 🎉
               </div>
@@ -703,9 +773,12 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         @keyframes cgFlicker { 0%, 100% { opacity: 1; transform: scaleY(1) scaleX(1); } 25% { opacity: 0.6; transform: scaleY(0.8) scaleX(1.1); } 50% { opacity: 0.9; transform: scaleY(1.1) scaleX(0.9); } 75% { opacity: 0.5; transform: scaleY(0.75) scaleX(1.05); } }
         @keyframes cgBar { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
         @keyframes cgRibbon { from { opacity: 0; transform: scale(0) rotate(0deg); } to { opacity: 1; transform: scale(1) rotate(var(--r,25deg)); } }
-        @keyframes cgBalloonRise { 0% { opacity: 0; transform: translateY(0) scale(0.4); } 15% { opacity: 0.6; transform: translateY(-20vh) scale(0.7); } 40% { opacity: 1; transform: translateY(-50vh) scale(1); } 70% { opacity: 0.8; transform: translateY(-80vh) scale(0.95); } 100% { opacity: 0; transform: translateY(-110vh) scale(0.8); } }
-        @keyframes cgSway { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(6px); } 75% { transform: translateX(-6px); } }
+        @keyframes cgFloatUp { 0% { opacity: 0; transform: translateY(0) scale(0.3); } 10% { opacity: 0.7; transform: translateY(-15vh) scale(0.6); } 30% { opacity: 1; transform: translateY(-40vh) scale(0.9); } 60% { opacity: 0.8; transform: translateY(-75vh) scale(1); } 85% { opacity: 0.3; transform: translateY(-100vh) scale(0.85); } 100% { opacity: 0; transform: translateY(-120vh) scale(0.7); } }
+        @keyframes cgSway { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
         @keyframes cgSwing { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } }
+        @keyframes cgDropIn { 0% { opacity: 0; transform: translateY(-200px) scale(0.5); } 60% { opacity: 1; transform: translateY(8px) scale(1.02); } 80% { transform: translateY(-4px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes cgCreamFall { 0% { opacity: 0; transform: translateY(0) rotate(0deg); } 20% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(500px) rotate(360deg); } }
+        @keyframes cgSparkleFall { 0% { opacity: 0; transform: translateY(0) rotate(0deg); } 30% { opacity: 1; transform: translateY(100px) rotate(180deg); } 100% { opacity: 0; transform: translateY(500px) rotate(360deg); } }
       `}</style>
     </div>
   );
