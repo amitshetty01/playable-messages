@@ -19,23 +19,11 @@ export default function TemplatesPage() {
         <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">Preview first, personalize when ready.</h1>
         <p className="mt-5 max-w-3xl text-white/70">Browse interactive message templates with demos, gentle pacing, and simple customization.</p>
       </section>
-      <div className="flex flex-col items-center gap-4">
-        <AdsterraAd type="rectangle" />
-        <AdsterraAd type="rectangle" />
-        <AdsterraAd type="rectangle" />
-      </div>
       <SearchableGrid placeholder="Search templates by name or description...">{templates.map((template) => <div key={template.id} data-search={`${template.title} ${template.hook} ${template.description}`}><TemplateCard template={template} /></div>)}</SearchableGrid>
       <div className="mt-10 flex flex-col items-center gap-4">
         <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />
-        <AdsterraAd type="rectangle" />
-        <AdsterraAd type="square" />
-      </div>
-      <div className="flex flex-wrap justify-center gap-4">
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
       </div>
     </div>
   );
