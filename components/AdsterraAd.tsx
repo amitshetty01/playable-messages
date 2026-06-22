@@ -24,6 +24,7 @@ export function AdsterraAd({ type, className = "" }: { type: AdType; className?:
 
   useEffect(() => {
     if (loaded.current || !ref.current) return;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return;
     loaded.current = true;
 
     if (type === "rectangle") {

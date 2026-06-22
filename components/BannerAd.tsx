@@ -12,6 +12,7 @@ export function BannerAd() {
 
   useEffect(() => {
     if (loaded.current || !containerRef.current) return;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return;
     loaded.current = true;
     enqueueBannerAd(AD_KEY, AD_SRC, 250, 300, containerRef.current);
   }, []);

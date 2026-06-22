@@ -13,6 +13,7 @@ export function NativeAd() {
 
   useEffect(() => {
     if (initialized.current) return;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return;
     initialized.current = true;
 
     if (scriptLoaded) return;

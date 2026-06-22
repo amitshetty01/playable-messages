@@ -19,6 +19,7 @@ export function ResponsiveBannerAd() {
 
   useEffect(() => {
     if (isDesktop === null || loaded.current || !containerRef.current) return;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return;
     loaded.current = true;
     const key = isDesktop ? DESKTOP_KEY : MOBILE_KEY;
     const src = isDesktop ? DESKTOP_SRC : MOBILE_SRC;
