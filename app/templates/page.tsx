@@ -6,20 +6,21 @@ import { templates } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Interactive Message Templates",
-  description: "Preview interactive templates for apology messages, birthday messages, friendship notes, confession reveals, funny roasts, and surprise message links.",
+  title: "Coming Soon — Interactive Message Templates",
+  description: "New interactive message templates are coming. Be the first to know when apology, birthday, friendship, and surprise reveal templates launch.",
   path: "/templates"
 });
 
 export default function TemplatesPage() {
+  const comingSoon = templates.filter((t) => t.status === "coming-soon");
   return (
     <div className="space-y-6 sm:space-y-8">
       <section className="glass rounded-[2rem] p-5 sm:p-8">
-        <p className="text-xs font-bold tracking-[0.08em] text-white/50">Template library</p>
-        <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">Preview first, personalize when ready.</h1>
-        <p className="mt-5 max-w-3xl text-white/70">Browse interactive message templates with demos, gentle pacing, and simple customization.</p>
+        <p className="text-xs font-bold tracking-[0.08em] text-white/50">Coming soon</p>
+        <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">More templates are on the way.</h1>
+        <p className="mt-5 max-w-3xl text-white/70">We&apos;re building new interactive experiences. Here&apos;s what&apos;s coming next:</p>
       </section>
-      <SearchableGrid placeholder="Search templates by name or description...">{templates.map((template) => <div key={template.id} data-search={`${template.title} ${template.hook} ${template.description}`}><TemplateCard template={template} /></div>)}</SearchableGrid>
+      <SearchableGrid placeholder="Search coming soon templates...">{comingSoon.map((template) => <div key={template.id} data-search={`${template.title} ${template.hook} ${template.description}`}><TemplateCard template={template} /></div>)}</SearchableGrid>
       <div className="mt-10 flex flex-col items-center gap-4">
         <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />
