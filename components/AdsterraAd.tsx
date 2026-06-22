@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { enqueueBannerAd } from "@/lib/adLoader";
 
 const AD_KEYS = {
-  native: {
-    key: "7ac926808937b014ea818a1f0dceadf2",
-    src: "https://pl29827411.effectivecpmnetwork.com/7ac926808937b014ea818a1f0dceadf2/invoke.js",
-  },
   square: {
     key: "0b5011ee65a3dd233687d2fd48d23fb5",
     src: "https://www.highperformanceformat.com/0b5011ee65a3dd233687d2fd48d23fb5/invoke.js",
@@ -23,48 +20,23 @@ type AdType = "square" | "rectangle";
 
 export function AdsterraAd({ type, className = "" }: { type: AdType; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const loaded = useRef(false);
 
   useEffect(() => {
-    const cfg = AD_KEYS[type];
+    if (loaded.current || !ref.current) return;
+    loaded.current = true;
 
     if (type === "rectangle") {
       const isDesktop = window.innerWidth >= 768;
-      const key = isDesktop ? cfg.key : (cfg as typeof AD_KEYS.rectangle).mobileKey;
-      const src = isDesktop ? cfg.src : (cfg as typeof AD_KEYS.rectangle).mobileSrc;
+      const cfg = AD_KEYS.rectangle;
+      const key = isDesktop ? cfg.key : cfg.mobileKey;
+      const src = isDesktop ? cfg.src : cfg.mobileSrc;
       const height = isDesktop ? 90 : 50;
       const width = isDesktop ? 728 : 320;
-
-      const boot = document.createElement("script");
-      boot.textContent = `
-        window.atOptions = {
-          key: "${key}",
-          format: "iframe",
-          height: ${height},
-          width: ${width},
-          params: {}
-        };
-        var s = document.createElement("script");
-        s.src = "${src}";
-        s.async = true;
-        document.currentScript.parentNode.appendChild(s);
-      `;
-      ref.current?.appendChild(boot);
+      enqueueBannerAd(key, src, height, width, ref.current);
     } else {
-      const boot = document.createElement("script");
-      boot.textContent = `
-        window.atOptions = {
-          key: "${cfg.key}",
-          format: "iframe",
-          height: 250,
-          width: 300,
-          params: {}
-        };
-        var s = document.createElement("script");
-        s.src = "${cfg.src}";
-        s.async = true;
-        document.currentScript.parentNode.appendChild(s);
-      `;
-      ref.current?.appendChild(boot);
+      const cfg = AD_KEYS.square;
+      enqueueBannerAd(cfg.key, cfg.src, 250, 300, ref.current);
     }
   }, [type]);
 
