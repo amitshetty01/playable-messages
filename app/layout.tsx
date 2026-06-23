@@ -9,6 +9,7 @@ import { CookieBanner } from "@/components/CookieBanner";
 import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
 import { defaultDescription, defaultOgImage, siteName } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/next";
 
 const title = "Craft Your Message";
 const description = "Create interactive messages people actually feel.";
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SoundWelcome />
         <SoundToggleWrapper />
         <CookieBanner />
+        <Analytics />
       </body>
     </html>
   );
