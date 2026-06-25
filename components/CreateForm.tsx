@@ -186,6 +186,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     setError("");
     setFieldErrors({});
     const errors: Record<string, string> = {};
+    if (template.status !== "full") { setError("This template is not available yet."); setIsSubmitting(false); return; }
     if (!form.finalMessage.trim()) errors.finalMessage = "Your message can't be empty.";
     if (!form.receiverName.trim()) errors.receiverName = "Who's receiving this?";
     if (!form.creatorName.trim()) errors.creatorName = "Who's sending this?";
@@ -285,22 +286,17 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         <p className="mt-4 max-w-2xl text-white/70">{isEdit ? "Update and save changes." : "Customize the words, pick a template, then generate a shareable link."}</p>
 
         <div className="mt-8 space-y-8">
-          <Field label="How do you want to say it?" full>
+          <Field label="Pick a template" full>
               <select value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;
-              const anon = ANON_TONES.includes(next.tone);
               setForm((prev) => ({
-                ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin", showCreatorName: !anon,
+                ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin",
                 customPassword: "", passwordQuestion: "Only one person has the permission to go inside.", passwordAnswer: "", togetherSince: "",
               }));
               setImages([]);
               setTemplateData({});
             }} className="input">
-              {[...templates].sort((a, b) => {
-                if (a.status === "full" && b.status !== "full") return -1;
-                if (a.status !== "full" && b.status === "full") return 1;
-                return a.title.localeCompare(b.title);
-              }).map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
+              {templates.filter((item) => item.status === "full").sort((a, b) => a.title.localeCompare(b.title)).map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
             </select>
             <p className="mt-2 text-sm leading-5 text-white/50">{template.description}</p>
           </Field>
@@ -330,15 +326,13 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                 ))}
               </div>
             </div>
-            {ANON_TONES.includes(form.tone) ? (
-              <div className="mt-3 flex items-center gap-3">
-                <button type="button" onClick={() => setForm((prev) => ({ ...prev, showCreatorName: !prev.showCreatorName }))}
-                  className={`h-5 w-9 rounded-full transition-colors ${form.showCreatorName ? "bg-neon" : "bg-white/20"}`}>
-                  <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${form.showCreatorName ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
-                </button>
-                <span className="text-sm text-white/60">Reveal who sent this</span>
-              </div>
-            ) : null}
+            <div className="mt-3 flex items-center gap-3">
+              <button type="button" onClick={() => setForm((prev) => ({ ...prev, showCreatorName: !prev.showCreatorName }))}
+                className={`h-5 w-9 rounded-full transition-colors ${form.showCreatorName ? "bg-neon" : "bg-white/20"}`}>
+                <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${form.showCreatorName ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+              </button>
+              <span className="text-sm text-white/60">Reveal who sent this</span>
+            </div>
           </div>
 
           <div>

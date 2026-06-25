@@ -9,6 +9,7 @@ import type { ExperienceRecord } from "@/lib/types";
 export function ExperiencePreview({ experience, onClose }: { experience: ExperienceRecord; onClose: () => void }) {
   const router = useRouter();
   const [showShare, setShowShare] = useState(false);
+  const [copied, setCopied] = useState(false);
   const template = getTemplate(experience.templateId);
   if (!template) return null;
 
@@ -26,10 +27,13 @@ export function ExperiencePreview({ experience, onClose }: { experience: Experie
             <p className="mt-3 text-sm text-white/60">Share this with someone special:</p>
             <div className="mt-6 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 p-2">
               <input readOnly value={shareUrl} className="flex-1 bg-transparent px-3 py-2 text-sm text-white outline-none" onClick={(e) => (e.target as HTMLInputElement).select()} />
-              <button type="button" className="shrink-0 rounded-xl bg-white/15 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/25 active:scale-95" onClick={() => navigator.clipboard.writeText(shareUrl)}>Copy</button>
+              <button type="button" className="shrink-0 rounded-xl bg-white/15 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/25 active:scale-95" onClick={async () => { await navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 1800); }}>{copied ? "✅ Copied!" : "Copy"}</button>
             </div>
-            <div className="mt-6 flex justify-center gap-3">
-              <button type="button" className="ghost-button" onClick={() => window.open(shareUrl, "_blank")}>Open</button>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <button type="button" className="ghost-button text-sm" onClick={async () => { await navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 1800); }}>{copied ? "✅ Copied!" : "Copy Link"}</button>
+              <a className="ghost-button text-sm" href={`https://wa.me/?text=${encodeURIComponent("Check out this message: " + shareUrl)}`} target="_blank" rel="noreferrer">WhatsApp</a>
+              <button type="button" className="ghost-button text-sm" onClick={() => { navigator.clipboard.writeText(shareUrl); }}>Instagram</button>
+              <button type="button" className="ghost-button text-sm" onClick={() => window.open(shareUrl, "_blank")}>Open</button>
               <button type="button" className="premium-button" onClick={onClose}>Create another</button>
             </div>
           </div>

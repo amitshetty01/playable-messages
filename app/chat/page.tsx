@@ -632,7 +632,7 @@ export default function ChatPage() {
     .join(", ");
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#0d0a15]">
+    <div data-theme="dark" className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#0d0a15]">
       {/* ─── Header ─── */}
       <div className="flex shrink-0 flex-col border-b border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
         <div className="flex w-full max-w-2xl items-center justify-between px-3 sm:px-0 py-2 sm:py-3 mx-auto">

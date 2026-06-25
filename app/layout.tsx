@@ -4,6 +4,8 @@ import { Analytics } from "@vercel/analytics/next";
 import "@/app/globals.css";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { LanguageProvider } from "@/lib/i18n";
+import { ThemeProvider } from "@/lib/theme/context";
 import { SoundToggleWrapper } from "@/components/SoundToggleWrapper";
 import { SoundWelcome } from "@/components/SoundWelcome";
 import { CookieBanner } from "@/components/CookieBanner";
@@ -53,8 +55,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()` }} />
+        <ThemeProvider>
+        <LanguageProvider>
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-CKB6NM2LXG" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
@@ -63,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           gtag('config', 'G-CKB6NM2LXG');`}
         </Script>
         <script dangerouslySetInnerHTML={{ __html: `if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(r){r.unregister()})})}` }} />
-        <a className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-ink" href="#content">
+        <a className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white-static focus:px-4 focus:py-2 focus:text-ink" href="#content">
           Skip to content
         </a>
         <Analytics />
@@ -76,6 +81,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SoundWelcome />
         <SoundToggleWrapper />
         <CookieBanner />
+        </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

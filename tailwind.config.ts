@@ -9,6 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        white: "rgb(var(--color-white) / <alpha-value>)",
         ink: "#15101f",
         panel: "rgba(255,255,255,0.1)",
         line: "rgba(255,255,255,0.16)",
@@ -37,11 +38,16 @@ const config: Config = {
       },
       animation: {
         "scene-enter": "scene-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "float": "float 3s ease-in-out infinite",
       },
       keyframes: {
         "scene-enter": {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
         },
       },
     }

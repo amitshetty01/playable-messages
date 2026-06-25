@@ -49,15 +49,6 @@ export const GAME_CONFIGS: Record<string, GameConfig> = {
     reactionEmojis: ["🎉", "🥳", "🎂", "❤️"],
     bgClass: "shadow-[inset_0_0_120px_rgba(255,209,102,0.12)]",
   },
-  "mystery-confession": {
-    icon: "🔮",
-    gradient: g("#0f0a25", "#080415", "#03020a"),
-    opener: "Shine a light on what's hidden...",
-    gameHint: "Drag to move the flashlight",
-    anonFallback: "— from someone who needed to say this",
-    reactionEmojis: ["😳", "🤫", "😱", "👀"],
-    bgClass: "shadow-[inset_0_0_120px_rgba(160,112,255,0.12)]",
-  },
 };
 
 export const GAME_SLUG_BY_TEMPLATE: Record<string, string> = {
@@ -65,11 +56,11 @@ export const GAME_SLUG_BY_TEMPLATE: Record<string, string> = {
   "sorry-puzzle": "apology-fight-repair",
   "come-closer": "funny-roast",
   "funny-slots": "funny-roast",
-  "secret-decoder": "mystery-confession",
+  "secret-decoder": "love-crush",
   "birthday-cake": "birthday-special-days",
   "roast-wheel": "funny-roast",
   "memory-flip": "love-crush",
-  "mystery-fog": "mystery-confession",
+  "mystery-fog": "love-crush",
 };
 
 export function getGameConfig(templateId: string, tone: string): GameConfig {
@@ -77,7 +68,7 @@ export function getGameConfig(templateId: string, tone: string): GameConfig {
   if (byTemplate && GAME_CONFIGS[byTemplate]) return GAME_CONFIGS[byTemplate];
   const toneMap: Record<string, string> = {
     Romantic: "love-crush", Funny: "funny-roast", Sorry: "apology-fight-repair",
-    Savage: "funny-roast", Emotional: "love-crush", Mystery: "mystery-confession",
+    Savage: "funny-roast", Emotional: "love-crush", Mystery: "love-crush",
     Birthday: "birthday-special-days", Friendship: "funny-roast",
   };
   const key = toneMap[tone] || "love-crush";

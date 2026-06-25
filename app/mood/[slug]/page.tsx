@@ -19,6 +19,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   });
 }
 
+const moodSeoText: Record<string, string> = {
+  love: "Send a romantic interactive love confession your crush will never forget. Just type your message, pick a style, and share the link. Watch them play through a beautifully designed experience before reading your words.",
+  sorry: "Apologize in a creative way that shows you really care. Make your sorry message interactive with a fun game or reveal — it turns a tough moment into something they'll smile about.",
+  funny: "Make them laugh out loud with a playful interactive message. Perfect for roasting your best friend, sending a hilarious inside joke, or just making their day brighter.",
+  birthday: "Create a memorable birthday message that goes beyond a simple text. Add games, surprises, and a final heartfelt reveal that makes them feel special on their big day.",
+  roast: "Deliver the ultimate playful roast through an interactive experience. Build up the suspense with games and challenges before dropping your savage punchline.",
+  memory: "Celebrate your friendship or relationship with a nostalgic interactive message. Share inside jokes, favorite memories, and emotional moments in a way that feels personal.",
+  mystery: "Build suspense with a mysterious interactive reveal. Perfect for dramatic confessions, hidden feelings, or any message that deserves a dramatic buildup.",
+};
+
 export default async function MoodPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const mood = getMood(slug);
@@ -36,6 +46,7 @@ export default async function MoodPage({ params }: { params: Promise<{ slug: str
           {mood.emoji} {mood.name} templates.
         </h1>
         <p className="mt-5 max-w-3xl text-white/70">{mood.description}</p>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/50">{moodSeoText[slug]}</p>
       </section>
       {items.length ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

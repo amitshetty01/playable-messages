@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
 import { pickTemplate } from "@/lib/pickTemplate";
 import { ExperiencePreview } from "@/components/ExperiencePreview";
 import { Spinner } from "@/components/Spinner";
@@ -21,6 +22,7 @@ export function QuickFlow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [experience, setExperience] = useState<ExperienceRecord | null>(null);
+  const { t } = useTranslation();
 
   const generate = useCallback(async () => {
     const msg = text.trim();
@@ -52,33 +54,43 @@ export function QuickFlow() {
   return (
     <div className="flex flex-col items-center text-center">
       <h1 className="display-title text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-        Turn your words into an <span className="bg-gradient-to-r from-blush to-neon bg-clip-text text-transparent">interactive experience</span>
+        {t("site.tagline")}
       </h1>
       <p className="mt-4 max-w-lg text-lg text-white/60">
-        Type your message, pick a style, and generate a link. The person you send it to plays through a beautifully designed interactive moment.
+        {t("site.description")}
       </p>
 
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="I've been meaning to tell you..."
+        placeholder={t("home.quick.placeholder")}
         rows={4}
         aria-label="Your message"
         className="w-full max-w-xl rounded-2xl border border-white/15 bg-white/8 px-5 py-4 text-center text-lg text-white placeholder-white/30 backdrop-blur-sm outline-none transition-all focus:border-white/30 focus:bg-white/12"
         maxLength={520}
       />
 
-      <div className="mt-4 flex max-w-xl flex-wrap justify-center gap-2">
-        {QUICK_TEMPLATES.map((t) => (
-          <Link
-            key={t.label}
-            href={`/mood/${t.slug}`}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold tracking-wide text-white/50 transition-all hover:border-white/20 hover:bg-white/[0.08] hover:text-white/70"
+      {/* ─── Mood illustrations ─── */}
+      <div className="mt-8 grid w-full max-w-2xl grid-cols-3 gap-3 sm:grid-cols-6">
+        {[
+          { emoji: "💖", labelKey: "mood.love", slug: "love", img: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&h=300&fit=crop&auto=format", overlay: "from-pink-500/70 to-rose-600/70" },
+          { emoji: "💔", labelKey: "mood.sorry", slug: "sorry", img: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=300&fit=crop&auto=format", overlay: "from-slate-600/70 to-slate-900/70" },
+          { emoji: "😂", labelKey: "mood.funny", slug: "funny", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop&auto=format", overlay: "from-amber-400/70 to-orange-500/70" },
+          { emoji: "🎂", labelKey: "mood.birthday", slug: "birthday", img: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=400&h=300&fit=crop&auto=format", overlay: "from-violet-500/70 to-purple-700/70" },
+          { emoji: "🏆", labelKey: "mood.roast", slug: "roast", img: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=400&h=300&fit=crop&auto=format", overlay: "from-red-500/70 to-red-700/70" },
+          { emoji: "💓", labelKey: "mood.memory", slug: "memory", img: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=400&h=300&fit=crop&auto=format", overlay: "from-teal-400/70 to-cyan-600/70" },
+        ].map((m) => (
+          <Link key={m.slug} href={`/mood/${m.slug}`}
+            className="group relative flex flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden"
           >
-            {t.emoji} {t.label}
+            <div className="absolute inset-0 bg-cover bg-center opacity-60 group-hover:opacity-80 transition-opacity" style={{ backgroundImage: `url(${m.img})` }} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${m.overlay}`} />
+            <span className="relative z-10 text-2xl sm:text-3xl">{m.emoji}</span>
+            <span className="relative z-10 text-[10px] font-bold tracking-wide text-white/90">{t(m.labelKey)}</span>
           </Link>
         ))}
       </div>
+      <p className="mt-2 text-[11px] font-semibold text-white/30">{t("home.quick.mood.hint")}</p>
 
       <button
         type="button"
@@ -86,7 +98,7 @@ export function QuickFlow() {
         onClick={generate}
         className="premium-button mt-6 min-w-[200px] disabled:opacity-40"
       >
-        {loading ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> Generating...</span> : "Create your link →"}
+        {loading ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> {t("home.quick.generating")}</span> : t("home.quick.create")}
       </button>
       {error && <p className="mt-4 rounded-2xl border border-rose-200/30 bg-rose-300/10 px-5 py-3 text-sm font-bold text-rose-100" role="alert">{error}</p>}
     </div>

@@ -2,22 +2,123 @@ import Link from "next/link";
 import { categories, getTemplateSeoSlug } from "@/lib/data";
 import type { Template } from "@/lib/types";
 
+type ThumbVisual = {
+  gradient: string;
+  mainIcon: string;
+  floaters: { emoji: string; style: string }[];
+  pattern: "dots" | "grid" | "waves" | "stars" | "diamonds";
+};
+
+const thumbVisuals: Record<string, ThumbVisual> = {
+  "the-final-button": {
+    gradient: "from-pink-600 via-rose-500 to-fuchsia-700",
+    mainIcon: "🎯",
+    floaters: [{ emoji: "💘", style: "top-2 left-3 text-xs animate-bounce-soft" }, { emoji: "✨", style: "top-4 right-5 text-lg animate-spin-slow" }, { emoji: "💖", style: "bottom-4 left-5 text-sm animate-float-slow" }],
+    pattern: "stars",
+  },
+  "memory-maze": {
+    gradient: "from-teal-600 via-emerald-500 to-cyan-700",
+    mainIcon: "💜",
+    floaters: [{ emoji: "🌀", style: "top-2 right-3 text-sm animate-spin-slow" }, { emoji: "🔮", style: "bottom-3 left-4 text-base animate-float-slow" }, { emoji: "✨", style: "top-5 left-2 text-xs" }],
+    pattern: "grid",
+  },
+  "birthday-surprise-journey": {
+    gradient: "from-violet-600 via-purple-500 to-fuchsia-700",
+    mainIcon: "🎂",
+    floaters: [{ emoji: "🎈", style: "top-2 right-4 text-lg animate-sway-gentle" }, { emoji: "🎉", style: "bottom-3 left-3 text-sm animate-bounce-soft" }, { emoji: "⭐", style: "top-3 left-6 text-xs animate-pulse" }],
+    pattern: "stars",
+  },
+  "love-chase": {
+    gradient: "from-rose-600 via-pink-500 to-red-700",
+    mainIcon: "💖",
+    floaters: [{ emoji: "🏃", style: "top-3 right-3 text-lg animate-float-slow" }, { emoji: "💕", style: "bottom-4 left-4 text-sm animate-bounce-soft" }, { emoji: "🔥", style: "top-2 left-5 text-xs" }],
+    pattern: "dots",
+  },
+  "kitty-apology": {
+    gradient: "from-sky-600 via-indigo-500 to-slate-800",
+    mainIcon: "🐱",
+    floaters: [{ emoji: "💔", style: "top-2 right-4 text-sm animate-float-slow" }, { emoji: "🧶", style: "bottom-3 left-3 text-base animate-sway-gentle" }, { emoji: "🥺", style: "top-4 left-2 text-xs animate-pulse" }],
+    pattern: "dots",
+  },
+  "come-closer": {
+    gradient: "from-amber-600 via-orange-500 to-red-700",
+    mainIcon: "👻",
+    floaters: [{ emoji: "👀", style: "top-2 right-3 text-lg animate-bounce-soft" }, { emoji: "🕯️", style: "bottom-3 left-4 text-base animate-float-slow" }, { emoji: "💀", style: "top-4 left-5 text-xs" }],
+    pattern: "waves",
+  },
+  "birthday-journey": {
+    gradient: "from-indigo-600 via-violet-500 to-purple-800",
+    mainIcon: "🎈",
+    floaters: [{ emoji: "🎁", style: "top-2 right-4 text-lg animate-bounce-soft" }, { emoji: "🕯️", style: "bottom-3 left-3 text-sm animate-float-slow" }, { emoji: "✨", style: "top-3 left-6 text-xs animate-pulse" }],
+    pattern: "stars",
+  },
+  "escape-me": {
+    gradient: "from-fuchsia-600 via-purple-500 to-violet-800",
+    mainIcon: "🧩",
+    floaters: [{ emoji: "🔐", style: "top-2 right-3 text-lg animate-bounce-soft" }, { emoji: "🗝️", style: "bottom-3 left-4 text-base animate-float-slow" }, { emoji: "👁️", style: "top-4 left-2 text-xs" }],
+    pattern: "grid",
+  },
+};
+
+const defaultVisual: ThumbVisual = {
+  gradient: "from-blush/40 via-violet/40 to-neon/40",
+  mainIcon: "✨",
+  floaters: [{ emoji: "💫", style: "top-2 right-3 text-sm animate-float-slow" }, { emoji: "⭐", style: "bottom-3 left-4 text-xs animate-pulse" }],
+  pattern: "dots",
+};
+
 export function TemplateCard({ template }: { template: Template }) {
   const isLocked = template.status === "coming-soon";
   const categoryNames = template.categorySlugs.map((slug) => categories.find((category) => category.slug === slug)?.name).filter(Boolean).join(", ");
+  const v = thumbVisuals[template.id] || defaultVisual;
+
+  const patternSvgs: Record<string, string> = {
+    dots: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E")`,
+    grid: `url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 24 0 L 0 0 0 24' fill='none' stroke='rgba(255,255,255,0.06)' stroke-width='0.5'/%3E%3C/svg%3E")`,
+    waves: `url("data:image/svg+xml,%3Csvg width='40' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q10 0 20 10 Q30 20 40 10' fill='none' stroke='rgba(255,255,255,0.06)' stroke-width='1'/%3E%3C/svg%3E")`,
+    stars: `url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='15,2 18,11 28,11 20,17 23,26 15,21 7,26 10,17 2,11 12,11' fill='rgba(255,255,255,0.04)'/%3E%3C/svg%3E")`,
+    diamonds: `url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='8' y='8' width='8' height='8' transform='rotate(45 12 12)' fill='rgba(255,255,255,0.04)'/%3E%3C/svg%3E")`,
+  };
 
   return (
-    <article className={`card-glow glass group relative overflow-hidden rounded-[1.6rem] p-5 sm:rounded-[1.8rem] sm:p-6 ${isLocked ? "opacity-50" : ""}`}>
-      <div className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-gradient-to-r from-blush via-violet to-neon opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+    <article className={`card-glow glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] ${isLocked ? "opacity-50" : ""}`}>
+      {/* Thumbnail */}
+      <div className={`relative h-32 w-full bg-gradient-to-br ${v.gradient} flex items-center justify-center overflow-hidden`}>
+        {/* Pattern overlay */}
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: patternSvgs[v.pattern], backgroundSize: v.pattern === "waves" ? "40px 20px" : v.pattern === "grid" ? "24px 24px" : "20px 20px" }} />
+
+        {/* Diagonal overlay */}
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 7px)" }} />
+
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+
+        {/* Floating decorative elements */}
+        {v.floaters.map((f, i) => (
+          <span key={i} className={`absolute select-none ${f.style}`}>{f.emoji}</span>
+        ))}
+
+        {/* Main emoji with glow */}
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-white/20 blur-xl scale-150 opacity-0 group-hover:opacity-60 transition-all duration-500" />
+          <span className="relative text-4xl drop-shadow-2xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">{v.mainIcon}</span>
+        </div>
+
+        {/* Hover shine overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Badges */}
+        <div className="absolute bottom-2 left-3 flex flex-wrap gap-1.5 z-10">
+          <span className="rounded-full bg-black/50 px-2.5 py-0.5 text-[10px] font-bold text-white-static backdrop-blur-sm ring-1 ring-white/10">{template.length}</span>
+          {!isLocked && <span className="rounded-full bg-emerald-500/25 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 backdrop-blur-sm ring-1 ring-emerald-400/20">Live</span>}
+        </div>
+      </div>
+      <div className="p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.08em] text-white/50">
           <span className={isLocked ? "" : "pulse-dot"} />
-          {isLocked ? "Coming soon" : template.status === "full" ? "Ready to play" : "Preview available"}
+          {isLocked ? "Coming soon" : "Ready to play"}
         </span>
-        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/60 backdrop-blur-sm">{template.length}</span>
-      </div>
-      <div className="mt-5 grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blush/20 via-violet/20 to-neon/20 text-xs font-extrabold text-white/70">
-        <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
       </div>
       <h3 className="mt-4 text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">
         {isLocked ? (
@@ -43,6 +144,7 @@ export function TemplateCard({ template }: { template: Template }) {
             <Link className="premium-button flex-1 text-sm" href={`/create/${template.id}`}>Use template</Link>
           </>
         )}
+      </div>
       </div>
     </article>
   );

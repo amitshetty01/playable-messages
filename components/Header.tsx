@@ -1,17 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme/context";
 
 const links = [
-  { href: "/templates", label: "Coming Soon" },
-  { href: "/my-experiences", label: "My messages" },
-  { href: "/chat", label: "Private Chat" },
+  { href: "/templates", labelKey: "nav.templates" },
+  { href: "/my-experiences", labelKey: "nav.messages" },
+  { href: "/chat", labelKey: "nav.chat" },
 ];
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+  const { lang, setLang, t, supportedLanguages } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -24,6 +30,16 @@ export function Header() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const currentLang = supportedLanguages.find((l) => l.code === lang);
+
   return (
     <>
       <header
@@ -32,9 +48,9 @@ export function Header() {
         }`}
       >
         <Link className="flex shrink-0 items-center gap-2" href="/" aria-label="Craft Your Message home">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-blush to-violet text-[9px] font-extrabold tracking-tight text-white sm:h-8 sm:w-8 sm:text-[10px]">CY</span>
+          <span className="relative grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-pink-400 via-fuchsia-500 to-purple-600 text-[9px] font-extrabold tracking-tight text-white sm:h-8 sm:w-8 sm:text-[10px] shadow-lg shadow-fuchsia-500/20">CY</span>
           <span className="text-sm font-extrabold tracking-[-0.02em] text-white sm:text-[0.9rem]">
-            Craft Your Message
+            {t("site.name")}
           </span>
         </Link>
 
@@ -45,14 +61,54 @@ export function Header() {
               href={l.href}
               className="rounded-full px-2.5 py-1 text-[0.78rem] font-bold text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
             >
-              {l.label}
+              {t(l.labelKey)}
             </Link>
           ))}
+
+          {/* Language toggle */}
+          <div className="relative ml-1.5" ref={langRef}>
+            <button
+              type="button"
+              onClick={() => setLangOpen(!langOpen)}
+              className="rounded-full px-2.5 py-1 text-[0.78rem] font-bold text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+              aria-label={t("nav.language")}
+            >
+              {currentLang?.nativeName || "EN"}
+            </button>
+            {langOpen && (
+              <div className="absolute right-0 top-full mt-2 max-h-64 w-44 overflow-y-auto rounded-2xl border border-white/10 bg-[#1a1527] p-2 shadow-2xl backdrop-blur-xl z-50">
+                {supportedLanguages.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => { setLang(l.code); setLangOpen(false); }}
+                    className={`w-full rounded-xl px-3 py-2 text-left text-sm font-bold transition-colors ${
+                      lang === l.code ? "bg-white/10 text-white" : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                    }`}
+                  >
+                    <span className={l.dir === "rtl" ? "block text-right" : ""}>{l.nativeName}</span>
+                    <span className="block text-[10px] font-normal text-white/30">{l.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="ml-1 rounded-full px-2.5 py-1 text-[0.78rem] font-bold text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+            aria-label={t("nav.theme")}
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+
           <Link
             href="/create"
-            className="ml-1.5 rounded-full bg-white px-3.5 py-1 text-[0.78rem] font-bold text-ink transition-colors hover:bg-white/90"
+            className="ml-1.5 rounded-full bg-white-static px-3.5 py-1 text-[0.78rem] font-bold text-ink transition-colors hover:opacity-90"
           >
-            Start creating
+            {t("nav.create")}
           </Link>
         </nav>
 
@@ -97,15 +153,43 @@ export function Header() {
                 onClick={() => setMenuOpen(false)}
                 className="rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               >
-                {l.label}
+                {t(l.labelKey)}
               </Link>
             ))}
+            {/* Mobile lang selector */}
+            <div className="mt-2 border-t border-white/5 pt-3">
+              <p className="mb-2 px-4 text-[10px] font-bold uppercase tracking-wider text-white/30">{t("nav.language")}</p>
+              <div className="flex flex-wrap gap-1.5 px-4">
+                {supportedLanguages.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => setLang(l.code)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                      lang === l.code ? "bg-white/15 text-white" : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70"
+                    }`}
+                  >
+                    {l.nativeName}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Mobile theme toggle */}
+            <div className="mt-2 px-4">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-colors hover:bg-white/10"
+              >
+                {theme === "dark" ? "☀️" : "🌙"} {theme === "dark" ? t("nav.theme.light") : t("nav.theme.dark")} mode
+              </button>
+            </div>
             <Link
               href="/create"
               onClick={() => setMenuOpen(false)}
               className="mt-3 rounded-full bg-white py-3 text-center text-sm font-bold text-ink transition-colors hover:bg-white/90"
             >
-              Start creating
+              {t("nav.create")}
             </Link>
           </div>
         </div>

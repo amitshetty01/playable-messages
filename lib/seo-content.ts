@@ -208,7 +208,12 @@ export const templateSeoPages: TemplateSeoContent[] = [
     templateId: "the-final-button",
     title: "The Final Button Interactive Message Template",
     description: "Use The Final Button to create a playful interactive message with mood choices, tiny games, and a personal final reveal.",
-    intro: ["The Final Button is built for curiosity. It starts with one tap, moves through a few choices, and ends with the message you really wanted to send."],
+    intro: [
+      "The Final Button turns a simple message into a chase. The recipient sees a button on screen — but every time they try to tap it, it moves away. They have to actually catch it to read what you wrote.",
+      "This template is perfect for love confessions, playful dares, or any message where you want a moment of suspense before the reveal. The button darts around the screen, building anticipation with each near-miss.",
+      "Best for: telling a crush how you feel, sending a flirty dare, or surprising someone with a message they won't forget. It keeps things light and fun while making the final words land harder.",
+      "Customize the landing text, the button label, the chase steps, and the final reveal message. Preview it before sharing to make sure the pacing feels right."
+    ],
     examples: ["I made one button for you. Tap it when you are ready.", "This starts playful, but the final screen is the real message.", "Choose your mood and I will show you what I meant."],
     relatedUseCases: ["interactive-message-generator", "confession-messages", "surprise-message-links"],
     faqs: [
@@ -312,7 +317,12 @@ export const templateSeoPages: TemplateSeoContent[] = [
     templateId: "memory-maze",
     title: "Memory Maze Message Template",
     description: "Create a memory-based message link where doors reveal moments, jokes, and the final personal message.",
-    intro: ["Memory Maze is built for messages that depend on shared moments. Each door can reveal a memory, inside joke, or unsaid thought."],
+    intro: [
+      "Memory Maze (Heart Vault) creates a secret vault of shared memories. A beating heart waits to be touched, then a password screen appears — the recipient proves they know you before unlocking a world of photos and a final message.",
+      "Each memory door can hold a photo, an inside joke, or a moment you've shared. The recipient moves through these doors one by one, building emotion until the final reveal hits.",
+      "Best for: best friends, anniversary messages, nostalgia-filled birthday wishes, or reconnecting with someone you've known for years.",
+      "Upload your own photos, write custom messages for each memory, and set a password that only they would know. It feels personal because it is."
+    ],
     examples: ["You are inside a memory. Find the exit.", "Open the funny moment before the honest one.", "You found the exit, but this memory stayed."],
     relatedUseCases: ["birthday-messages", "friendship-messages", "thank-you-messages"],
     faqs: [
@@ -379,7 +389,7 @@ export const templateSeoPages: TemplateSeoContent[] = [
     description: "Use the Redacted Decoder template to hide a secret message behind classified black bars that reveal text under a movable decoder lens.",
     intro: ["Redacted Decoder makes a message feel classified. Black bars cover the text until the recipient drags a decoder lens across them — reading your secret one strip at a time."],
     examples: ["This document is classified. Drag the lens to decode the truth.", "Redacted: the part I was too scared to say. Lens required.", "Everything below is classified. Your job: decode what I actually meant."],
-    relatedUseCases: ["confession-messages", "surprise-message-links", "mystery-confession"],
+    relatedUseCases: ["confession-messages", "surprise-message-links"],
     faqs: [
       { question: "How does the decoder lens work?", answer: "A circular lens follows the pointer and reveals the text under the black bars within its radius." },
       { question: "Is it good for confessions?", answer: "Yes. The classified-document feel builds suspense for emotional or secret reveals." },
@@ -431,7 +441,7 @@ export const templateSeoPages: TemplateSeoContent[] = [
     description: "Use the Flashlight in the Fog template to hide a message behind darkness — the recipient drags a flashlight cone to explore and uncover hidden text.",
     intro: ["Flashlight in the Fog creates suspense through darkness. The screen is covered in fog and the recipient moves a flashlight beam to reveal the hidden message piece by piece."],
     examples: ["The screen is fogged over. Move the light to find what I hid.", "Some messages are clearer when you search for them. Start shining.", "Darkness, one flashlight, and the words I needed you to find."],
-    relatedUseCases: ["mystery-confession", "surprise-message-links", "confession-messages"],
+    relatedUseCases: ["surprise-message-links", "confession-messages"],
     faqs: [
       { question: "How does the flashlight work?", answer: "A radial gradient follows the pointer or touch, revealing the text beneath the fog layer within its radius." },
       { question: "Is this good for dramatic reveals?", answer: "Yes. The darkness metaphor works well for confessions, secrets, and emotional messages." },
@@ -443,9 +453,13 @@ export const templateSeoPages: TemplateSeoContent[] = [
 export const faqItems: FaqItem[] = [
   { question: "What is Craft Your Message?", answer: "Craft Your Message is an interactive message generator for creating personalized shareable links with small games, choices, and final reveals." },
   { question: "What can I create?", answer: "You can create apology messages, birthday messages, friendship notes, confession reveals, funny roast messages, thank-you messages, and surprise links." },
-  { question: "Do recipients need an account?", answer: "No. Recipients can open generated public links directly in their browser." },
-  { question: "Can I preview before sharing?", answer: "Yes. Preview your message flow before generating a public link." },
+  { question: "Is it free to use?", answer: "Yes, Craft Your Message is completely free. There are no hidden charges or subscription fees. You can create and share as many messages as you like." },
+  { question: "Do recipients need an account?", answer: "No. Recipients can open generated public links directly in their browser without signing up or downloading anything." },
+  { question: "Can I preview before sharing?", answer: "Yes. You can preview your message flow before generating a public link to make sure everything looks perfect." },
+  { question: "How long does the link work?", answer: "Links do not expire by default and will work indefinitely. You can optionally set an expiration date when creating your message if you want it to auto-expire." },
+  { question: "Can I edit my message after creating it?", answer: "Yes. You can edit your message after creation using the edit link. Simply open your experience and click the edit button to update the text or settings." },
   { question: "Are generated links private?", answer: "Generated links are public to anyone who has the URL. Do not include sensitive information unless you have permission and understand the link can be shared." },
+  { question: "Can I see who opened my link?", answer: "Yes. The creator dashboard shows analytics including how many times your message was opened, completed, and how recipients interacted with choices." },
   { question: "Is this relationship advice?", answer: "No. This website is for fun and entertainment only. It does not provide relationship advice, psychological assessment, or proof of anyone's feelings." }
 ];
 

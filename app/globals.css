@@ -360,6 +360,14 @@ select:focus-visible {
   50% { transform: translateY(-12px); }
 }
 
+.animate-spin-slow {
+  animation: spin-slow 6s linear infinite;
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-sway-3d {
   animation: sway-3d 4s ease-in-out infinite;
 }
@@ -648,6 +656,256 @@ select:focus-visible {
   .card-glow:hover {
     transform: none;
   }
+}
+
+/* ─── Theme: CSS custom properties ─── */
+:root {
+  --color-white: 255 255 255;
+}
+html.light {
+  --color-white: 26 21 39;
+}
+/* Sections that must stay dark regardless of theme */
+html.light [data-theme="dark"] {
+  --color-white: 255 255 255;
+}
+.bg-white-static {
+  background-color: #fff !important;
+}
+.text-white-static {
+  color: #fff !important;
+}
+
+/* ═══════════════════════════════════════════════
+   LIGHT MODE — comprehensive overrides
+   ═══════════════════════════════════════════════ */
+html.light body {
+  color: #1a1527 !important;
+  background: #f8f6fc !important;
+}
+html.light body::before {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(246, 177, 201, 0.12), transparent 34rem),
+    radial-gradient(circle at 86% 12%, rgba(151, 218, 223, 0.08), transparent 32rem),
+    radial-gradient(circle at 70% 88%, rgba(187, 167, 255, 0.1), transparent 32rem),
+    linear-gradient(135deg, #f0ecf8 0%, #f8f4ff 55%, #eef0fa 100%) !important;
+}
+html.light body::after {
+  background-image:
+    linear-gradient(rgba(0,0,0,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px) !important;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.3), transparent 76%) !important;
+}
+
+/* ── All text colors ── */
+html.light,
+html.light * {
+  --text-light: #1a1527;
+  --text-light-muted: rgba(26,21,39,0.55);
+  --text-light-dim: rgba(26,21,39,0.35);
+  --text-light-bright: #1a1527;
+  --border-light: rgba(0,0,0,0.08);
+  --border-light-visible: rgba(0,0,0,0.15);
+  --bg-light-subtle: rgba(0,0,0,0.035);
+  --bg-light-visible: rgba(0,0,0,0.06);
+}
+
+/* ── Headings ── */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
+  color: #1a1527 !important;
+}
+
+/* ── Text content ── */
+html.light p,
+html.light li,
+html.light td,
+html.light th,
+html.light label,
+html.light legend,
+html.light blockquote,
+html.light figcaption {
+  color: #1a1527 !important;
+}
+
+/* ── All text-white variants ── */
+html.light [class*="text-white"] { color: #1a1527 !important; }
+html.light [class*="text-white/5"] { color: rgba(26,21,39,0.05) !important; }
+html.light [class*="text-white/8"] { color: rgba(26,21,39,0.08) !important; }
+html.light [class*="text-white/10"] { color: rgba(26,21,39,0.10) !important; }
+html.light [class*="text-white/12"] { color: rgba(26,21,39,0.12) !important; }
+html.light [class*="text-white/15"] { color: rgba(26,21,39,0.15) !important; }
+html.light [class*="text-white/20"] { color: rgba(26,21,39,0.20) !important; }
+html.light [class*="text-white/25"] { color: rgba(26,21,39,0.25) !important; }
+html.light [class*="text-white/30"] { color: rgba(26,21,39,0.30) !important; }
+html.light [class*="text-white/35"] { color: rgba(26,21,39,0.35) !important; }
+html.light [class*="text-white/40"] { color: rgba(26,21,39,0.40) !important; }
+html.light [class*="text-white/45"] { color: rgba(26,21,39,0.45) !important; }
+html.light [class*="text-white/50"] { color: rgba(26,21,39,0.50) !important; }
+html.light [class*="text-white/60"] { color: rgba(26,21,39,0.60) !important; }
+html.light [class*="text-white/65"] { color: rgba(26,21,39,0.65) !important; }
+html.light [class*="text-white/70"] { color: rgba(26,21,39,0.70) !important; }
+html.light [class*="text-white/75"] { color: rgba(26,21,39,0.75) !important; }
+html.light [class*="text-white/80"] { color: rgba(26,21,39,0.80) !important; }
+html.light [class*="text-white/85"] { color: rgba(26,21,39,0.85) !important; }
+html.light [class*="text-white/90"] { color: rgba(26,21,39,0.90) !important; }
+html.light [class*="text-white/95"] { color: rgba(26,21,39,0.95) !important; }
+
+/* ── All bg-white variants ── */
+html.light [class*="bg-white"] { background: rgba(0,0,0,0.035) !important; }
+html.light [class*="bg-white/5"] { background: rgba(0,0,0,0.05) !important; }
+html.light [class*="bg-white/8"] { background: rgba(0,0,0,0.08) !important; }
+html.light [class*="bg-white/10"] { background: rgba(0,0,0,0.10) !important; }
+html.light [class*="bg-white/12"] { background: rgba(0,0,0,0.12) !important; }
+html.light [class*="bg-white/15"] { background: rgba(0,0,0,0.15) !important; }
+html.light [class*="bg-white/20"] { background: rgba(0,0,0,0.20) !important; }
+html.light [class*="bg-white/25"] { background: rgba(0,0,0,0.25) !important; }
+html.light [class*="bg-white/30"] { background: rgba(0,0,0,0.30) !important; }
+html.light [class*="bg-white/40"] { background: rgba(0,0,0,0.40) !important; }
+html.light [class*="bg-white/50"] { background: rgba(0,0,0,0.50) !important; }
+html.light [class*="bg-white/60"] { background: rgba(0,0,0,0.60) !important; }
+html.light [class*="bg-white/90"] { background: rgba(0,0,0,0.90) !important; }
+
+/* ── All border-white variants ── */
+html.light [class*="border-white"] { border-color: rgba(0,0,0,0.08) !important; }
+html.light [class*="border-white/5"] { border-color: rgba(0,0,0,0.05) !important; }
+html.light [class*="border-white/10"] { border-color: rgba(0,0,0,0.10) !important; }
+html.light [class*="border-white/15"] { border-color: rgba(0,0,0,0.12) !important; }
+html.light [class*="border-white/20"] { border-color: rgba(0,0,0,0.15) !important; }
+html.light [class*="border-white/25"] { border-color: rgba(0,0,0,0.18) !important; }
+html.light [class*="border-white/30"] { border-color: rgba(0,0,0,0.20) !important; }
+html.light [class*="border-white/40"] { border-color: rgba(0,0,0,0.25) !important; }
+html.light [class*="border-white/50"] { border-color: rgba(0,0,0,0.30) !important; }
+html.light [class*="border-white/60"] { border-color: rgba(0,0,0,0.35) !important; }
+
+/* ── placeholder-white ── */
+html.light [class*="placeholder-white"]::placeholder { color: rgba(26,21,39,0.30) !important; }
+
+/* ── ring-white ── */
+html.light [class*="ring-white"] { --tw-ring-color: rgba(0,0,0,0.10) !important; }
+
+/* ── stroke-white, fill-white ── */
+html.light [class*="stroke-white"] { stroke: rgba(26,21,39,0.30) !important; }
+html.light [class*="fill-white"] { fill: rgba(26,21,39,0.30) !important; }
+html.light [class*="fill-white/40"] { fill: rgba(26,21,39,0.40) !important; }
+html.light [class*="fill-white/60"] { fill: rgba(26,21,39,0.60) !important; }
+html.light [class*="fill-white/80"] { fill: rgba(26,21,39,0.80) !important; }
+
+/* ── Gradient white stops ── */
+html.light [class*="from-white"] { --tw-gradient-from: rgba(0,0,0,0.04) !important; }
+html.light [class*="to-white"] { --tw-gradient-to: rgba(0,0,0,0.02) !important; }
+html.light [class*="via-white"] { --tw-gradient-via: rgba(0,0,0,0.03) !important; }
+
+/* ── Custom components ── */
+html.light .glass {
+  border: 1px solid rgba(0,0,0,.08) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.85), rgba(255,255,255,.7)) !important;
+  box-shadow: 0 22px 70px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+html.light .glass::before {
+  background: linear-gradient(145deg, rgba(255,255,255,.8), rgba(255,255,255,.4), transparent) !important;
+}
+html.light .card-glow:hover {
+  border-color: rgba(0,0,0,.15) !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.03) !important;
+}
+html.light .premium-button {
+  color: #fff !important;
+  background: linear-gradient(135deg, #1a1527, #2d2040) !important;
+  box-shadow: 0 16px 34px rgba(26,21,39,0.15) !important;
+}
+html.light .premium-button:hover {
+  box-shadow: 0 20px 40px rgba(26,21,39,0.2) !important;
+}
+html.light .ghost-button {
+  border: 1px solid rgba(0,0,0,.12) !important;
+  background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(240,235,248,.85)) !important;
+  color: #1a1527 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.06) !important;
+}
+html.light .ghost-button:hover {
+  border-color: rgba(0,0,0,.2) !important;
+  background: linear-gradient(135deg, rgba(255,255,255,1), rgba(245,240,253,.95)) !important;
+  box-shadow: 0 16px 36px rgba(0,0,0,.1) !important;
+}
+html.light .input {
+  border: 1px solid rgba(0,0,0,.1) !important;
+  background: rgba(255,255,255,.8) !important;
+  color: #1a1527 !important;
+}
+html.light .input:focus {
+  border-color: rgba(246,177,201,.5) !important;
+  background: rgba(255,255,255,.95) !important;
+  box-shadow: 0 0 0 4px rgba(246,177,201,.15) !important;
+}
+
+/* ── Header & navigation ── */
+html.light header,
+html.light [class*="bg-ink/70"] {
+  border-color: rgba(0,0,0,.08) !important;
+  background: rgba(248,246,252,.9) !important;
+  backdrop-filter: blur(16px) !important;
+}
+html.light header a,
+html.light header button {
+  color: rgba(26,21,39,.6) !important;
+}
+html.light header a:hover,
+html.light header button:hover {
+  background: rgba(0,0,0,.05) !important;
+  color: rgba(26,21,39,.8) !important;
+}
+
+/* ── Mobile menu overlay ── */
+html.light [class*="bg-ink"],
+html.light [class*="bg-ink/70"],
+html.light [class*="bg-ink/"] {
+  background: rgba(248,246,252,.95) !important;
+}
+
+/* ── Text gradient (brand accent) ── */
+html.light .text-gradient {
+  background: linear-gradient(135deg, #d4708e, #8a70d4 40%, #60b0b8 70%, #d4708e) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+/* ── Misc elements ── */
+html.light footer {
+  color: rgba(26,21,39,0.6) !important;
+}
+html.light footer a {
+  color: rgba(26,21,39,0.75) !important;
+}
+
+/* ── Toast / alert / badge overrides ── */
+html.light [role="alert"] {
+  border-color: rgba(220,80,80,0.2) !important;
+  background: rgba(220,80,80,0.05) !important;
+  color: #8b3030 !important;
+}
+
+/* ── Stats / counter cards ── */
+html.light [class*="text-emerald-300"] { color: #166534 !important; }
+html.light [class*="bg-emerald-500/25"] { background: rgba(22,101,52,0.1) !important; }
+html.light [class*="bg-emerald-500/30"] { background: rgba(22,101,52,0.12) !important; }
+html.light [class*="ring-emerald-400/20"] { --tw-ring-color: rgba(22,101,52,0.15) !important; }
+html.light .pulse-dot { background: #166534 !important; }
+
+/* ── Code / technical text ── */
+html.light code,
+html.light pre,
+html.light [class*="font-mono"] {
+  color: #1a1527 !important;
+}
+
+/* ── But wait: styles that must KEEP white bg in light mode ── */
+html.light .bg-white-static {
+  background-color: #fff !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
