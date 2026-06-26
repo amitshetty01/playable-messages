@@ -90,7 +90,7 @@ export function QuickFlow() {
           </Link>
         ))}
       </div>
-      <p className="mt-2 text-[11px] font-semibold text-white/30">{t("home.quick.mood.hint")}</p>
+      <p className="mt-2 text-[11px] font-semibold text-white/50">{t("home.quick.mood.hint")}</p>
 
       <button
         type="button"

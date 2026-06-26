@@ -34,6 +34,6 @@ export function ResponsiveBannerAd() {
   if (isDesktop === null || blocked === null) return null;
 
   return (
-    <div ref={containerRef} className="flex justify-center bg-white/[0.02] py-2" />
+    <div ref={containerRef} className="flex justify-center bg-white/[0.02] py-2 min-h-[90px] max-md:min-h-[50px]" />
   );
 }

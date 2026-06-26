@@ -19,6 +19,11 @@
     "react-dom": "^19.2.7",
     "three": "^0.184.0"
   },
+  "browserslist": [
+    "last 2 versions",
+    "not dead",
+    "> 0.5%"
+  ],
   "overrides": {
     "postcss": "^8.5.10"
   },

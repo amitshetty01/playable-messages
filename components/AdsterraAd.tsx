@@ -46,5 +46,9 @@ export function AdsterraAd({ type, className = "" }: { type: AdType; className?:
 
   if (blocked === null) return null;
 
-  return <div ref={ref} className={`flex justify-center ${className}`} />;
+  const sizeClass = type === "square"
+    ? "min-h-[250px]"
+    : "min-h-[90px] max-md:min-h-[50px]";
+
+  return <div ref={ref} className={`flex justify-center ${sizeClass} ${className}`} />;
 }

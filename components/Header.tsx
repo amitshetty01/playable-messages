@@ -76,7 +76,7 @@ export function Header() {
               {currentLang?.nativeName || "EN"}
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-2 max-h-64 w-44 overflow-y-auto rounded-2xl border border-white/10 bg-[#1a1527] p-2 shadow-2xl backdrop-blur-xl z-50">
+              <div data-theme="dark" className="absolute right-0 top-full mt-2 max-h-64 w-44 overflow-y-auto rounded-2xl border border-white/10 bg-[#1a1527] p-2 shadow-2xl backdrop-blur-xl z-50">
                 {supportedLanguages.map((l) => (
                   <button
                     key={l.code}
@@ -132,7 +132,7 @@ export function Header() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 sm:hidden">
           <div className="absolute inset-0 bg-black/70" onClick={() => setMenuOpen(false)} />
-          <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-1 rounded-t-2xl border-t border-white/10 bg-[#1a1527] px-5 pb-10 pt-6 shadow-2xl">
+          <div data-theme="dark" className="absolute bottom-0 left-0 right-0 flex flex-col gap-1 rounded-t-2xl border-t border-white/10 bg-[#1a1527] px-5 pb-10 pt-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-[0.65rem] font-bold uppercase tracking-[0.15em] text-white/40">Menu</span>
               <button

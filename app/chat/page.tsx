@@ -443,7 +443,7 @@ export default function ChatPage() {
   // ═══════════════════════════════════════════════
   if (step === 0) {
     return (
-      <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4">
+      <div data-theme="dark" className="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-1/4 top-1/4 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/10 blur-[100px] animate-pulse" />
           <div className="absolute right-1/4 bottom-1/4 h-56 w-56 translate-x-1/2 translate-y-1/2 rounded-full bg-cyan-500/10 blur-[100px] animate-pulse" style={{ animationDelay: "2s" }} />
@@ -459,7 +459,7 @@ export default function ChatPage() {
               <h1 className="display-title mb-2 text-[1.75rem] leading-tight">
                 <span className="text-gradient">Secret Room</span>
               </h1>
-              <p className="mx-auto mb-8 max-w-sm text-sm leading-relaxed text-white/50">
+              <p className="mx-auto mb-8 max-w-sm text-sm leading-relaxed text-white/70">
                 A private chat room with a unique access code. Messages, photos, and media stay until you delete them.
               </p>
 
@@ -471,7 +471,7 @@ export default function ChatPage() {
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 120}ms` }}>
                     <span className="mt-0.5 text-[0.6rem] text-violet-400/70">{item.icon}</span>
-                    <span className="text-xs leading-relaxed text-white/40">{item.text}</span>
+                    <span className="text-xs leading-relaxed text-white/65">{item.text}</span>
                   </div>
                 ))}
               </div>
@@ -501,7 +501,7 @@ export default function ChatPage() {
                   <div className="w-full border-t border-white/[0.06]" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-[#0d0a15] px-3 text-[0.6rem] font-bold tracking-widest text-white/40 uppercase">or join a room</span>
+                  <span className="bg-[#0d0a15] px-3 text-[0.6rem] font-bold tracking-widest text-white/60 uppercase">or join a room</span>
                 </div>
               </div>
 
@@ -538,7 +538,7 @@ export default function ChatPage() {
 
               {roomError && <p className="mt-3 text-xs text-red-400">{roomError}</p>}
 
-              <p className="mt-6 text-[0.55rem] tracking-widest text-white/30 uppercase">
+              <p className="mt-6 text-[0.55rem] tracking-widest text-white/50 uppercase">
                 Only visible to those who know where to look
               </p>
             </div>
@@ -553,7 +553,7 @@ export default function ChatPage() {
   // ═══════════════════════════════════════════════
   if (step === 1) {
     return (
-      <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4">
+      <div data-theme="dark" className="relative flex min-h-[70vh] items-center justify-center overflow-hidden px-4">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-1/3 top-1/3 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/8 blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
           <div className="absolute right-1/3 bottom-1/3 h-52 w-52 translate-x-1/2 translate-y-1/2 rounded-full bg-violet-500/8 blur-[100px] animate-pulse" style={{ animationDelay: "3s" }} />
@@ -613,7 +613,7 @@ export default function ChatPage() {
               </button>
 
               <button type="button" onClick={() => setStep(0)}
-                className="mt-4 text-[0.7rem] font-bold tracking-wider text-white/40 underline underline-offset-4 transition-colors hover:text-white/60">
+                className="mt-4 text-[0.7rem] font-bold tracking-wider text-white/60 underline underline-offset-4 transition-colors hover:text-white/80">
                 ← Back
               </button>
             </div>
@@ -703,7 +703,7 @@ export default function ChatPage() {
               <div className="relative h-7 w-7 sm:h-8 sm:w-8">
                 <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full border-2 border-white/10 border-t-violet-400 animate-spin" />
               </div>
-              <span className="text-[0.6rem] sm:text-[0.65rem] font-bold tracking-widest text-white/40 uppercase">Loading</span>
+              <span className="text-[0.6rem] sm:text-[0.65rem] font-bold tracking-widest text-white/60 uppercase">Loading</span>
             </div>
           </div>
         ) : messages.length === 0 ? (
