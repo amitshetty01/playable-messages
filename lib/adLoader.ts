@@ -27,19 +27,15 @@ let queue: Promise<void> = Promise.resolve();
 export function enqueueBannerAd(key: string, src: string, height: number, width: number, container: HTMLElement) {
   if (isCrawler()) return Promise.resolve();
   const result = queue.then(() => new Promise<void>((resolve) => {
-    const f = document.createElement("iframe");
-    f.setAttribute("title", "Advertisement");
-    f.style.cssText = `border:0;overflow:hidden;display:block;width:${width}px;max-width:100%;height:${height}px`;
-    const atOpts = JSON.stringify({ key, format: "iframe", height, width, params: {} });
-    const html = `<!DOCTYPE html><html><head><style>body{margin:0;padding:0;overflow:hidden}</style></head><body>
-<script>
-atOptions=${atOpts};
-document.write('<scr'+'ipt src="${src}"><\\/scr'+'ipt>');
-</script>
-</body></html>`;
-    f.srcdoc = html;
-    container.appendChild(f);
-    resolve();
+    const conf = document.createElement("script");
+    conf.innerHTML = `atOptions = ${JSON.stringify({ key, format: "iframe", height, width, params: {} })};`;
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = () => setTimeout(resolve, 200);
+    script.onerror = () => resolve();
+    container.appendChild(conf);
+    container.appendChild(script);
   }));
   queue = result.catch(() => {});
   return result;
