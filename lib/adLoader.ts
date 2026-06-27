@@ -28,16 +28,14 @@ export function enqueueBannerAd(key: string, src: string, height: number, width:
   if (isCrawler()) return Promise.resolve();
   const result = queue.then(() => new Promise<void>((resolve) => {
     const f = document.createElement("iframe");
-    f.setAttribute("sandbox", "allow-scripts");
     f.setAttribute("title", "Advertisement");
     f.style.cssText = `border:0;overflow:hidden;display:block;width:${width}px;max-width:100%;height:${height}px`;
-    container.appendChild(f);
     const html = `<!DOCTYPE html><html><head><script>
 var _at=${JSON.stringify({ key, format: "iframe", height, width, params: {} })};
 window.atOptions=_at;
 <\/script><script src="${src}" async><\/script></head><body style="margin:0;padding:0;overflow:hidden"></body></html>`;
-    const doc = f.contentDocument;
-    if (doc) { doc.open(); doc.write(html); doc.close(); }
+    f.srcdoc = html;
+    container.appendChild(f);
     resolve();
   }));
   queue = result.catch(() => {});
