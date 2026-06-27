@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Sorry Maze — find your way back 💛</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1a0a2e;color:#e0d0f0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+:root{--twilight:#2d1b4e;--deep-teal:#0b4f6c;--warm-gold:#ffd700;--warm-glow:rgba(255,215,0,0.3);--cold-blue:#4a90d9;--mistake-red:#ff3b3b;--bg:#1a0a2e;--wall:#3a2a5e;--path:#1e1040}
+#app{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(ellipse at 30% 40%,var(--twilight),var(--bg))}
+#hud{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));pointer-events:none;font-size:14px;font-weight:600}
+#hud>*{pointer-events:auto}
+#hud .gems{display:flex;align-items:center;gap:6px;color:var(--warm-gold)}
+#hud .gems .icon{font-size:18px}
+#hud .timer{color:rgba(255,255,255,0.4);letter-spacing:0.3px;font-variant-numeric:tabular-nums}
+#hud .exit-label{font-size:12px;color:rgba(255,255,255,0.4);padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04)}
+#canvas-wrap{position:relative;display:flex;align-items:center;justify-content:center;flex:1;width:100%}
+#game-canvas{display:block;border-radius:12px}
+#controls-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,0.15);letter-spacing:0.5px;pointer-events:none;white-space:nowrap}
+.overlay{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;transition:opacity 0.6s ease,transform 0.6s ease}
+.overlay.hidden{opacity:0;pointer-events:none;transform:scale(0.95)}
+#title-screen{background:radial-gradient(ellipse at center,var(--twilight) 0%,var(--bg) 70%)}
+#title-screen h1{font-size:clamp(2.2rem,9vw,4rem);font-weight:900;text-align:center;background:linear-gradient(135deg,var(--warm-gold),#ff9a3e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.5px;line-height:1.1}
+#title-screen .sub{font-size:clamp(0.9rem,3vw,1.1rem);color:rgba(255,255,255,0.5);margin-top:12px;max-width:340px;text-align:center;line-height:1.5}
+#title-screen .heart-icon{font-size:3.5rem;margin-bottom:8px;animation:floatHeart 2s ease-in-out infinite}
+@keyframes floatHeart{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.btn{margin-top:28px;padding:14px 44px;border-radius:50px;border:none;font-size:1rem;font-weight:700;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;touch-action:manipulation}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:linear-gradient(135deg,var(--warm-gold),#ff9a3e);color:#1a0a2e;box-shadow:0 4px 30px rgba(255,215,0,0.25)}
+.btn-primary:hover{box-shadow:0 6px 40px rgba(255,215,0,0.4)}
+.btn-secondary{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);padding:10px 28px;font-size:0.85rem}
+#gem-phrase{position:absolute;z-index:30;pointer-events:none;font-family:'Georgia','Times New Roman',serif;font-style:italic;font-size:clamp(1.1rem,4vw,1.6rem);color:var(--warm-gold);text-shadow:0 0 20px var(--warm-glow),0 0 40px rgba(255,215,0,0.15);opacity:0;transition:opacity 0.4s ease,transform 0.6s ease;text-align:center;padding:0 32px;line-height:1.4}
+#gem-phrase.show{opacity:1;transform:translateY(-10px)}
+#gem-phrase .gem-counter{display:block;font-size:13px;font-style:normal;font-family:system-ui;color:rgba(255,255,255,0.4);margin-top:12px;font-weight:600;letter-spacing:0.5px}
+#flashback{background:radial-gradient(ellipse at center,rgba(10,20,50,0.95),rgba(5,10,30,0.98));z-index:40}
+#flashback .scene{display:flex;flex-direction:column;align-items:center;gap:24px}
+#flashback .scene-title{font-size:0.8rem;text-transform:uppercase;letter-spacing:3px;color:var(--cold-blue);opacity:0.6}
+.figures{position:relative;width:180px;height:90px}
+.figure{position:absolute;width:32px;height:64px;transition:all 1.2s cubic-bezier(0.22,1,0.36,1)}
+.figure .head{width:16px;height:16px;border-radius:50%;margin:0 auto 2px}
+.figure .body{width:20px;height:24px;border-radius:6px 6px 3px 3px;margin:0 auto}
+.figure .arm-l,.figure .arm-r{position:absolute;width:4px;height:18px;border-radius:2px;top:22px;transition:transform 0.6s ease}
+.figure.left{left:10px}
+.figure.left .head,.figure.left .body{background:var(--cold-blue);opacity:0.7}
+.figure.left .arm-l{left:2px;background:var(--cold-blue);opacity:0.7;transform:rotate(20deg);transform-origin:2px 0}
+.figure.left .arm-r{left:20px;background:var(--cold-blue);opacity:0.7;transform:rotate(-20deg);transform-origin:2px 0}
+.figure.right{right:10px}
+.figure.right .head,.figure.right .body{background:rgba(255,255,255,0.15)}
+.figure.right .arm-l{left:2px;background:rgba(255,255,255,0.15);transform:rotate(-30deg);transform-origin:2px 0}
+.figure.right .arm-r{left:20px;background:rgba(255,255,255,0.15);transform:rotate(30deg);transform-origin:2px 0}
+.flashback-turn .figure.left{transform:translateX(-8px)}
+.flashback-turn .figure.right{transform:translateX(8px)}
+.flashback-turn .figure .arm-l{transform:rotate(60deg)!important}
+.flashback-turn .figure .arm-r{transform:rotate(-60deg)!important}
+.door-scene{position:relative;width:120px;height:100px;margin:0 auto}
+.door-frame{position:absolute;inset:0;border:3px solid rgba(74,144,217,0.4);border-radius:4px}
+.door-panel{position:absolute;left:0;top:0;width:60px;height:100px;background:linear-gradient(135deg,var(--cold-blue),rgba(74,144,217,0.3));border-radius:2px;transition:transform 0.8s cubic-bezier(0.22,1,0.36,1);transform-origin:left center}
+.door-panel.slam{transform:rotateY(-120deg)}
+.door-knob{position:absolute;right:6px;top:50%;width:6px;height:6px;border-radius:50%;background:var(--warm-gold);transform:translateY(-50%)}
+.door-boom{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;font-weight:900;color:rgba(74,144,217,0.15);opacity:0;transition:all 0.3s ease}
+.door-boom.show{opacity:1;font-size:3.5rem;color:rgba(74,144,217,0.5);transform:translate(-50%,-50%) scale(1.2)}
+.walk-away-fig{position:absolute;left:50%;bottom:10px;width:28px;height:56px;transition:all 1.5s cubic-bezier(0.22,1,0.36,1)}
+.walk-away-fig .head{width:14px;height:14px;border-radius:50%;margin:0 auto 2px;background:var(--cold-blue);opacity:0.5}
+.walk-away-fig .body{width:18px;height:22px;border-radius:5px 5px 2px 2px;margin:0 auto;background:var(--cold-blue);opacity:0.5}
+.walk-away-fig .legs{display:flex;gap:2px;justify-content:center;margin-top:2px}
+.walk-away-fig .legs span{width:6px;height:16px;border-radius:2px;background:var(--cold-blue);opacity:0.5}
+.walk-away-fig.walk{transform:translateX(60px);opacity:0}
+.harsh-words{font-size:1.5rem;font-weight:800;display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.harsh-words span{opacity:0;color:rgba(200,60,60,0.5);animation:harshAppear 0.4s ease forwards}
+.harsh-words span:nth-child(1){animation-delay:0.1s}
+.harsh-words span:nth-child(2){animation-delay:0.5s}
+.harsh-words span:nth-child(3){animation-delay:0.9s}
+.harsh-words span:nth-child(4){animation-delay:1.3s}
+@keyframes harshAppear{0%{opacity:0;transform:scale(0.5) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+#ending{background:radial-gradient(ellipse at center,rgba(45,27,78,0.92),rgba(26,10,46,0.98));z-index:60}
+#ending .result{margin-bottom:8px}
+#ending .result .big-icon{font-size:4rem;display:block;margin-bottom:12px}
+#ending .result h2{font-size:clamp(1.6rem,6vw,2.8rem);font-weight:800;text-align:center;line-height:1.2}
+#ending .result.good h2{background:linear-gradient(135deg,var(--warm-gold),#ff9a3e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#ending .result.almost h2{color:var(--cold-blue)}
+#ending .result p{font-size:clamp(0.9rem,3vw,1.05rem);color:rgba(255,255,255,0.5);margin-top:8px;max-width:340px;text-align:center;line-height:1.5}
+#rating{margin-top:16px;padding:20px 28px;border-radius:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);text-align:center;opacity:0;transition:opacity 0.8s ease,transform 0.8s ease;transform:translateY(16px)}
+#rating.show{opacity:1;transform:translateY(0)}
+#rating .stars{font-size:1.8rem;margin-bottom:6px;letter-spacing:2px}
+#rating .score-text{font-size:0.85rem;color:rgba(255,255,255,0.4)}
+#ending .btns{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;justify-content:center}
+#reunion-scene{position:absolute;inset:0;z-index:55;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 1s ease}
+#reunion-scene.active{opacity:1}
+#reunion-scene .reunion-figures{position:relative;width:260px;height:140px}
+#reunion-scene .rf{position:absolute;bottom:10px;width:36px;height:72px;transition:all 1.5s cubic-bezier(0.22,1,0.36,1)}
+#reunion-scene .rf .head{width:18px;height:18px;border-radius:50%;margin:0 auto 3px}
+#reunion-scene .rf .body{width:22px;height:28px;border-radius:6px 6px 3px 3px;margin:0 auto}
+#reunion-scene .rf.left{left:20px}
+#reunion-scene .rf.left .head{background:var(--warm-gold);opacity:0.9}
+#reunion-scene .rf.left .body{background:rgba(255,215,0,0.3);border:2px solid rgba(255,215,0,0.5)}
+#reunion-scene .rf.right{right:20px}
+#reunion-scene .rf.right .head{background:rgba(255,255,255,0.8)}
+#reunion-scene .rf.right .body{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3)}
+#reunion-scene .rf.right .arm-l,#reunion-scene .rf.right .arm-r{position:absolute;width:5px;height:20px;border-radius:3px;top:24px;background:rgba(255,255,255,0.2);transition:transform 1s ease}
+#reunion-scene .rf.right .arm-l{left:0;transform:rotate(-40deg);transform-origin:2px 0}
+#reunion-scene .rf.right .arm-r{left:26px;transform:rotate(40deg);transform-origin:2px 0}
+#reunion-scene .rf.right.uncross .arm-l{transform:rotate(-10deg)}
+#reunion-scene .rf.right.uncross .arm-r{transform:rotate(10deg)}
+#reunion-scene .rf.left.move-toward{transform:translateX(50px)}
+#reunion-scene .rf.right.move-toward{transform:translateX(-50px)}
+#warm-light{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,0.2),transparent 70%);opacity:0;transition:opacity 1.5s ease;top:50%;left:50%;transform:translate(-50%,-50%)}
+#warm-light.active{opacity:1}
+#hearts-container{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:56}
+.heart-particle{position:absolute;font-size:16px;opacity:0;animation:heartFloat 3s ease forwards}
+@keyframes heartFloat{0%{opacity:0;transform:translateY(100%) scale(0.5)}20%{opacity:0.8}80%{opacity:0.6}100%{opacity:0;transform:translateY(-400%) scale(1.2) rotate(20deg)}}
+@media(max-width:600px){#hud{font-size:12px;padding:8px 12px}#controls-hint{font-size:10px;bottom:6px}}
+@media(max-width:400px){#hud{font-size:11px;padding:6px 10px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud" style="display:none">
+    <div class="gems"><span class="icon">💎</span><span id="gem-count">0</span><span id="gem-total" style="opacity:0.4"></span></div>
+    <div class="timer" id="timer">0:00</div>
+    <div class="exit-label">🚪 Exit</div>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="game-canvas"></canvas>
+    <div id="controls-hint">← ↑ → ↓ &nbsp;·&nbsp; swipe to move</div>
+    <div id="gem-phrase"></div>
+  </div>
+  <div id="title-screen" class="overlay">
+    <div class="heart-icon">💛</div>
+    <h1>Sorry Maze</h1>
+    <p class="sub">Navigate the maze of excuses.<br>Collect apology gems to find your way back.</p>
+    <button class="btn btn-primary" onclick="startGame()">Begin the journey</button>
+    <p style="margin-top:20px;font-size:12px;color:rgba(255,255,255,0.2)">craftyourmessage.com</p>
+  </div>
+  <div id="flashback" class="overlay hidden"><div class="scene" id="flashback-scene"></div></div>
+  <div id="reunion-scene">
+    <div id="warm-light"></div>
+    <div class="reunion-figures">
+      <div class="rf left" id="rf-left"><div class="head"></div><div class="body"></div></div>
+      <div class="rf right" id="rf-right"><div class="head"></div><div class="body"></div><div class="arm-l"></div><div class="arm-r"></div></div>
+    </div>
+  </div>
+  <div id="hearts-container"></div>
+  <div id="ending" class="overlay hidden">
+    <div class="result" id="ending-result"></div>
+    <div id="rating"></div>
+    <div class="btns">
+      <button class="btn btn-primary" onclick="replay()">Play Again 💛</button>
+      <button class="btn btn-secondary" onclick="showTitle()">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const EXCUSES = [
+  "I was just joking","You're too sensitive","It wasn't that bad","You made me do it",
+  "I'm sorry you feel that way","Can't you take a joke?","You're overreacting",
+  "It's not a big deal","I didn't mean it like that","Why are you making this about you?",
+];
+const GEM_PHRASES = [
+  "I hear you","Your feelings are valid","I'm truly sorry","I want to do better",
+  "I was wrong","Your pain matters","I'm listening","I care about you",
+  "I understand","Please forgive me","You matter to me","I'll do better",
+];
+const FLASHBACKS = [
+  { id:'turn', label:'Turning Away' }, { id:'door', label:'Door Slam' },
+  { id:'words', label:'Harsh Words' }, { id:'walk', label:'Walking Away' },
+];
+const COLS = 13, ROWS = 13, MIN_GEMS = 4;
+
+let canvas, ctx, CS;
+let maze = [], grid = [], gridW, gridH;
+let player = { cx:0, cy:0, dir:'down', moving:false };
+let exitCell = { cx:COLS-1, cy:ROWS-1 };
+let gems = [], collectedGems = 0;
+let labeledWalls = [], deadEnds = [];
+let visitedDeadEnds = new Set();
+let gameActive = false, gameTime = 0;
+let timerInterval = null, animFrame = null, walkCycle = 0, movTimer = null;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a}
+
+function generateMaze(c,r){
+  let cells=[];
+  for(let y=0;y<r;y++){cells[y]=[];for(let x=0;x<c;x++)cells[y][x]={t:1,r:1,b:1,l:1,v:0};}
+  function car(x,y){
+    cells[y][x].v=1;
+    let d=shuffle([[0,-1,'t','b'],[1,0,'r','l'],[0,1,'b','t'],[-1,0,'l','r']]);
+    for(let [dx,dy,w,o] of d){let nx=x+dx,ny=y+dy;if(nx>=0&&nx<c&&ny>=0&&ny<r&&!cells[ny][nx].v){cells[y][x][w]=0;cells[ny][nx][o]=0;car(nx,ny);}}
+  }
+  car(0,0);return cells;
+}
+
+function toGrid(cells,c,r){
+  let gw=c*2+1,gh=r*2+1,g=Array.from({length:gh},()=>Array(gw).fill(1));
+  for(let y=0;y<r;y++)for(let x=0;x<c;x++){let gx=x*2+1,gy=y*2+1;g[gy][gx]=0;if(!cells[y][x].t&&y>0)g[gy-1][gx]=0;if(!cells[y][x].r&&x<c-1)g[gy][gx+1]=0;if(!cells[y][x].b&&y<r-1)g[gy+1][gx]=0;if(!cells[y][x].l&&x>0)g[gy][gx-1]=0;}
+  return g;
+}
+
+function bfs(cells,c,r,sx,sy,ex,ey){
+  let vis=Array.from({length:r},()=>Array(c).fill(0)),q=[{cx:sx,cy:sy,path:[]}];vis[sy][sx]=1;
+  while(q.length){let {cx,cy,path}=q.shift();if(cx===ex&&cy===ey)return[...path,{cx,cy}];for(let[dx,dy,w]of[[0,-1,'t'],[1,0,'r'],[0,1,'b'],[-1,0,'l']]){let nx=cx+dx,ny=cy+dy;if(nx>=0&&nx<c&&ny>=0&&ny<r&&!vis[ny][nx]&&!cells[cy][cx][w]){vis[ny][nx]=1;q.push({cx:nx,cy:ny,path:[...path,{cx,cy}]});}}}
+  return null;
+}
+
+function findDeadEnds(cells,c,r){
+  let e=[];
+  for(let y=0;y<r;y++)for(let x=0;x<c;x++){if(x===0&&y===0)continue;let o=0;let cl=cells[y][x];if(!cl.t)o++;if(!cl.r)o++;if(!cl.b)o++;if(!cl.l)o++;if(o===1)e.push({cx:x,cy:y});}
+  return e;
+}
+
+function findLabeledWalls(cells,c,r){
+  let walls=[],idx=0;
+  for(let y=0;y<r;y++)for(let x=0;x<c;x++){let cl=cells[y][x];
+    if(cl.t&&y>0&&cells[y-1][x]&&cells[y-1][x].b)walls.push({cx:x,cy:y,side:'top',label:EXCUSES[idx++%EXCUSES.length]});
+    if(cl.r&&x<c-1&&cells[y][x+1]&&cells[y][x+1].l)walls.push({cx:x,cy:y,side:'right',label:EXCUSES[idx++%EXCUSES.length]});
+    if(cl.b&&y<r-1&&cells[y+1][x]&&cells[y+1][x].t)walls.push({cx:x,cy:y,side:'bottom',label:EXCUSES[idx++%EXCUSES.length]});
+    if(cl.l&&x>0&&cells[y][x-1]&&cells[y][x-1].r)walls.push({cx:x,cy:y,side:'left',label:EXCUSES[idx++%EXCUSES.length]});
+  }
+  return shuffle(walls).slice(0,Math.min(walls.length,14));
+}
+
+function placeGems(cells,c,r,solPath){
+  let gl=[],placed=new Set(),pi=0;
+  for(let i=3;i<solPath.length-2;i+=3){let p=solPath[i];if(!placed.has(p.cx+','+p.cy)){gl.push({cx:p.cx,cy:p.cy,phrase:GEM_PHRASES[pi++%GEM_PHRASES.length],collected:0});placed.add(p.cx+','+p.cy);}}
+  let ps=new Set(solPath.map(p=>p.cx+','+p.cy)),cand=[];
+  for(let y=0;y<r;y++)for(let x=0;x<c;x++){if(placed.has(x+','+y)||ps.has(x+','+y))continue;
+    for(let[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0]]){let nx=x+dx,ny=y+dy;if(nx<0||nx>=c||ny<0||ny>=r)continue;if(!ps.has(nx+','+ny))continue;let op=0;if(dx===1&&!cells[y][x].r)op=1;if(dx===-1&&!cells[y][x].l)op=1;if(dy===1&&!cells[y][x].b)op=1;if(dy===-1&&!cells[y][x].t)op=1;if(op){cand.push({cx:x,cy:y});break;}}}
+  for(let c of shuffle(cand)){if(pi>=GEM_PHRASES.length||gl.length>=10)break;if(!placed.has(c.cx+','+c.cy)){gl.push({cx:c.cx,cy:c.cy,phrase:GEM_PHRASES[pi++%GEM_PHRASES.length],collected:0});placed.add(c.cx+','+c.cy);}}
+  return gl;
+}
+
+// ─── Init ───
+
+function initGame(){
+  let mw=Math.min(window.innerWidth-24,600),mh=Math.min(window.innerHeight-100,600);
+  CS=Math.floor(Math.min(mw,mh)/(COLS*2+1))||14;
+  canvas=document.getElementById('game-canvas');gridW=COLS*2+1;gridH=ROWS*2+1;
+  canvas.width=gridW*CS;canvas.height=gridH*CS;canvas.style.width=canvas.width+'px';canvas.style.height=canvas.height+'px';
+  ctx=canvas.getContext('2d');
+  let cells=generateMaze(COLS,ROWS);maze=cells;grid=toGrid(cells,COLS,ROWS);
+  player.cx=0;player.cy=0;player.dir='down';player.moving=0;
+  let path=bfs(cells,COLS,ROWS,0,0,exitCell.cx,exitCell.cy);if(!path)return;
+  gems=placeGems(cells,COLS,ROWS,path);collectedGems=0;
+  document.getElementById('gem-count').textContent='0';document.getElementById('gem-total').textContent='/'+gems.length;
+  deadEnds=findDeadEnds(cells,COLS,ROWS);visitedDeadEnds.clear();labeledWalls=findLabeledWalls(cells,COLS,ROWS);
+  gameActive=1;gameTime=0;walkCycle=0;document.getElementById('hud').style.display='flex';document.getElementById('gem-phrase').classList.remove('show');
+  if(animFrame)cancelAnimationFrame(animFrame);gameLoop();
+  if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{if(!gameActive)return;gameTime++;let m=Math.floor(gameTime/60),s=gameTime%60;document.getElementById('timer').textContent=m+':'+(s<10?'0':'')+s;},1000);
+}
+
+// ─── Render ───
+
+function tileCenter(gx,gy){return{x:gx*CS+CS/2,y:gy*CS+CS/2}}
+
+function wallGridPos(w){
+  switch(w.side){
+    case 'top':return{gx:w.cx*2+1,gy:w.cy*2};
+    case 'right':return{gx:w.cx*2+2,gy:w.cy*2+1};
+    case 'bottom':return{gx:w.cx*2+1,gy:w.cy*2+2};
+    case 'left':return{gx:w.cx*2,gy:w.cy*2+1};
+  }
+}
+
+function drawMaze(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Draw each grid tile
+  for(let gy=0;gy<gridH;gy++)for(let gx=0;gx<gridW;gx++){
+    if(grid[gy][gx]===0)ctx.fillStyle='#1a0d38';
+    else ctx.fillStyle= (gx===0||gx===gridW-1||gy===0||gy===gridH-1) ? '#25154a' : '#301e58';
+    ctx.fillRect(gx*CS,gy*CS,CS,CS);
+  }
+
+  // Wall labels
+  let pp=tileCenter(player.cx*2+1,player.cy*2+1);
+  for(let w of labeledWalls){
+    let wgp=wallGridPos(w),wc=tileCenter(wgp.gx,wgp.gy);
+    let dist=Math.sqrt((pp.x-wc.x)**2+(pp.y-wc.y)**2)/CS;
+    let isH=w.side==='top'||w.side==='bottom';
+
+    ctx.save();
+    if(!isH){ctx.translate(wc.x,wc.y);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.textBaseline='middle'}
+    else{ctx.textAlign='center';ctx.textBaseline='middle'}
+
+    let near=dist<3.5;
+    let intensity=near?Math.max(0,1-(dist-1)/2.5):0;
+    let shake=near&&dist<3?Math.sin(Date.now()/80)*intensity*2.5:0;
+    let fs=Math.max(7,CS*0.5);
+
+    if(near&&intensity>0.1){
+      ctx.font='bold '+fs+'px system-ui,sans-serif';
+      ctx.shadowColor='#ff3b3b';ctx.shadowBlur=20*intensity+6;
+      ctx.fillStyle='rgba(255,60,60,'+(0.6+0.4*intensity)+')';
+      if(isH)ctx.fillText(w.label,wc.x+shake,wc.y);else ctx.fillText(w.label,shake,0);
+      ctx.shadowBlur=0;
+      ctx.fillStyle='rgba(255,200,200,'+(0.2*intensity)+')';
+      if(isH)ctx.fillText(w.label,wc.x+shake,wc.y);else ctx.fillText(w.label,shake,0);
+    }else{
+      ctx.font=Math.max(6,CS*0.35)+'px system-ui,sans-serif';
+      ctx.fillStyle='rgba(255,255,255,0.06)';
+      if(isH)ctx.fillText(w.label,wc.x,wc.y);else ctx.fillText(w.label,0,0);
+    }
+    ctx.restore();
+  }
+}
+
+function drawGems(){
+  let now=Date.now();
+  for(let g of gems){if(g.collected)continue;
+    let c=tileCenter(g.cx*2+1,g.cy*2+1),p=Math.sin(now/400+g.cx+g.cy)*0.15+1,s=CS*0.4*p;
+    let gr=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,s*2);gr.addColorStop(0,'rgba(255,215,0,0.35)');gr.addColorStop(1,'rgba(255,215,0,0)');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(c.x,c.y,s*2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffd700';ctx.shadowColor='rgba(255,215,0,0.6)';ctx.shadowBlur=12;
+    ctx.beginPath();ctx.moveTo(c.x,c.y-s);ctx.lineTo(c.x+s*0.7,c.y);ctx.lineTo(c.x,c.y+s);ctx.lineTo(c.x-s*0.7,c.y);ctx.closePath();ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.beginPath();ctx.moveTo(c.x,c.y-s*0.5);ctx.lineTo(c.x+s*0.35,c.y);ctx.lineTo(c.x,c.y+s*0.5);ctx.lineTo(c.x-s*0.35,c.y);ctx.closePath();ctx.fill();
+  }
+}
+
+function drawExitPerson(){
+  let c=tileCenter(exitCell.cx*2+1,exitCell.cy*2+1),s=CS*0.5;
+  ctx.fillStyle='rgba(200,200,255,0.2)';ctx.fillRect(c.x-s*0.35,c.y-s*0.1,s*0.7,s*0.55);
+  ctx.fillStyle='rgba(200,200,255,0.35)';ctx.beginPath();ctx.arc(c.x,c.y-s*0.5,s*0.25,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(200,200,255,0.3)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(c.x-s*0.4,c.y-s*0.05);ctx.lineTo(c.x+s*0.15,c.y+s*0.1);ctx.moveTo(c.x+s*0.4,c.y-s*0.05);ctx.lineTo(c.x-s*0.15,c.y+s*0.1);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(c.x-s*0.2,c.y+s*0.45);ctx.lineTo(c.x-s*0.25,c.y+s*0.8);ctx.moveTo(c.x+s*0.2,c.y+s*0.45);ctx.lineTo(c.x+s*0.25,c.y+s*0.8);ctx.stroke();
+  ctx.fillStyle='rgba(200,200,255,0.2)';ctx.beginPath();ctx.arc(c.x+s*0.12,c.y-s*0.55,1.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.18)';ctx.font=Math.max(6,CS*0.35)+'px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('waiting...',c.x,c.y+CS*0.6);
+}
+
+function drawPlayer(){
+  let c=tileCenter(player.cx*2+1,player.cy*2+1),s=CS*0.45;
+  let b=player.moving?Math.abs(Math.sin(walkCycle*0.3))*2:0;
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(c.x,c.y+s*0.8,s*0.4,s*0.15,0,0,Math.PI*2);ctx.fill();
+  let ls=player.moving?Math.sin(walkCycle*0.4)*4:0;
+  ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(c.x-s*0.15,c.y+s*0.35);ctx.lineTo(c.x-s*0.2-ls,c.y+s*0.7);ctx.moveTo(c.x+s*0.15,c.y+s*0.35);ctx.lineTo(c.x+s*0.2+ls,c.y+s*0.7);ctx.stroke();
+  ctx.fillStyle='#ffd700';ctx.shadowColor='rgba(255,215,0,0.3)';ctx.shadowBlur=8;ctx.fillRect(c.x-s*0.3,c.y-s*0.3+b,s*0.6,s*0.6);ctx.shadowBlur=0;
+  let as=player.moving?Math.sin(walkCycle*0.4)*3:0;
+  ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(c.x-s*0.35,c.y-s*0.15+b);ctx.lineTo(c.x-s*0.5,c.y+s*0.1-as);ctx.moveTo(c.x+s*0.35,c.y-s*0.15+b);ctx.lineTo(c.x+s*0.5,c.y+s*0.1+as);ctx.stroke();
+  ctx.fillStyle='#ffe066';ctx.beginPath();ctx.arc(c.x,c.y-s*0.5+b,s*0.3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a0a2e';let eo=player.dir==='right'?1.5:player.dir==='left'?-1.5:0;
+  ctx.beginPath();ctx.arc(c.x-s*0.1+eo,c.y-s*0.55+b,1.5,0,Math.PI*2);ctx.arc(c.x+s*0.1+eo,c.y-s*0.55+b,1.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#1a0a2e';ctx.lineWidth=1;ctx.beginPath();ctx.arc(c.x,c.y-s*0.4+b,s*0.1,0.1,Math.PI-0.1);ctx.stroke();
+}
+
+function gameLoop(){
+  if(!gameActive)return;if(player.moving)walkCycle+=0.5;
+  drawMaze();drawGems();drawExitPerson();drawPlayer();
+  animFrame=requestAnimationFrame(gameLoop);
+}
+
+// ─── Movement ───
+
+function canMove(dx,dy){
+  let nx=player.cx+dx,ny=player.cy+dy;if(nx<0||nx>=COLS||ny<0||ny>=ROWS)return 0;
+  let c=maze[player.cy][player.cx];if(dy===-1&&c.t)return 0;if(dy===1&&c.b)return 0;if(dx===-1&&c.l)return 0;if(dx===1&&c.r)return 0;return 1;
+}
+
+function movePlayer(dx,dy){
+  if(!gameActive||player.moving||movTimer)return;
+  if(!canMove(dx,dy)){player.moving=1;setTimeout(()=>player.moving=0,80);return;}
+  player.cx+=dx;player.cy+=dy;player.dir=dx===1?'right':dx===-1?'left':dy===-1?'up':'down';player.moving=1;walkCycle+=1;
+  for(let g of gems){if(!g.collected&&g.cx===player.cx&&g.cy===player.cy){g.collected=1;collectedGems++;document.getElementById('gem-count').textContent=collectedGems;showGemPhrase(g.phrase);break;}}
+  if(player.cx===exitCell.cx&&player.cy===exitCell.cy){gameActive=0;clearInterval(timerInterval);setTimeout(()=>showEnding(),400);return;}
+  let k=player.cx+','+player.cy;if(!visitedDeadEnds.has(k)&&deadEnds.some(d=>d.cx===player.cx&&d.cy===player.cy)){visitedDeadEnds.add(k);showFlashback();}
+  movTimer=setTimeout(()=>{player.moving=0;movTimer=null;},120);
+}
+
+function showGemPhrase(p){
+  let el=document.getElementById('gem-phrase');
+  el.innerHTML='"'+p+'"<span class="gem-counter">💎 +1 &middot; '+collectedGems+'/'+gems.length+'</span>';
+  el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ─── Flashback ───
+
+function showFlashback(){
+  let fb=document.getElementById('flashback'),sc=document.getElementById('flashback-scene');
+  let t=FLASHBACKS[Math.floor(Math.random()*FLASHBACKS.length)];
+  let h='<div class="scene-title">'+t.label+'</div>';
+  switch(t.id){
+    case 'turn':h+=`<div class="figures flashback-turn"><div class="figure left"><div class="head"></div><div class="body"></div><div class="arm-l"></div><div class="arm-r"></div></div><div class="figure right"><div class="head"></div><div class="body"></div><div class="arm-l"></div><div class="arm-r"></div></div></div><p style="color:rgba(74,144,217,0.5);font-size:0.8rem;margin-top:12px">Two people turning away...</p>`;break;
+    case 'door':h+=`<div class="door-scene"><div class="door-frame"></div><div class="door-panel" id="dp"><div class="door-knob"></div></div><div class="door-boom" id="db">SLAM</div></div><p style="color:rgba(74,144,217,0.5);font-size:0.8rem;margin-top:12px">A door closes...</p>`;break;
+    case 'words':h+=`<div class="harsh-words"><span>never</span><span>enough</span><span>too much</span><span>fine</span></div><p style="color:rgba(74,144,217,0.5);font-size:0.8rem;margin-top:20px">Words that cut deep...</p>`;break;
+    case 'walk':h+=`<div style="position:relative;width:200px;height:100px"><div class="walk-away-fig" id="wf"><div class="head"></div><div class="body"></div><div class="legs"><span></span><span></span></div></div></div><p style="color:rgba(74,144,217,0.5);font-size:0.8rem;margin-top:12px">Walking away...</p>`;break;
+  }
+  sc.innerHTML=h;fb.classList.remove('hidden');
+  requestAnimationFrame(()=>{if(t.id==='door'){let p=document.getElementById('dp'),b=document.getElementById('db');if(p)setTimeout(()=>p.classList.add('slam'),300);if(b)setTimeout(()=>b.classList.add('show'),500);}if(t.id==='walk'){let f=document.getElementById('wf');if(f)setTimeout(()=>f.classList.add('walk'),400);}});
+  setTimeout(()=>fb.classList.add('hidden'),2200);
+}
+
+// ─── Ending ───
+
+function showEnding(){
+  let en=document.getElementById('ending'),res=document.getElementById('ending-result'),rat=document.getElementById('rating');
+  let won=collectedGems>=MIN_GEMS;
+  if(won){
+    playReunion(()=>{
+      let st=collectedGems>=8?'⭐⭐⭐':collectedGems>=6?'⭐⭐':'⭐',tr=gameTime<60?'🏆 Swift':gameTime<120?'💪 Steady':'🧘 Thoughtful';
+      res.className='result good';res.innerHTML='<span class="big-icon">💛</span><h2>You found your way back</h2><p>You listened. You showed up. That\'s what matters.</p>';
+      rat.innerHTML='<div class="stars">'+st+'</div><div class="score-text">'+tr+' &middot; '+collectedGems+' gems in '+fmtTime(gameTime)+'</div>';
+      en.classList.remove('hidden');setTimeout(()=>rat.classList.add('show'),400);spawnHearts(30);
+    });
+  }else{
+    res.className='result almost';res.innerHTML='<span class="big-icon">💔</span><h2>Almost&hellip; you still have more to say</h2><p>You reached them, but some words were left unspoken. Try again and find more apology gems.</p>';
+    rat.innerHTML='<div class="score-text">'+collectedGems+'/'+gems.length+' gems &middot; '+fmtTime(gameTime)+'</div>';
+    en.classList.remove('hidden');setTimeout(()=>rat.classList.add('show'),400);
+  }
+}
+
+function playReunion(cb){
+  let s=document.getElementById('reunion-scene'),w=document.getElementById('warm-light'),l=document.getElementById('rf-left'),r=document.getElementById('rf-right');
+  s.classList.add('active');
+  setTimeout(()=>r.classList.add('uncross'),300);
+  setTimeout(()=>{l.classList.add('move-toward');r.classList.add('move-toward');},900);
+  setTimeout(()=>{w.classList.add('active');spawnHearts(15);},1600);
+  setTimeout(()=>{s.classList.remove('active');w.classList.remove('active');r.classList.remove('uncross','move-toward');l.classList.remove('move-toward');if(cb)cb();},3200);
+}
+
+function spawnHearts(n){
+  let ct=document.getElementById('hearts-container'),ch=['💛','💕','💗','✨','💫'];
+  for(let i=0;i<n;i++){let h=document.createElement('div');h.className='heart-particle';h.textContent=ch[Math.floor(Math.random()*ch.length)];h.style.left=(10+Math.random()*80)+'%';h.style.bottom='0';h.style.animationDuration=(2+Math.random()*2)+'s';h.style.animationDelay=(Math.random()*1.5)+'s';h.style.fontSize=(12+Math.random()*16)+'px';ct.appendChild(h);setTimeout(()=>h.remove(),4000);}
+}
+
+function fmtTime(s){let m=Math.floor(s/60),sec=s%60;return m+':'+(sec<10?'0':'')+sec}
+
+// ─── Controls ───
+
+document.addEventListener('keydown',e=>{if(!gameActive)return;switch(e.key){case'ArrowUp':e.preventDefault();movePlayer(0,-1);break;case'ArrowDown':e.preventDefault();movePlayer(0,1);break;case'ArrowLeft':e.preventDefault();movePlayer(-1,0);break;case'ArrowRight':e.preventDefault();movePlayer(1,0);break;}});
+let tx=0,ty=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{if(!gameActive)return;let dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.max(Math.abs(dx),Math.abs(dy))<15)return;if(Math.abs(dx)>Math.abs(dy))movePlayer(dx>0?1:-1,0);else movePlayer(0,dy>0?1:-1);},{passive:true});
+
+// ─── Screens ───
+
+function showTitle(){
+  document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden'));
+  document.getElementById('title-screen').classList.remove('hidden');document.getElementById('hud').style.display='none';document.getElementById('gem-phrase').classList.remove('show');
+  gameActive=0;if(timerInterval)clearInterval(timerInterval);if(animFrame)cancelAnimationFrame(animFrame);
+}
+function startGame(){document.querySelectorAll('.overlay').forEach(e=>e.classList.add('hidden'));initGame();}
+function replay(){document.getElementById('ending').classList.add('hidden');document.getElementById('rating').classList.remove('show');document.getElementById('reunion-scene').classList.remove('active');document.querySelectorAll('.heart-particle').forEach(e=>e.remove());startGame();}
+
+let rt;
+window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(gameActive){let mw=Math.min(window.innerWidth-24,600),mh=Math.min(window.innerHeight-100,600),nc=Math.floor(Math.min(mw,mh)/(COLS*2+1))||14;if(nc!==CS){CS=nc;canvas.width=gridW*CS;canvas.height=gridH*CS;canvas.style.width=canvas.width+'px';canvas.style.height=canvas.height+'px';}}},200);});
+
+document.addEventListener('DOMContentLoaded',showTitle);
+</script>
+</body>
+</html>
