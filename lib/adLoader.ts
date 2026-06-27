@@ -30,12 +30,12 @@ export function enqueueBannerAd(key: string, src: string, height: number, width:
     const f = document.createElement("iframe");
     f.setAttribute("title", "Advertisement");
     f.style.cssText = `border:0;overflow:hidden;display:block;width:${width}px;max-width:100%;height:${height}px`;
+    const atOpts = JSON.stringify({ key, format: "iframe", height, width, params: {} });
     const html = `<!DOCTYPE html><html><head><style>body{margin:0;padding:0;overflow:hidden}</style></head><body>
 <script>
-var _at=${JSON.stringify({ key, format: "iframe", height, width, params: {} })};
-window.atOptions=_at;
-<\/script>
-<script src="${src}" async><\/script>
+atOptions=${atOpts};
+document.write('<scr'+'ipt src="${src}"><\\/scr'+'ipt>');
+</script>
 </body></html>`;
     f.srcdoc = html;
     container.appendChild(f);
