@@ -8,8 +8,8 @@ const csp = [
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: blob: https:`,
   `font-src 'self' data:`,
-  `connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.google.com https://*.highperformanceformat.com https://*.effectivecpmnetwork.com https://*.adsterra.com https://*.trafficfactory.com https://*.profitablecreativeformat.com https://*.furiousexpansion.com`,
-  `frame-src 'self' https://*.highperformanceformat.com https://*.effectivecpmnetwork.com https://*.adsterra.com https://*.trafficfactory.com https://*.profitablecreativeformat.com https://*.furiousexpansion.com`,
+  `connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://www.google.com https://*.highperformanceformat.com https://*.effectivecpmnetwork.com https:`,
+  `frame-src 'self' https://*.highperformanceformat.com https://*.effectivecpmnetwork.com https:`,
   `frame-ancestors 'none'`,
   `base-uri 'self'`,
 ].join("; ");
