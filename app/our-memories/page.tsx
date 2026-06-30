@@ -163,6 +163,49 @@ function StaggerText({ text, className = "", style }: { text: string; className?
   );
 }
 
+/* ─── Confetti burst ─── */
+function ConfettiBurst() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [burst, setBurst] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const o = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setBurst(true); o.unobserve(el); } },
+      { threshold: 0.3 }
+    );
+    o.observe(el);
+    return () => o.disconnect();
+  }, []);
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 3,
+    duration: 3 + Math.random() * 4,
+    size: 4 + Math.random() * 8,
+    color: [PINK, GOLD, HEART, "#f4c7d4", "#e8d5b7"][Math.floor(Math.random() * 5)],
+    rotation: Math.random() * 360,
+    shape: Math.random() > 0.5 ? "circle" : "rect",
+  }));
+  return (
+    <div ref={ref} className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+      {burst && particles.map((p) => (
+        <div key={p.id} className="absolute" style={{
+          left: `${p.left}%`,
+          top: "-10px",
+          width: p.shape === "circle" ? p.size : p.size * 0.6,
+          height: p.size,
+          background: p.color,
+          borderRadius: p.shape === "circle" ? "50%" : "2px",
+          opacity: 0,
+          transform: `rotate(${p.rotation}deg)`,
+          animation: `confetti-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
 /* ─── Wax seal stamp ─── */
 function WaxSeal({ color = PINK }: { color?: string }) {
   return (
@@ -265,6 +308,15 @@ export default function OurMemoriesPage() {
           28% { transform: scale(1); }
           42% { transform: scale(1.12); }
           56% { transform: scale(1); }
+        }
+        @keyframes slow-zoom {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.08); }
+        }
+        @keyframes confetti-fall {
+          0% { transform: translateY(0) rotate(0deg) scale(0.6); opacity: 0; }
+          5% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+          100% { transform: translateY(105vh) rotate(360deg) scale(0.4); opacity: 0; }
         }
         html { scroll-behavior: smooth; }
 body::before, body::after { display: none !important; }
@@ -424,13 +476,15 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         </div>
       </section>
 
+      <ConfettiBurst />
+
       {/* ───── FINAL MESSAGE ───── */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Reveal>
           <Parallax speed={-0.08}>
             <div className="mx-auto max-w-xl">
-              <div className="mx-auto mb-10 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: "#f0e4d8" }}>
-                <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full object-contain" />
+              <div className="mx-auto mb-10 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: "#f0e4d8", animation: "pulse-glow 4s ease-in-out infinite" }}>
+                <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
               </div>
               <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>
                 Thank you for being part of my favorite memories. I don&apos;t just want to remember the past with you&hellip; I want to create every beautiful tomorrow with you.
@@ -445,12 +499,24 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         </Reveal>
       </section>
 
-      {/* ───── BACK TO TOP ───── */}
-      <section className="relative z-10 pb-12 text-center">
-        <a href="#top" className="inline-flex flex-col items-center gap-2 transition hover:opacity-60" style={{ color: MUTED }}>
-          <span className="text-xs">↑</span>
-          <span className="text-[10px] tracking-[0.2em] uppercase">Start over</span>
-        </a>
+      {/* ───── THE END ───── */}
+      <section className="relative z-10 px-6 pb-20 pt-8 text-center">
+        <Reveal>
+          <Divider />
+          <p className="text-sm font-light italic tracking-wide" style={{ color: MUTED }}>
+            Every love story is beautiful, but ours is my favorite.
+          </p>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="mx-auto mt-10 flex items-center gap-3 rounded-full px-8 py-4 text-sm font-bold tracking-wide uppercase transition-all hover:scale-105 hover:shadow-xl" style={{
+            background: `linear-gradient(135deg, ${PINK}, ${PINK}dd)`,
+            color: "#fff",
+            boxShadow: `0 8px 32px ${PINK}44`,
+          }}>
+            <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+            Read Again
+            <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+          </button>
+          <p className="mt-12 text-[10px] tracking-[0.2em] uppercase" style={{ color: `${MUTED}88` }}>The End</p>
+        </Reveal>
       </section>
     </div>
   );
