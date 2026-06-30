@@ -39,6 +39,7 @@ const config: Config = {
       animation: {
         "scene-enter": "scene-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "float": "float 3s ease-in-out infinite",
+        "float-up": "float-up 12s linear infinite",
       },
       keyframes: {
         "scene-enter": {
@@ -48,6 +49,12 @@ const config: Config = {
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-8px)" },
+        },
+        "float-up": {
+          "0%": { transform: "translateY(100vh) rotate(0deg) scale(0.5)", opacity: "0" },
+          "10%": { opacity: "1" },
+          "90%": { opacity: "1" },
+          "100%": { transform: "translateY(-10vh) rotate(360deg) scale(1)", opacity: "0" },
         },
       },
     }

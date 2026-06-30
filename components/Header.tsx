@@ -7,6 +7,7 @@ import { useTheme } from "@/lib/theme/context";
 
 const links = [
   { href: "/templates", labelKey: "nav.templates" },
+  { href: "/our-memories/edit", label: "Our Memories" },
   { href: "/my-experiences", labelKey: "nav.messages" },
   { href: "/chat", labelKey: "nav.chat" },
 ];
@@ -61,7 +62,7 @@ export function Header() {
               href={l.href}
               className="rounded-full px-2.5 py-1 text-[0.78rem] font-bold text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
             >
-              {t(l.labelKey)}
+              {"label" in l ? l.label : t(l.labelKey)}
             </Link>
           ))}
 
@@ -153,7 +154,7 @@ export function Header() {
                 onClick={() => setMenuOpen(false)}
                 className="rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               >
-                {t(l.labelKey)}
+                {"label" in l ? l.label : t(l.labelKey)}
               </Link>
             ))}
             {/* Mobile lang selector */}
