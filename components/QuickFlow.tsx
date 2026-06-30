@@ -92,16 +92,6 @@ export function QuickFlow() {
       </div>
       <p className="mt-2 text-[11px] font-semibold text-white/50">{t("home.quick.mood.hint")}</p>
 
-      {/* ─── Featured: Our Memories ─── */}
-      <Link href="/our-memories" className="group mt-6 flex w-full max-w-2xl items-center gap-4 rounded-2xl border border-pink-300/20 bg-gradient-to-r from-pink-500/10 via-rose-500/8 to-blush-500/10 px-5 py-4 text-left transition-all duration-300 hover:scale-[1.02] hover:border-pink-300/40 hover:shadow-lg">
-        <span className="text-3xl">📖</span>
-        <div className="flex-1">
-          <p className="text-sm font-bold text-white">Our Memories</p>
-          <p className="text-xs text-white/50">A beautiful scrapbook of your favorite moments together</p>
-        </div>
-        <span className="text-lg text-white/40 transition-transform group-hover:translate-x-1">→</span>
-      </Link>
-
       <button
         type="button"
         disabled={loading || !text.trim()}

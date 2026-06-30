@@ -770,7 +770,7 @@ export const templates: Template[] = [
     slug: "our-memories",
     title: "Our Memories",
     hook: "A beautiful scrapbook of your favorite memories together.",
-    categorySlugs: ["love-crush"],
+    categorySlugs: ["friendship-best-friend", "love-crush"],
     bestFor: "love, memories, anniversaries, couples",
     length: "2 minutes",
     tone: "Romantic",
@@ -817,9 +817,15 @@ export function getMood(slug: string) {
 export function getTemplatesByMood(moodSlug: string) {
   const mood = getMood(moodSlug);
   if (!mood) return [];
-  return templates.filter(
+  const result = templates.filter(
     (t) => t.status === "full" && (mood.tones.includes(t.tone) || t.categorySlugs.some((cs) => mood.categorySlugs.includes(cs)))
   );
+  result.sort((a, b) => {
+    if (a.id === "our-memories") return -1;
+    if (b.id === "our-memories") return 1;
+    return a.title.localeCompare(b.title);
+  });
+  return result;
 }
 
 export function getCategory(slug: string) {
