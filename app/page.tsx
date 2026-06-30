@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: `Create Interactive Messages Online | ${siteName}`,
-  description: "Craft Your Message lets you create interactive messages, apology messages, birthday wishes, confession reveals, friendship notes, funny roasts, and unique shareable experience links with games and animations.",
+  description: "Create interactive messages with games and animations. Send apology, birthday wishes, love confessions, and funny roasts as unique shareable links.",
   alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     title: `Create Interactive Messages Online | ${siteName}`,
