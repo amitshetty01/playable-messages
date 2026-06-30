@@ -151,15 +151,11 @@ function StaggerText({ text, className = "", style }: { text: string; className?
   return (
     <div ref={ref} className={`flex flex-wrap justify-center gap-x-[0.3em] ${className}`} style={style}>
       {words.map((w, i) => (
-        <span
-          key={i}
-          className="transition-all duration-500 ease-out"
-          style={{
-            opacity: vis ? 1 : 0,
-            transform: vis ? "translateY(0)" : "translateY(12px)",
-            transitionDelay: `${i * 60}ms`,
-          }}
-        >
+        <span key={i} className="transition-all duration-500 ease-out" style={{
+          opacity: vis ? 1 : 0,
+          transform: vis ? "translateY(0)" : "translateY(12px)",
+          transitionDelay: `${i * 60}ms`,
+        }}>
           {w}
         </span>
       ))}
@@ -227,14 +223,9 @@ export default function OurMemoriesPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const pics = [
-    "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&h=800&fit=crop&auto=format",
     "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&h=800&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&h=800&fit=crop&auto=format",
     "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
-  ];
-  const stripPics = [
-    "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=200&h=200&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=200&h=200&fit=crop&auto=format",
   ];
   const memories = [
     { title: "The First Smile", caption: "Some smiles stay in your heart forever.", date: "03. 2025" },
@@ -253,6 +244,8 @@ export default function OurMemoriesPage() {
     <div className="relative w-screen overflow-x-hidden" style={{ marginLeft: "calc(-50vw + 50%)", width: "100vw", background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
+        header, footer, #content { display: none !important; }
+        body { background: ${CREAM} !important; }
         @keyframes float-up {
           0% { transform: translateY(0) rotate(0deg) scale(0.4); opacity: 0; }
           10% { opacity: 0.35; }
@@ -273,10 +266,6 @@ export default function OurMemoriesPage() {
           28% { transform: scale(1); }
           42% { transform: scale(1.12); }
           56% { transform: scale(1); }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
         }
         html { scroll-behavior: smooth; }
         ::-webkit-scrollbar { width: 6px; }
@@ -327,19 +316,6 @@ export default function OurMemoriesPage() {
         </Reveal>
       </section>
 
-      {/* ───── PHOTO STRIP ───── */}
-      <section className="relative z-10 flex flex-col items-center justify-center px-6 py-10">
-        <Reveal>
-          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-            {stripPics.map((url, i) => (
-              <div key={i} className="flex-shrink-0 rounded-xl bg-white p-2 shadow-md" style={{ transform: `rotate(${-3 + i * 3}deg)` }}>
-                <img src={url} alt="" className="h-24 w-24 rounded-lg object-cover sm:h-28 sm:w-28" />
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
       {/* ───── OUR MEMORIES ───── */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-20">
         <div className="mx-auto w-full max-w-lg">
@@ -354,20 +330,16 @@ export default function OurMemoriesPage() {
                     border: "1px solid rgba(201,168,124,0.25)",
                     boxShadow: `0 12px 48px ${BROWN}0d`,
                   }}>
-                    {/* Corner fold decoration */}
                     <div className="absolute -bottom-px -right-px z-10 h-8 w-8 overflow-hidden rounded-br-[16px]" style={{ background: CREAM }}>
                       <div className="absolute -bottom-2 -right-2 h-6 w-6 rotate-45 shadow-md" style={{ background: CREAM, boxShadow: `-2px -2px 8px ${BROWN}15` }} />
                     </div>
-                    {/* Photo area */}
                     <div className="relative overflow-hidden rounded-t-[16px]">
                       <img src={pics[i]} alt={m.title} className="h-80 w-full object-cover transition-all duration-700 group-hover:scale-105 sm:h-96" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                      {/* Polaroid corner brackets */}
                       <div className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-white/60 rounded-tl" />
                       <div className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-white/60 rounded-tr" />
                       <div className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-white/60 rounded-bl" />
                       <div className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-white/60 rounded-br" />
-                      {/* Date stamp */}
                       <DateStamp label={m.date} />
                     </div>
                     <div className="space-y-1.5 px-5 py-5">
@@ -453,7 +425,7 @@ export default function OurMemoriesPage() {
           <Parallax speed={-0.08}>
             <div className="mx-auto max-w-xl">
               <div className="mx-auto mb-10 h-48 w-48 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-56 sm:w-56" style={{ borderColor: "#f0e4d8" }}>
-                <img src={pics[1]} alt="" className="h-full w-full object-cover" />
+                <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full object-contain" />
               </div>
               <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>
                 Thank you for being part of my favorite memories. I don&apos;t just want to remember the past with you&hellip; I want to create every beautiful tomorrow with you.
@@ -475,11 +447,6 @@ export default function OurMemoriesPage() {
           <span className="text-[10px] tracking-[0.2em] uppercase">Start over</span>
         </a>
       </section>
-
-      {/* ───── FOOTER ───── */}
-      <footer className="relative z-10 pb-8 text-center">
-        <p className="text-xs" style={{ color: MUTED }}>Made with love</p>
-      </footer>
     </div>
   );
 }
