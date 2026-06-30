@@ -751,6 +751,20 @@ export const templates: Template[] = [
     formula: ["Heart of arrows", "Tap to remove", "Clear the path", "Message revealed"],
     description: "A heart made of arrow pieces. Tap each arrow in the right order to clear the walls and unlock a hidden personal message inside."
   },
+  {
+    id: "sorry-maze",
+    slug: "sorry-maze",
+    title: "Sorry Maze",
+    hook: "Find your way back through the maze 💛",
+    categorySlugs: ["funny-roast"],
+    bestFor: "funny apologies, playful maze, emotional puzzles",
+    length: "30 seconds",
+    tone: "Funny",
+    theme: "Cinematic Purple",
+    status: "full",
+    formula: ["Enter maze", "Navigate walls", "Collect gems", "Reach the heart"],
+    description: "Navigate a glowing maze to find your way back. Collect gems, avoid dead ends, and unlock a heartfelt message at the center."
+  },
 ];
 
 templates.sort((a, b) => {

@@ -28,7 +28,7 @@ type ExperienceRow = {
   together_since?: string | null;
 };
 
-const STORE_PATH = path.join(os.tmpdir(), "playable-messages-store.json");
+const STORE_PATH = path.join(os.tmpdir(), "craftyourmessage-store.json");
 
 async function readLocalStore(): Promise<Map<string, ExperienceRow>> {
   try {

@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Ocean Dive — The Depths of the Heart</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#000;color:#fff;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+
+#app{width:100%;height:100%;position:relative;overflow:hidden}
+
+/* ── Shared ── */
+.zone{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1.2s ease;overflow:hidden}
+.zone.active{opacity:1;pointer-events:auto}
+.zone.exit{opacity:0;transform:scale(1.06)}
+.depth-tag{position:absolute;top:18px;left:18px;z-index:50;padding:6px 14px;border-radius:20px;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.06);letter-spacing:0.04em}
+.depth-tag span{color:rgba(255,255,255,0.8)}
+.progress-bar{position:absolute;top:20px;right:20px;z-index:50;display:flex;gap:5px}
+.progress-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12);transition:all 0.5s ease}
+.progress-dot.done{background:rgba(255,255,255,0.5);box-shadow:0 0 8px rgba(255,255,255,0.15)}
+.progress-dot.current{background:#fbbf24;box-shadow:0 0 12px rgba(251,191,36,0.3)}
+.zone-btn{padding:16px 40px;border:none;border-radius:50px;font-size:clamp(0.95rem,2.2vw,1.1rem);font-weight:800;cursor:pointer;transition:all 0.3s ease;letter-spacing:0.02em}
+.zone-btn:active{transform:scale(0.94)}
+.zone-text{font-size:clamp(0.9rem,2.2vw,1.1rem);line-height:1.7;color:rgba(255,255,255,0.7);max-width:480px;text-align:center;padding:0 24px}
+.zone-title{font-size:clamp(1.6rem,5vw,2.8rem);font-weight:900;letter-spacing:-0.02em;margin-bottom:12px}
+.zone-sub{font-size:clamp(0.85rem,2vw,1rem);color:rgba(255,255,255,0.4);margin-bottom:6px}
+
+/* ── Bubbles ── */
+.bub{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.2),rgba(255,255,255,0.03));pointer-events:none}
+
+/* ── Zone 0: Cliff ── */
+#zone-cliff{background:linear-gradient(180deg,#ff9a56 0%,#ffb56b 15%,#87ceeb 40%,#5ba3d9 55%,#3a8fd4 70%,#1a5276 100%)}
+.cliff-sun{position:absolute;top:40px;right:60px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,#fff7b0,#ff8c00);box-shadow:0 0 80px rgba(255,140,0,0.3)}@media(max-width:480px){.cliff-sun{width:60px;height:60px;top:30px;right:30px}}
+.cliff-cloud{position:absolute;font-size:50px;opacity:0.5;animation:cloud-drift 30s linear infinite;pointer-events:none}
+.cliff-cloud:nth-child(2){top:8%;left:-8%;font-size:60px;animation-duration:35s}
+.cliff-cloud:nth-child(3){top:14%;left:40%;font-size:32px;animation-duration:22s;animation-delay:-8s}
+.cliff-sea{position:absolute;bottom:0;left:0;right:0;height:48%;background:linear-gradient(0deg,#1a5276,#3a8fd4 40%,transparent);pointer-events:none}
+.cliff-land{position:absolute;bottom:45%;left:0;right:55%;height:55%;background:linear-gradient(135deg,#5a3d2b,#3d2817 40%,#2a1a0e 70%);clip-path:polygon(0 0,100% 0,85% 100%,0 100%)}
+.cliff-grass{position:absolute;bottom:45%;left:0;right:55%;height:55%;background:linear-gradient(0deg,#4a7c3f 0%,transparent 20%);clip-path:polygon(0 0,100% 0,85% 100%,0 100%);opacity:0.4}
+.cliff-edge{position:absolute;bottom:45%;left:42%;width:30%;height:6px;background:linear-gradient(90deg,transparent,#6b4d2e,#5a3d2b,transparent);border-radius:50%}
+.cliff-character{position:absolute;bottom:51%;left:38%;font-size:clamp(3rem,6vw,4.5rem);animation:cliff-bob 3s ease-in-out infinite;z-index:5;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))}
+.cliff-title{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);text-align:center;z-index:3}
+.cliff-title h1{font-size:clamp(2.2rem,7vw,4rem);font-weight:900;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,0.3),0 2px 60px rgba(0,0,0,0.15);letter-spacing:-0.03em}
+.cliff-title p{font-size:clamp(0.9rem,2.2vw,1.1rem);color:rgba(255,255,255,0.7);margin-top:8px;text-shadow:0 2px 10px rgba(0,0,0,0.2)}
+.cliff-title .sub-text{font-size:clamp(0.75rem,1.8vw,0.85rem);color:rgba(255,255,255,0.4);margin-top:6px;font-style:italic}
+
+/* ── Zone 1: Dive ── */
+#zone-dive{background:linear-gradient(180deg,#87ceeb 0%,#3a8fd4 20%,#1a5276 50%,#0d3b66 70%,#0a1628 100%)}
+.dive-character{font-size:clamp(3rem,8vw,5rem);position:absolute;animation:dive-plunge 2s ease-in forwards;z-index:5}
+.dive-splash{position:absolute;bottom:30%;font-size:clamp(4rem,12vw,8rem);opacity:0;animation:splash-burst 1.5s ease-out 0.5s forwards}
+.dive-text{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:3;opacity:0;animation:fade-up 1s ease-out 0.8s forwards}
+.dive-text h2{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;color:#fff;text-shadow:0 0 40px rgba(255,255,255,0.1)}
+.dive-text p{color:rgba(255,255,255,0.5);margin-top:6px;font-size:clamp(0.85rem,2vw,1rem)}
+
+/* ── Zone 2: Coral Reef ── */
+#zone-reef{background:linear-gradient(180deg,#0e5a8a 0%,#0a4a7a 30%,#0a3a6b 60%,#0c2d5e 100%)}
+.reef-coral{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:0 10px;pointer-events:none}
+.reef-coral span{font-size:clamp(1.5rem,4vw,2.5rem);animation:coral-sway 4s ease-in-out infinite}
+.reef-coral span:nth-child(odd){animation-delay:-2s}
+.fish-school{position:absolute;display:flex;gap:2px;animation:school-swim 12s linear infinite;pointer-events:none}
+.fish-school span{font-size:clamp(0.8rem,1.5vw,1.1rem);animation:fish-wobble 0.6s ease-in-out infinite}
+.fish-school span:nth-child(even){animation-delay:-0.3s}
+
+/* ── Zone 3: Turtle ── */
+#zone-turtle{background:linear-gradient(180deg,#0a3a6b 0%,#0a2d5e 30%,#0a1f45 70%,#0a1628 100%)}
+.turtle-creature{position:absolute;font-size:clamp(3rem,8vw,5rem);cursor:pointer;transition:all 0.8s ease;z-index:5}
+.turtle-creature:hover{transform:scale(1.15)}
+.turtle-creature.pointed{transform:translateX(80px) rotate(10deg)}
+.turtle-glow{position:absolute;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.06),transparent);pointer-events:none;animation:turtle-pulse 3s ease-in-out infinite}
+
+/* ── Zone 4: Jellyfish ── */
+#zone-jellyfish{background:linear-gradient(180deg,#0a1f45 0%,#0e1a3a 30%,#12103a 60%,#1a0a3a 100%)}
+.jelly-array{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.jelly-array span{font-size:clamp(2rem,5vw,3rem);position:absolute;animation:jelly-float 4s ease-in-out infinite}
+.jelly-arrow{position:absolute;font-size:clamp(1.5rem,3vw,2rem);opacity:0;transition:opacity 0.8s ease;pointer-events:none}
+.jelly-arrow.show{opacity:0.7}
+
+/* ── Zone 5: Dolphin ── */
+#zone-dolphin{background:linear-gradient(180deg,#0a1628 0%,#0d1a3a 30%,#0a1f4a 60%,#0a1628 100%)}
+.dolphin-pair{position:absolute;display:flex;gap:4px;animation:dolphin-swim 8s ease-in-out infinite;cursor:pointer;z-index:5;transition:all 0.5s ease}
+.dolphin-pair:hover{transform:scale(1.1)}
+.dolphin-pair span{font-size:clamp(2rem,5vw,3.5rem)}
+.dolphin-pair.lead{left:60%;animation:dolphin-lead 2s ease-in-out forwards}
+
+/* ── Zone 6: Octopus ── */
+#zone-octopus{background:linear-gradient(180deg,#080e24 0%,#0a0a20 30%,#0f0a1a 60%,#050510 100%)}
+.octopus-creature{position:absolute;font-size:clamp(3rem,8vw,5rem);cursor:pointer;z-index:5;transition:all 0.8s ease}
+.octopus-creature:hover{transform:scale(1.08)}
+.octopus-creature.moved{transform:translateY(40px) scale(0.7);opacity:0.3}
+.octopus-cave{position:absolute;bottom:15%;left:50%;transform:translateX(-50%);width:clamp(120px,30vw,200px);height:clamp(60px,15vw,100px);border-radius:0 0 50% 50%/0 0 100% 100%;background:radial-gradient(ellipse at 50% 100%,#1a1a2e,transparent);border:2px solid rgba(255,255,255,0.05);transition:all 1s ease;overflow:hidden}
+.octopus-cave.open{background:radial-gradient(ellipse at 50% 100%,#2a2a4e,transparent);border-color:rgba(100,100,255,0.15)}
+.octopus-cave.open::after{content:'⬇️';position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);font-size:clamp(1.2rem,3vw,1.8rem);animation:bounce-down 1.5s ease-in-out infinite}
+
+/* ── Zone 7: Whale ── */
+#zone-whale{background:linear-gradient(180deg,#030312 0%,#050520 30%,#080828 60%,#020210 100%)}
+.whale-creature{position:absolute;font-size:clamp(4rem,12vw,7rem);cursor:pointer;z-index:5;transition:all 1s ease;animation:whale-glide 8s ease-in-out infinite}
+.whale-creature:hover{transform:scale(1.06)}
+.whale-creature.sung{animation:whale-song-vibrate 2s ease-in-out}
+.whale-ripple{position:absolute;width:200%;height:200%;border-radius:50%;border:2px solid rgba(100,150,255,0.1);pointer-events:none;animation:ripple-expand 2s ease-out forwards;opacity:0}
+.tunnel-reveal{position:absolute;bottom:10%;width:clamp(100px,25vw,160px);height:clamp(40px,10vw,60px);border-radius:50%;background:radial-gradient(ellipse,rgba(50,80,150,0.2),transparent);opacity:0;transition:opacity 1.5s ease}
+.tunnel-reveal.show{opacity:1}
+
+/* ── Zone 8: Trench ── */
+#zone-trench{background:linear-gradient(180deg,#010108 0%,#020210 30%,#000010 60%,#000005 100%)}
+.trench-lights{position:absolute;inset:0;pointer-events:none}
+.trench-light{position:absolute;width:4px;height:4px;border-radius:50%;background:#4af;box-shadow:0 0 12px #4af,0 0 30px rgba(68,170,255,0.2);animation:biolum 3s ease-in-out infinite}
+.trench-ruins{position:absolute;bottom:5%;left:10%;right:10%;height:80px;background:linear-gradient(0deg,rgba(50,50,80,0.15),transparent);border-radius:20px 20px 0 0}
+.temple-glow-bg{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);width:clamp(200px,50vw,350px);height:clamp(60px,15vw,100px);border-radius:40% 40% 0 0;background:radial-gradient(ellipse at 50% 100%,rgba(255,200,50,0.06),transparent);animation:temple-pulse 4s ease-in-out infinite}
+
+/* ── Zone 9: Temple ── */
+#zone-temple{background:linear-gradient(180deg,#000010 0%,#050520 30%,#0a0a2a 60%,#020210 100%)}
+.temple{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.temple-structure{position:relative;width:clamp(250px,60vw,400px);height:clamp(200px,50vw,350px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.temple-roof{width:100%;height:30%;background:linear-gradient(135deg,rgba(100,100,180,0.2),rgba(60,60,120,0.15));clip-path:polygon(5% 100%,50% 0,95% 100%);margin-bottom:-1px}
+.temple-walls{width:80%;flex:1;background:linear-gradient(180deg,rgba(80,80,150,0.12),rgba(40,40,80,0.08));border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center}
+.temple-symbol{font-size:clamp(2rem,5vw,3rem);opacity:0.3;animation:temple-glow-sym 3s ease-in-out infinite}
+.temple-entrance{position:absolute;bottom:0;width:40%;height:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,200,50,0.08),transparent 60%);border-radius:50% 50% 0 0}
+.chest-wrap{position:relative;z-index:5;text-align:center;cursor:pointer;animation:chest-float 3s ease-in-out infinite}
+.chest-wrap .chest-icon{font-size:clamp(3.5rem,10vw,6rem);display:block;filter:drop-shadow(0 0 30px rgba(255,200,50,0.15));transition:filter 0.5s}
+.chest-wrap:hover .chest-icon{filter:drop-shadow(0 0 50px rgba(255,200,50,0.3))}
+.chest-wrap p{font-size:clamp(0.85rem,2vw,1rem);color:rgba(255,200,50,0.6);margin-top:8px}
+.chest-chains{position:absolute;inset:-20px;border:2px solid rgba(100,100,150,0.15);border-radius:50%;border-top:none;border-left:none;transform:rotate(45deg);pointer-events:none}
+
+/* ── Password Dialog ── */
+#pw-overlay{position:absolute;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px)}
+#pw-overlay.active{display:flex}
+#pw-box{width:min(90%,360px);padding:36px 28px;border-radius:24px;border:1px solid rgba(251,191,36,0.2);background:linear-gradient(135deg,#0f0a1a,#1a0f2e);text-align:center;animation:modalIn 0.5s ease-out}
+#pw-box .icon{font-size:50px;display:block;margin-bottom:10px}
+#pw-box h3{font-size:22px;font-weight:800;color:#fbbf24;margin-bottom:2px}
+#pw-box .sub{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px}
+#pw-box input{width:100%;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#fff;font-size:22px;font-weight:700;text-align:center;letter-spacing:8px;outline:none;transition:all 0.2s}
+#pw-box input:focus{border-color:rgba(251,191,36,0.4);box-shadow:0 0 20px rgba(251,191,36,0.06)}
+#pw-box input.error{border-color:#f87171;animation:shake 0.4s ease-out}
+#pw-box .btns{display:flex;gap:10px;margin-top:16px}
+#pw-box .btns button{flex:1;padding:13px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s}
+#pw-box .btn-hint{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.45)}
+#pw-box .btn-hint:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.65)}
+#pw-box .btn-unlock{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 4px 20px rgba(245,158,11,0.2)}
+
+/* ── Reveal ── */
+#reveal-screen{position:absolute;inset:0;z-index:95;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,#0a1a3a,#000010)}
+#reveal-screen.active{display:flex}
+.reveal-gold{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,215,0,0.06),transparent 60%);pointer-events:none;animation:gold-pulse 3s ease-in-out infinite}
+.reveal-particle{position:absolute;pointer-events:none;font-size:10px;animation:float-up 4s ease-out forwards;opacity:0}
+.reveal-content{z-index:3;text-align:center;padding:24px;animation:scaleIn 1s ease-out 0.5s both}
+.reveal-content .trophy{font-size:clamp(3rem,10vw,5rem);display:block;animation:trophy-glow 2.5s ease-in-out infinite}
+.reveal-content h2{font-size:clamp(1.5rem,5vw,2.5rem);font-weight:900;color:#fbbf24;margin:10px 0 6px;text-shadow:0 0 60px rgba(251,191,36,0.15)}
+.reveal-content .message-box{max-width:440px;padding:24px;border-radius:16px;border:1px solid rgba(251,191,36,0.12);background:rgba(251,191,36,0.04);margin:12px 0 24px}
+.reveal-content .message-box p{font-size:clamp(0.95rem,2.5vw,1.1rem);line-height:1.8;color:rgba(255,255,255,0.8)}
+.reveal-content .sig{font-size:12px;color:rgba(251,191,36,0.3);margin-top:14px;font-style:italic}
+.replay-btn{padding:14px 32px;border:none;border-radius:50px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(4px)}
+.replay-btn:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8)}
+.broken-chain{position:absolute;font-size:clamp(1.5rem,4vw,2.5rem);opacity:0;animation:chain-break 0.8s ease-out forwards}
+
+/* ── Keyframes ── */
+@keyframes cloud-drift{0%{transform:translateX(-120px)}100%{transform:translateX(calc(100vw + 120px))}}
+@keyframes cliff-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes dive-plunge{0%{top:35%;opacity:1}50%{top:55%;opacity:1;transform:scale(0.6)}100%{top:65%;opacity:0;transform:scale(0.3)}}
+@keyframes splash-burst{0%{transform:scale(0.3);opacity:0}30%{transform:scale(1.3);opacity:1}60%{transform:scale(0.9);opacity:0.7}100%{transform:scale(1);opacity:0}}
+@keyframes fade-up{0%{opacity:0;transform:translate(-50%,-40%)}100%{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes school-swim{0%{transform:translateX(-200px)}100%{transform:translateX(calc(100vw + 200px))}}
+@keyframes fish-wobble{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes coral-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes turtle-pulse{0%,100%{opacity:0.3}50%{opacity:0.8}}
+@keyframes jelly-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+@keyframes dolphin-swim{0%{transform:translateX(-50px) translateY(0)}25%{transform:translateX(calc(50vw - 50px)) translateY(-20px)}50%{transform:translateX(calc(100vw + 50px)) translateY(0)}75%{transform:translateX(calc(50vw - 50px)) translateY(20px)}100%{transform:translateX(-50px) translateY(0)}}
+@keyframes dolphin-lead{0%{opacity:1}100%{opacity:0;transform:translateX(200px) scale(0.5)}}
+@keyframes whale-glide{0%,100%{transform:translateX(-20px)}50%{transform:translateX(20px)}}
+@keyframes whale-song-vibrate{0%,100%{transform:scale(1)}20%{transform:scale(1.04)}40%{transform:scale(0.96)}60%{transform:scale(1.02)}80%{transform:scale(0.98)}}
+@keyframes ripple-expand{0%{transform:scale(0.3);opacity:0.4}100%{transform:scale(2);opacity:0}}
+@keyframes biolum{0%,100%{opacity:0.3}50%{opacity:1}}
+@keyframes bounce-down{0%,100%{transform:translateX(-50%) translateY(0);opacity:0.5}50%{transform:translateX(-50%) translateY(8px);opacity:1}}
+@keyframes temple-pulse{0%,100%{opacity:0.3}50%{opacity:0.8}}
+@keyframes temple-glow-sym{0%,100%{opacity:0.2;transform:scale(1)}50%{opacity:0.5;transform:scale(1.08)}}
+@keyframes chest-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes gold-pulse{0%,100%{opacity:0.3}50%{opacity:0.8}}
+@keyframes float-up{0%{transform:translateY(0) scale(1);opacity:0}20%{opacity:0.8}80%{opacity:0.6}100%{transform:translateY(-300px) scale(0.3);opacity:0}}
+@keyframes scaleIn{0%{opacity:0;transform:scale(0.8)}100%{opacity:1;transform:scale(1)}}
+@keyframes chain-break{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(60px) rotate(30deg);opacity:0}}
+@keyframes modalIn{0%{opacity:0;transform:scale(0.9) translateY(20px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes trophy-glow{0%,100%{filter:drop-shadow(0 0 20px rgba(255,215,0,0.3));transform:translateY(0)}50%{filter:drop-shadow(0 0 60px rgba(255,215,0,0.5));transform:translateY(-8px)}}
+@keyframes bub-rise{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:0.5}90%{opacity:0.15}100%{transform:translateY(-120vh) translateX(var(--dx));opacity:0}}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+@keyframes twinkle{0%,100%{opacity:0.15}50%{opacity:0.6}}
+
+@media(max-width:480px){
+  .cliff-title h1{font-size:1.8rem}
+  .zone-title{font-size:1.4rem}
+  .zone-text{font-size:0.85rem;padding:0 16px}
+  .depth-tag{font-size:10px;padding:4px 10px;top:10px;left:10px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ════════════════════════════════════════
+     ZONE 0 — THE CLIFF
+     ════════════════════════════════════════ -->
+<div id="zone-cliff" class="zone active">
+  <div class="cliff-sun"></div>
+  <div class="cliff-cloud">☁️</div>
+  <div class="cliff-cloud">☁️</div>
+  <div class="cliff-sea"></div>
+  <div class="cliff-land"></div>
+  <div class="cliff-grass"></div>
+  <div class="cliff-edge"></div>
+  <div class="cliff-character">🧑</div>
+  <div class="cliff-title">
+    <p class="zone-sub">— Someone left something for you —</p>
+    <h1>Ocean Dive</h1>
+    <p>At the bottom of the sea, a secret waits for you alone</p>
+    <div class="sub-text">Only you were chosen to retrieve it</div>
+    <button class="zone-btn" style="margin-top:28px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 8px 30px rgba(245,158,11,0.25)" onclick="goToZone(1)">Jump into the Water 🌊</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 1 — THE DIVE
+     ════════════════════════════════════════ -->
+<div id="zone-dive" class="zone">
+  <div class="depth-tag">Surface — <span>0m</span></div>
+  <div class="progress-bar" id="prog1">
+    <div class="progress-dot done"></div>
+    <div class="progress-dot current"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div class="dive-character" id="diver-figure">🏊</div>
+  <div class="dive-splash">💦</div>
+  <div class="dive-text">
+    <h2>The ocean receives you</h2>
+    <p>Cold water. Silence. The world above disappears.</p>
+    <button class="zone-btn" style="margin-top:24px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);backdrop-filter:blur(6px)" onclick="goToZone(2)">Descend Deeper ⬇️</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 2 — CORAL REEF
+     ════════════════════════════════════════ -->
+<div id="zone-reef" class="zone">
+  <div class="depth-tag">Reef Zone — <span>5m</span></div>
+  <div class="progress-bar" id="prog2">
+    <div class="progress-dot done"></div>
+    <div class="progress-dot done"></div>
+    <div class="progress-dot current"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div class="reef-coral" style="bottom:0">
+    <span>🪸</span><span>🪸</span><span>🪸</span><span>🪸</span><span>🪸</span>
+  </div>
+  <div class="fish-school" style="top:30%"><span>🐟</span><span>🐠</span><span>🐟</span><span>🐠</span><span>🐟</span><span>🐠</span><span>🐟</span><span>🐠</span><span>🐟</span></div>
+  <div class="fish-school" style="top:55%;animation-delay:-4s"><span>🐠</span><span>🐟</span><span>🐠</span><span>🐟</span><span>🐠</span><span>🐟</span><span>🐠</span></div>
+  <div class="fish-school" style="top:70%;animation-delay:-8s;scale:0.7"><span>🐟</span><span>🐟</span><span>🐟</span><span>🐟</span><span>🐟</span></div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px;margin-top:-40px">
+    <p class="zone-sub" style="margin-bottom:4px">🐠 Reef Fish</p>
+    <h2 class="zone-title">The Shallows Welcome You</h2>
+    <p class="zone-text">A school of colorful fish swirls around you. One brushes against your hand — it&apos;s not afraid. Down here, everything knows why you&apos;ve come.</p>
+    <button class="zone-btn" style="margin-top:24px;background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;box-shadow:0 4px 20px rgba(14,165,233,0.2)" onclick="goToZone(3)">Follow the Current ⬇️</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 3 — TURTLE
+     ════════════════════════════════════════ -->
+<div id="zone-turtle" class="zone">
+  <div class="depth-tag">Open Water — <span>15m</span></div>
+  <div class="progress-bar" id="prog3">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px">
+    <p class="zone-sub" style="margin-bottom:4px">🐢 Ancient Sea Turtle</p>
+    <h2 class="zone-title">The Elder&apos;s Wisdom</h2>
+    <p class="zone-text">An ancient sea turtle glides toward you. It has traveled these waters for over a century. It knows the way.</p>
+  </div>
+  <div class="turtle-creature" id="turtle-el" style="bottom:18%;left:45%;" onclick="interactTurtle()">🐢</div>
+  <div class="turtle-glow" style="bottom:15%;left:42%"></div>
+  <p id="turtle-hint" style="position:absolute;bottom:5%;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;color:rgba(255,255,255,0.3);opacity:0;transition:opacity 0.8s">The turtle points its flipper — <span style="color:rgba(255,200,50,0.7)">deeper, to the hidden grotto</span></p>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 4 — JELLYFISH
+     ════════════════════════════════════════ -->
+<div id="zone-jellyfish" class="zone">
+  <div class="depth-tag">Twilight Zone — <span>30m</span></div>
+  <div class="progress-bar" id="prog4">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div class="jelly-array">
+    <span style="top:20%;left:20%;animation-delay:0s">🪸</span>
+    <span style="top:35%;left:75%;animation-delay:-1s">🪸</span>
+    <span style="top:55%;left:30%;animation-delay:-2s">🪸</span>
+    <span style="top:70%;left:65%;animation-delay:-0.5s">🪸</span>
+    <span style="top:25%;left:55%;animation-delay:-1.5s">🪸</span>
+  </div>
+  <div class="jelly-arrow" id="jar1" style="top:40%;left:25%">⬇️</div>
+  <div class="jelly-arrow" id="jar2" style="top:55%;left:40%">⬇️</div>
+  <div class="jelly-arrow" id="jar3" style="top:70%;left:35%">⬇️</div>
+  <div class="jelly-arrow" id="jar4" style="bottom:25%;left:45%">⬇️</div>
+  <p id="jelly-hint" style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;color:rgba(255,255,255,0.3);opacity:0;transition:opacity 0.8s">→ The path is marked with light ←</p>
+  <div id="jelly-creature" style="position:absolute;bottom:30%;left:48%;font-size:clamp(3rem,8vw,5rem);cursor:pointer;z-index:5;transition:all 0.5s;animation:jelly-float 3s ease-in-out infinite" onclick="interactJellyfish()">🪸</div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px;margin-top:-20px">
+    <p class="zone-sub">🪸 Glowing Jellyfish</p>
+    <h2 class="zone-title">The Light Beneath</h2>
+    <p class="zone-text">The water darkens. A jellyfish pulses with bioluminescence. Touch it — and the path ahead will glow.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 5 — DOLPHINS
+     ════════════════════════════════════════ -->
+<div id="zone-dolphin" class="zone">
+  <div class="depth-tag">Dolphin Escort — <span>50m</span></div>
+  <div class="progress-bar" id="prog5">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px">
+    <p class="zone-sub">🐬 Pod of Dolphins</p>
+    <h2 class="zone-title">The Guides</h2>
+    <p class="zone-text">Three dolphins circle you, chattering. They seem to be saying something: &ldquo;Follow us. We&apos;ll show you the way.&rdquo;</p>
+  </div>
+  <div class="dolphin-pair" id="dolphin-el" onclick="interactDolphin()" style="bottom:22%;left:15%"><span>🐬</span><span>🐬</span><span>🐬</span></div>
+  <p id="dolphin-hint" style="position:absolute;bottom:5%;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;color:rgba(255,255,255,0.3);opacity:0;transition:opacity 0.8s">🐬 They swim ahead — a hidden cavern awaits</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 6 — OCTOPUS
+     ════════════════════════════════════════ -->
+<div id="zone-octopus" class="zone">
+  <div class="depth-tag">Deep Cavern — <span>80m</span></div>
+  <div class="progress-bar" id="prog6">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div><div class="progress-dot"></div>
+    <div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px">
+    <p class="zone-sub">🐙 Guardian Octopus</p>
+    <h2 class="zone-title">The Blocked Passage</h2>
+    <p class="zone-text">A massive octopus guards a cave entrance. Rocks block the way. It watches you with intelligent eyes — and then extends a tentacle.</p>
+  </div>
+  <div class="octopus-creature" id="octopus-el" onclick="interactOctopus()" style="bottom:35%;left:25%">🐙</div>
+  <div class="octopus-cave" id="octopus-cave"></div>
+  <p id="octopus-hint" style="position:absolute;bottom:3%;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;color:rgba(255,255,255,0.3);opacity:0;transition:opacity 0.8s">🐙 The cave opens — a darker path descends</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 7 — WHALE
+     ════════════════════════════════════════ -->
+<div id="zone-whale" class="zone">
+  <div class="depth-tag">Abyssal Plain — <span>120m</span></div>
+  <div class="progress-bar" id="prog7">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+  </div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px">
+    <p class="zone-sub">🐋 The Great Whale</p>
+    <h2 class="zone-title">The Song of the Deep</h2>
+    <p class="zone-text">Silence. Then a low rumble — a whale song vibrates through your chest. A massive silhouette emerges from the dark. It knows why you&apos;ve come.</p>
+  </div>
+  <div class="whale-creature" id="whale-el" onclick="interactWhale()" style="bottom:20%;left:38%">🐋</div>
+  <div class="tunnel-reveal" id="tunnel-reveal" style="bottom:8%;left:50%;transform:translateX(-50%)"></div>
+  <p id="whale-hint" style="position:absolute;bottom:3%;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;color:rgba(255,255,255,0.3);opacity:0;transition:opacity 0.8s">🐋 The song shakes the rocks — a hidden tunnel is revealed</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 8 — TRENCH
+     ════════════════════════════════════════ -->
+<div id="zone-trench" class="zone">
+  <div class="depth-tag">The Abyss — <span>200m</span></div>
+  <div class="progress-bar" id="prog8">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div><div class="progress-dot"></div>
+  </div>
+  <div class="trench-lights" id="trench-lights"></div>
+  <div class="trench-ruins"></div>
+  <div class="temple-glow-bg"></div>
+  <div style="text-align:center;z-index:3;max-width:480px;padding:0 24px">
+    <p class="zone-sub">🌟 Bioluminescent Deep</p>
+    <h2 class="zone-title">The Abyss Floor</h2>
+    <p class="zone-text">You reach the bottom. Strange lights flicker in the darkness. Ancient stone structures loom ahead — and beyond them, a faint golden glow.</p>
+    <button class="zone-btn" style="margin-top:24px;background:linear-gradient(135deg,#7c3aed,#4338ca);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,0.2)" onclick="goToZone(9)">Approach the Glow ✨</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ZONE 9 — TEMPLE
+     ════════════════════════════════════════ -->
+<div id="zone-temple" class="zone">
+  <div class="depth-tag">Ancient Temple — <span>250m</span></div>
+  <div class="progress-bar" id="prog9">
+    <div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div>
+    <div class="progress-dot current"></div>
+  </div>
+  <div class="temple">
+    <div class="temple-structure">
+      <div class="temple-roof"></div>
+      <div class="temple-walls">
+        <span class="temple-symbol">✧</span>
+      </div>
+      <div class="temple-entrance"></div>
+    </div>
+  </div>
+  <div class="chest-wrap" onclick="openChest()" style="position:absolute;bottom:20%;left:50%;transform:translateX(-50%)">
+    <span class="chest-icon" id="chest-icon">💎</span>
+    <p>Touch the Treasure</p>
+    <div class="chest-chains"></div>
+  </div>
+  <p style="position:absolute;bottom:5%;left:50%;transform:translateX(-50%);z-index:3;font-size:13px;color:rgba(255,200,50,0.4)">The temple hums with ancient energy</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     PASSWORD OVERLAY
+     ════════════════════════════════════════ -->
+<div id="pw-overlay">
+  <div id="pw-box">
+    <span class="icon">🔐</span>
+    <h3>Sealed by the Depths</h3>
+    <div class="sub">Only the one who was sent may open it. Enter what the creatures taught you.</div>
+    <input type="password" id="pw-input" placeholder="••••" maxlength="10" onkeydown="if(event.key==='Enter')submitPw()" autocomplete="off">
+    <div class="btns">
+      <button class="btn-hint" onclick="togglePwHint()">💡 Recall</button>
+      <button class="btn-unlock" onclick="submitPw()">Unlock 🔓</button>
+    </div>
+    <div id="pw-hint" style="margin-top:12px;font-size:12px;color:rgba(251,191,36,0.4);opacity:0;transition:opacity 0.4s">A simple sequence. The creatures sang it, pointed it, lit it.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     REVEAL SCREEN
+     ════════════════════════════════════════ -->
+<div id="reveal-screen">
+  <div class="reveal-gold"></div>
+  <div id="particles-container" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+  <div class="reveal-content">
+    <span class="trophy">🏆</span>
+    <h2>The Treasure Opens</h2>
+    <div class="message-box">
+      <p id="final-message">Someone left this message here, deep in the ocean, just for you. You dove through coral, followed turtles, swam with dolphins, and crossed the abyss. Because you were the only one who could.</p>
+      <div class="sig">— from the one who sent you here</div>
+    </div>
+    <button class="replay-btn" onclick="resetGame()">🔄 Surface &amp; Play Again</button>
+  </div>
+</div>
+
+<script>
+// ── ZONES ──
+const TOTAL_ZONES = 10;
+let currentZone = 0;
+let zoneInteracted = {};
+let pwHintVisible = false;
+
+function setZone(n) {
+  document.querySelectorAll('.zone').forEach(z => z.classList.remove('active'));
+  const el = document.getElementById('zone-' + [
+    'cliff','dive','reef','turtle','jellyfish','dolphin','octopus','whale','trench','temple'
+  ][n]);
+  if(el) el.classList.add('active');
+  
+  // Update progress dots
+  document.querySelectorAll('.progress-dot').forEach((d,i)=>{
+    d.classList.toggle('done', i < n);
+    d.classList.toggle('current', i === n);
+  });
+  
+  currentZone = n;
+}
+
+function goToZone(n) {
+  if(n >= TOTAL_ZONES) return;
+  const current = document.getElementById('zone-' + ['cliff','dive','reef','turtle','jellyfish','dolphin','octopus','whale','trench','temple'][currentZone]);
+  if(current) current.classList.add('exit');
+  
+  setTimeout(() => {
+    if(current) current.classList.remove('exit');
+    setZone(n);
+    
+    // Zone-specific init
+    if(n === 3) initTurtle();
+    if(n === 4) initJellyfish();
+    if(n === 5) initDolphin();
+    if(n === 6) initOctopus();
+    if(n === 7) initWhale();
+    if(n === 8) initTrench();
+  }, 200);
+}
+
+// ── BUBBLES ──
+function spawnBubbles(zoneId, count) {
+  const zone = document.getElementById(zoneId);
+  if(!zone) return;
+  for(let i=0;i<count;i++){
+    const b=document.createElement('div');
+    b.className='bub';
+    const s=3+Math.random()*12;
+    b.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*94+3}%;bottom:-10px;animation:bub-rise ${5+Math.random()*8}s ease-in ${Math.random()*5}s infinite;--dx:${(Math.random()-0.5)*40}px`;
+    zone.appendChild(b);
+  }
+}
+for(let i=1;i<=9;i++){
+  const names=['dive','reef','turtle','jellyfish','dolphin','octopus','whale','trench','temple'];
+  if(i!==1) spawnBubbles('zone-'+names[i-1], 20);
+  else spawnBubbles('zone-dive', 25);
+}
+
+// ── ZONE 3: TURTLE ──
+function initTurtle() {
+  if(zoneInteracted.turtle) return;
+  document.getElementById('turtle-el').style.animation = 'turtle-pulse 2s ease-in-out infinite';
+}
+function interactTurtle() {
+  if(zoneInteracted.turtle) return;
+  zoneInteracted.turtle = true;
+  const el = document.getElementById('turtle-el');
+  el.classList.add('pointed');
+  document.getElementById('turtle-hint').style.opacity = '1';
+  setTimeout(() => {
+    goToZone(4);
+  }, 1500);
+}
+
+// ── ZONE 4: JELLYFISH ──
+function initJellyfish() {
+  if(zoneInteracted.jellyfish) return;
+  document.getElementById('jelly-creature').style.animation = 'turtle-pulse 2s ease-in-out infinite';
+}
+function interactJellyfish() {
+  if(zoneInteracted.jellyfish) return;
+  zoneInteracted.jellyfish = true;
+  document.getElementById('jelly-creature').style.opacity = '0.5';
+  document.querySelectorAll('.jelly-arrow').forEach((a,i)=>{
+    setTimeout(()=>a.classList.add('show'), i*300);
+  });
+  document.getElementById('jelly-hint').style.opacity = '1';
+  setTimeout(() => {
+    goToZone(5);
+  }, 2000);
+}
+
+// ── ZONE 5: DOLPHIN ──
+function initDolphin() {
+  if(zoneInteracted.dolphin) return;
+  document.getElementById('dolphin-el').style.animation = 'turtle-pulse 1.5s ease-in-out infinite';
+}
+function interactDolphin() {
+  if(zoneInteracted.dolphin) return;
+  zoneInteracted.dolphin = true;
+  const el = document.getElementById('dolphin-el');
+  el.classList.add('lead');
+  document.getElementById('dolphin-hint').style.opacity = '1';
+  setTimeout(() => {
+    goToZone(6);
+  }, 2000);
+}
+
+// ── ZONE 6: OCTOPUS ──
+function initOctopus() {
+  if(zoneInteracted.octopus) return;
+  document.getElementById('octopus-el').style.animation = 'turtle-pulse 2.5s ease-in-out infinite';
+}
+function interactOctopus() {
+  if(zoneInteracted.octopus) return;
+  zoneInteracted.octopus = true;
+  document.getElementById('octopus-el').classList.add('moved');
+  document.getElementById('octopus-cave').classList.add('open');
+  document.getElementById('octopus-hint').style.opacity = '1';
+  setTimeout(() => {
+    goToZone(7);
+  }, 1500);
+}
+
+// ── ZONE 7: WHALE ──
+function initWhale() {
+  if(zoneInteracted.whale) return;
+  document.getElementById('whale-el').style.animation = 'turtle-pulse 3s ease-in-out infinite';
+}
+function interactWhale() {
+  if(zoneInteracted.whale) return;
+  zoneInteracted.whale = true;
+  const el = document.getElementById('whale-el');
+  el.classList.add('sung');
+  
+  // Add ripple effect
+  const r = document.createElement('div');
+  r.className = 'whale-ripple';
+  r.style.cssText = 'position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border-radius:50%;border:2px solid rgba(100,150,255,0.15);pointer-events:none;animation:ripple-expand 2.5s ease-out forwards';
+  document.getElementById('zone-whale').appendChild(r);
+  
+  document.getElementById('whale-hint').style.opacity = '1';
+  setTimeout(() => {
+    document.getElementById('tunnel-reveal').classList.add('show');
+  }, 1500);
+  setTimeout(() => {
+    goToZone(8);
+  }, 3000);
+}
+
+// ── ZONE 8: TRENCH ──
+function initTrench() {
+  const container = document.getElementById('trench-lights');
+  if(!container.hasChildNodes()){
+    for(let i=0;i<20;i++){
+      const l=document.createElement('div');
+      l.className='trench-light';
+      l.style.cssText=`left:${Math.random()*94+3}%;top:${Math.random()*94+3}%;animation-delay:${Math.random()*4}s;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px`;
+      container.appendChild(l);
+    }
+  }
+}
+
+// ── CHEST & PASSWORD ──
+function openChest() {
+  if(currentZone !== 9) return;
+  document.getElementById('pw-overlay').classList.add('active');
+  setTimeout(()=>document.getElementById('pw-input').focus(), 300);
+}
+
+function submitPw() {
+  const inp = document.getElementById('pw-input');
+  if(inp.value === '1234') {
+    document.getElementById('pw-overlay').classList.remove('active');
+    showReveal();
+  } else {
+    inp.classList.add('error');
+    inp.value = '';
+    inp.placeholder = 'Not quite... try again';
+    setTimeout(() => {
+      inp.classList.remove('error');
+      inp.placeholder = '••••';
+    }, 700);
+  }
+}
+
+function togglePwHint() {
+  pwHintVisible = !pwHintVisible;
+  document.getElementById('pw-hint').style.opacity = pwHintVisible ? '1' : '0';
+}
+
+function showReveal() {
+  const rs = document.getElementById('reveal-screen');
+  rs.classList.add('active');
+  
+  // Chain break effects
+  for(let i=0;i<4;i++){
+    const c=document.createElement('div');
+    c.className='broken-chain';
+    c.textContent='⛓️';
+    c.style.cssText=`top:${30+Math.random()*40}%;left:${20+Math.random()*60}%;animation-delay:${i*0.15}s;font-size:${1.5+Math.random()*1.5}rem`;
+    rs.appendChild(c);
+  }
+  
+  // Golden particles
+  const container = document.getElementById('particles-container');
+  const messages = ['✨','🌟','💫','⭐','✦','✧'];
+  for(let i=0;i<50;i++){
+    const p=document.createElement('div');
+    p.className='reveal-particle';
+    const size = 6 + Math.random() * 14;
+    p.textContent = messages[Math.floor(Math.random()*messages.length)];
+    p.style.cssText=`left:${Math.random()*100}%;bottom:-10px;font-size:${size}px;animation-delay:${Math.random()*3}s;animation-duration:${3+Math.random()*3}s`;
+    container.appendChild(p);
+  }
+}
+
+function resetGame() {
+  zoneInteracted = {};
+  currentZone = 0;
+  pwHintVisible = false;
+  
+  document.getElementById('reveal-screen').classList.remove('active');
+  document.getElementById('pw-overlay').classList.remove('active');
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-hint').style.opacity = '0';
+  document.getElementById('particles-container').innerHTML = '';
+  
+  // Reset creatures
+  ['turtle-el','jelly-creature','dolphin-el','octopus-el','whale-el'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('pointed','lead','moved','sung');el.style.opacity='1';el.style.animation=''}
+  });
+  document.getElementById('octopus-cave')?.classList.remove('open');
+  document.getElementById('tunnel-reveal')?.classList.remove('show');
+  document.querySelectorAll('.jelly-arrow').forEach(a=>a.classList.remove('show'));
+  document.querySelectorAll('[id$=-hint]').forEach(h=>h.style.opacity='0');
+  document.querySelectorAll('.whale-ripple,.broken-chain').forEach(e=>e.remove());
+  
+  setZone(0);
+}
+
+// ── TWINKLE STARS ON CLIFF ──
+(function(){
+  const c=document.getElementById('zone-cliff');
+  for(let i=0;i<15;i++){
+    const s=document.createElement('div');
+    s.style.cssText=`position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.4);top:${Math.random()*30}%;left:${Math.random()*100}%;animation:twinkle ${2+Math.random()*3}s ease-in-out ${Math.random()*2}s infinite;pointer-events:none`;
+    c.appendChild(s);
+  }
+})();
+
+// ── START ──
+document.addEventListener('DOMContentLoaded', ()=>{
+  setZone(0);
+});
+</script>
+</body>
+</html>

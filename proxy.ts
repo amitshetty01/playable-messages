@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const VERCEL_DOMAIN = "playable-messages.vercel.app";
+const VERCEL_DOMAIN = "craftyourmessage.vercel.app";
 
 export function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";

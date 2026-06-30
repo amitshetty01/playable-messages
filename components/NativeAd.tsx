@@ -9,6 +9,7 @@ export function NativeAd() {
   const blocked = useBlockedCountry();
 
   if (blocked === null) return null;
+  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) return null;
 
   return (
     <div className="flex min-h-[90px] w-full items-center justify-center">

@@ -41,7 +41,6 @@ const EchoChamber = dynamic(() => import("@/components/experience/EchoChamber").
 const BalanceScale = dynamic(() => import("@/components/experience/BalanceScale").then((m) => ({ default: m.BalanceScale })), { ssr: false });
 const GameAdapter = dynamic(() => import("@/components/GameAdapter").then((m) => ({ default: m.GameAdapter })), { ssr: false });
 const EscapeMeGame = dynamic(() => import("@/components/games/EscapeMeGame").then((m) => ({ default: m.EscapeMeGame })), { ssr: false });
-
 type Mode = "demo" | "generated" | "preview";
 
 const FLOWS: Record<string, (props: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) => React.ReactNode> = {

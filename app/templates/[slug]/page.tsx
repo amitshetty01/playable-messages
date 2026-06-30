@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { SeoArticle } from "@/components/SeoArticle";
 import { getTemplate, getTemplateSeoSlug, templates } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo";
@@ -26,9 +26,14 @@ export default async function TemplateSeoPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
   const template = getTemplate(slug);
   if (!template) notFound();
+
+  if (template.id === "sorry-maze") {
+    redirect("/sorry-maze.html");
+  }
+
   const seo = getTemplateSeoContent(template.id);
   const relatedTemplates = templates.filter((item) => item.id !== template.id && item.categorySlugs.some((categorySlug) => template.categorySlugs.includes(categorySlug))).slice(0, 3);
-  const examples = seo?.examples || [template.hook, template.description, "Customize this template and reveal your own final message."];
+  const examples = seo?.examples || [template.hook, template.description, "Customize this template and create your own interactive message."];
   const faqs = seo?.faqs || [
     { question: `What is ${template.title}?`, answer: template.description },
     { question: "Can I customize it?", answer: "Yes. You can edit the wording, tone, theme, steps, and final reveal." },

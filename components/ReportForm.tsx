@@ -12,7 +12,7 @@ export function ReportForm({ initialExperience }: { initialExperience: string })
     event.preventDefault();
     const subject = encodeURIComponent("Craft Your Message abuse report");
     const body = encodeURIComponent(`Experience: ${experience}\nReason: ${reason}\n\nDetails:\n${details}`);
-    window.location.href = `mailto:abuse@playablemessages.app?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:abuse@craftyourmessage.com?subject=${subject}&body=${body}`;
     setPrepared(true);
   }
 

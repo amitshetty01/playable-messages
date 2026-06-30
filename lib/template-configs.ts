@@ -338,6 +338,11 @@ const templateConfigs: Record<string, TemplateConfig> = {
     name: "Surprise Room",
     editableFields: [],
   },
+  "sorry-maze": {
+    id: "sorry-maze",
+    name: "Sorry Maze",
+    editableFields: [],
+  },
 };
 
 export function getTemplateConfig(templateId: string): TemplateConfig {
