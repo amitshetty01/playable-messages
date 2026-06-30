@@ -250,7 +250,7 @@ export default function OurMemoriesPage() {
   ];
 
   return (
-    <div className="relative" style={{ background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
+    <div className="relative w-screen overflow-x-hidden" style={{ marginLeft: "calc(-50vw + 50%)", width: "100vw", background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
         @keyframes float-up {
