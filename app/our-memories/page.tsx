@@ -268,6 +268,11 @@ export default function OurMemoriesPage() {
         }
         html { scroll-behavior: smooth; }
 body::before, body::after { display: none !important; }
+header, footer { display: none !important; }
+[class*="min-h-[90px]"] { display: none !important; }
+button[aria-label="Mute sounds"], button[aria-label="Enable sounds"] { display: none !important; }
+div[class*="fixed"][class*="z-50"] { display: none !important; }
+main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: 100svh !important; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: ${CREAM}; }
         ::-webkit-scrollbar-thumb { background: ${PINK}55; border-radius: 3px; }
