@@ -136,7 +136,7 @@ export function TemplateCard({ template }: { template: Template }) {
         {isLocked ? (
           <span className="text-white/50">{template.title}</span>
         ) : (
-          <Link className="transition duration-200 hover:text-blush" href={`/templates/${getTemplateSeoSlug(template)}`}>{template.title}</Link>
+          <Link className="transition duration-200 hover:text-blush" href={template.id === "our-memories" ? "/our-memories" : `/templates/${getTemplateSeoSlug(template)}`}>{template.title}</Link>
         )}
       </h3>
       <p className="mt-2 text-sm leading-6 text-white/65">{template.description}</p>
@@ -149,11 +149,11 @@ export function TemplateCard({ template }: { template: Template }) {
           <span className="flex-1 cursor-not-allowed rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-2.5 text-center text-sm font-bold text-white/30">Coming Soon</span>
         ) : (
           <>
-            <Link className="ghost-button flex-1 text-sm" href={`/demo/${template.id}`}>
+            <Link className="ghost-button flex-1 text-sm" href={template.id === "our-memories" ? "/our-memories" : `/demo/${template.id}`}>
               <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8.688c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V8.688z" /></svg>
               Preview
             </Link>
-            <Link className="premium-button flex-1 text-sm" href={`/create/${template.id}`}>Use template</Link>
+            <Link className="premium-button flex-1 text-sm" href={template.id === "our-memories" ? "/our-memories" : `/create/${template.id}`}>Open</Link>
           </>
         )}
       </div>
