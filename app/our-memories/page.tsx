@@ -163,45 +163,95 @@ function StaggerText({ text, className = "", style }: { text: string; className?
   );
 }
 
-/* ─── Confetti burst ─── */
-function ConfettiBurst() {
+/* ─── Grand Finale ─── */
+function GrandFinale() {
   const ref = useRef<HTMLDivElement>(null);
-  const [burst, setBurst] = useState(false);
+  const [stage, setStage] = useState(0);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const o = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setBurst(true); o.unobserve(el); } },
-      { threshold: 0.3 }
+      ([e]) => { if (e.isIntersecting) { o.unobserve(el); setStage(1); setTimeout(() => setStage(2), 800); setTimeout(() => setStage(3), 2000); } },
+      { threshold: 0.2 }
     );
     o.observe(el);
     return () => o.disconnect();
   }, []);
-  const particles = Array.from({ length: 40 }, (_, i) => ({
+  const COLORS = ["#d4899e", "#c9a87c", "#b56576", "#e8a0bf", "#f4c7d4", "#e8d5b7", "#a67c52", "#d4a0b4"];
+  const burstParticles = Array.from({ length: 60 }, (_, i) => ({
     id: i,
+    angle: (i / 60) * 360,
+    distance: 30 + Math.random() * 70,
+    size: 4 + Math.random() * 10,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    delay: Math.random() * 0.5,
+    duration: 2 + Math.random() * 3,
+  }));
+  const fallParticles = Array.from({ length: 40 }, (_, i) => ({
+    id: i + 60,
     left: Math.random() * 100,
-    delay: Math.random() * 3,
-    duration: 3 + Math.random() * 4,
-    size: 4 + Math.random() * 8,
-    color: [PINK, GOLD, HEART, "#f4c7d4", "#e8d5b7"][Math.floor(Math.random() * 5)],
+    delay: 0.5 + Math.random() * 3,
+    duration: 4 + Math.random() * 5,
+    size: 6 + Math.random() * 12,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
     rotation: Math.random() * 360,
-    shape: Math.random() > 0.5 ? "circle" : "rect",
+    isHeart: Math.random() > 0.65,
   }));
   return (
     <div ref={ref} className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {burst && particles.map((p) => (
-        <div key={p.id} className="absolute" style={{
-          left: `${p.left}%`,
-          top: "-10px",
-          width: p.shape === "circle" ? p.size : p.size * 0.6,
-          height: p.size,
-          background: p.color,
-          borderRadius: p.shape === "circle" ? "50%" : "2px",
-          opacity: 0,
-          transform: `rotate(${p.rotation}deg)`,
-          animation: `confetti-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+      {stage >= 1 && burstParticles.map((p) => {
+        const rad = (p.angle * Math.PI) / 180;
+        const tx = Math.cos(rad) * p.distance;
+        const ty = Math.sin(rad) * p.distance;
+        return (
+          <div key={p.id} className="absolute" style={{
+            left: "50%",
+            top: "50%",
+            width: p.size,
+            height: p.size,
+            background: p.color,
+            borderRadius: "50%",
+            opacity: 0,
+            animation: `grand-burst ${p.duration}s ease-out ${p.delay}s forwards`,
+            "--tx": `${tx}vw`,
+            "--ty": `${ty}vh`,
+          } as React.CSSProperties} />
+        );
+      })}
+      {stage >= 2 && fallParticles.map((p) =>
+        p.isHeart ? (
+          <div key={p.id} className="absolute" style={{
+            left: `${p.left}%`,
+            top: "-20px",
+            width: p.size * 1.2,
+            height: p.size * 1.2,
+            opacity: 0,
+            animation: `petal-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+          }}>
+            <svg viewBox="0 0 24 24" fill={p.color} className="h-full w-full">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </div>
+        ) : (
+          <div key={p.id} className="absolute" style={{
+            left: `${p.left}%`,
+            top: "-12px",
+            width: p.size * 0.5,
+            height: p.size,
+            background: p.color,
+            borderRadius: "40% 0",
+            opacity: 0,
+            transform: `rotate(${p.rotation}deg)`,
+            animation: `petal-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+          }} />
+        )
+      )}
+      {stage >= 3 && (
+        <div className="absolute inset-0 flex items-center justify-center" style={{
+          background: `radial-gradient(circle at 50% 50%, ${GOLD}18, transparent 60%)`,
+          animation: "fade-in-glow 1.5s ease-out forwards",
         }} />
-      ))}
+      )}
     </div>
   );
 }
@@ -313,10 +363,28 @@ export default function OurMemoriesPage() {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.08); }
         }
-        @keyframes confetti-fall {
+        @keyframes grand-burst {
+          0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+          20% { opacity: 1; transform: translate(calc(var(--tx) * 0.4), calc(var(--ty) * 0.4)) scale(1); }
+          60% { opacity: 0.8; transform: translate(calc(var(--tx) * 0.8), calc(var(--ty) * 0.8)) scale(0.8); }
+          100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
+        }
+        @keyframes petal-fall {
           0% { transform: translateY(0) rotate(0deg) scale(0.6); opacity: 0; }
-          5% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-          100% { transform: translateY(105vh) rotate(360deg) scale(0.4); opacity: 0; }
+          8% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+          100% { transform: translateY(110vh) rotate(360deg) scale(0.3); opacity: 0; }
+        }
+        @keyframes fade-in-glow {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        @keyframes fade-in-up {
+          0% { opacity: 0; transform: translateY(16px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes final-zoom-in {
+          0% { opacity: 0; transform: scale(0.85); }
+          100% { opacity: 1; transform: scale(1); }
         }
         html { scroll-behavior: smooth; }
 body::before, body::after { display: none !important; }
@@ -475,47 +543,65 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         </div>
       </section>
 
-      <ConfettiBurst />
+      <GrandFinale />
 
       {/* ───── FINAL MESSAGE ───── */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <Reveal>
-          <Parallax speed={-0.08}>
-            <div className="mx-auto max-w-xl">
-              <div className="mx-auto mb-10 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: "#f0e4d8", animation: "pulse-glow 4s ease-in-out infinite" }}>
-                <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
-              </div>
-              <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>
-                Thank you for being part of my favorite memories. I don&apos;t just want to remember the past with you&hellip; I want to create every beautiful tomorrow with you.
-              </p>
-              <Divider />
-              <p className="text-lg font-bold tracking-wide sm:text-xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
-                Forever yours <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
-              </p>
-              <WaxSeal color={PINK} />
-            </div>
-          </Parallax>
-        </Reveal>
+        <div className="mx-auto max-w-xl" style={{ animation: "final-zoom-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) both" }}>
+          <div className="mx-auto mb-12 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: GOLD, animation: "pulse-glow 4s ease-in-out infinite", boxShadow: `0 0 60px ${GOLD}33` }}>
+            <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
+          </div>
+          <div className="space-y-3">
+            {[
+              "Thank you for being part of my favorite memories.",
+              "I don&apos;t just want to remember the past with you&hellip;",
+              "I want to create every beautiful tomorrow with you.",
+            ].map((line, i) => (
+              <p key={i} className="text-xl font-light leading-relaxed sm:text-2xl" style={{
+                color: BROWN,
+                opacity: 0,
+                animation: `fade-in-up 0.8s ease-out ${0.4 + i * 0.3}s forwards`,
+              }} dangerouslySetInnerHTML={{ __html: line }} />
+            ))}
+          </div>
+          <div style={{ opacity: 0, animation: "fade-in-up 0.8s ease-out 1.4s forwards" }}>
+            <Divider />
+          </div>
+          <p className="text-lg font-bold tracking-wide sm:text-xl" style={{
+            fontFamily: "'Fraunces', Georgia, serif", color: PINK,
+            opacity: 0, animation: "fade-in-up 0.8s ease-out 1.7s forwards",
+          }}>
+            Forever yours <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+          </p>
+          <div style={{ opacity: 0, animation: "fade-in-up 0.8s ease-out 2s forwards" }}>
+            <WaxSeal color={PINK} />
+          </div>
+        </div>
       </section>
 
-      {/* ───── THE END ───── */}
-      <section className="relative z-10 px-6 pb-20 pt-8 text-center">
-        <Reveal>
-          <Divider />
-          <p className="text-sm font-light italic tracking-wide" style={{ color: MUTED }}>
-            Every love story is beautiful, but ours is my favorite.
-          </p>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="mx-auto mt-10 flex items-center gap-3 rounded-full px-8 py-4 text-sm font-bold tracking-wide uppercase transition-all hover:scale-105 hover:shadow-xl" style={{
-            background: `linear-gradient(135deg, ${PINK}, ${PINK}dd)`,
+      {/* ───── CLOSING ───── */}
+      <section className="relative z-10 px-6 pb-24 pt-4 text-center">
+        <div className="mx-auto max-w-lg">
+          <div className="relative" style={{ opacity: 0, animation: "fade-in-up 1s ease-out 0.5s forwards" }}>
+            <div className="flex items-center justify-center gap-4 py-6">
+              <div className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${GOLD}44)` }} />
+              <span className="text-lg" style={{ color: GOLD }}>✿</span>
+              <div className="h-px flex-1" style={{ background: `linear-gradient(to left, transparent, ${GOLD}44)` }} />
+            </div>
+            <p className="text-base font-light italic leading-relaxed" style={{ color: MUTED, fontFamily: "'Caveat', cursive", fontSize: "1.3rem" }}>
+              Every love story is beautiful, but ours is my favorite.
+            </p>
+          </div>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="mx-auto mt-10 flex items-center gap-3 rounded-full px-10 py-4 text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 hover:shadow-2xl" style={{
+            background: `linear-gradient(135deg, ${GOLD}, ${GOLD}bb)`,
             color: "#fff",
-            boxShadow: `0 8px 32px ${PINK}44`,
+            boxShadow: `0 8px 40px ${GOLD}44, 0 0 0 1px ${GOLD}22`,
+            opacity: 0, animation: "fade-in-up 0.8s ease-out 1s forwards",
           }}>
-            <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
-            Read Again
-            <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+            <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>♥</span>
+            Read again
           </button>
-          <p className="mt-12 text-[10px] tracking-[0.2em] uppercase" style={{ color: `${MUTED}88` }}>The End</p>
-        </Reveal>
+        </div>
       </section>
     </div>
   );
