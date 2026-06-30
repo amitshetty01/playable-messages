@@ -90,7 +90,7 @@ function Divider() {
   return (
     <div className="flex items-center justify-center gap-3 py-4">
       <div className="h-px w-8" style={{ background: `linear-gradient(to right, transparent, ${PINK}33)` }} />
-      <span className="text-xs" style={{ color: PINK }}>♥</span>
+      <span className="text-xs" style={{ color: GOLD }}>✿</span>
       <div className="h-px w-8" style={{ background: `linear-gradient(to left, transparent, ${PINK}33)` }} />
     </div>
   );
@@ -290,20 +290,51 @@ function DateStamp({ label }: { label: string }) {
   );
 }
 
-/* ─── Sound toggle ─── */
-function SoundToggle({ url }: { url: string }) {
+/* ─── Ambient sound (Web Audio API soft pad) ─── */
+function useAmbientPad() {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const nodesRef = useRef<{ osc1: OscillatorNode; osc2: OscillatorNode; gain: GainNode; lfo: OscillatorNode } | null>(null);
   const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const toggle = useCallback(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(url);
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.3;
+    if (playing) {
+      nodesRef.current?.osc1.stop();
+      nodesRef.current?.osc2.stop();
+      nodesRef.current?.lfo.stop();
+      ctxRef.current?.close();
+      nodesRef.current = null;
+      ctxRef.current = null;
+      setPlaying(false);
+    } else {
+      const ctx = new AudioContext();
+      ctxRef.current = ctx;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      osc1.type = "sine"; osc1.frequency.value = 196;
+      osc2.type = "sine"; osc2.frequency.value = 293.66;
+      osc2.detune.value = -5;
+      gain.gain.value = 0.06;
+      lfo.type = "sine"; lfo.frequency.value = 0.15;
+      lfoGain.gain.value = 0.03;
+      lfo.connect(lfoGain); lfoGain.connect(gain.gain);
+      osc1.connect(gain); osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start(); osc2.start(); lfo.start();
+      nodesRef.current = { osc1, osc2, gain, lfo };
+      setPlaying(true);
     }
-    if (playing) { audioRef.current.pause(); } else { audioRef.current.play(); }
-    setPlaying(!playing);
-  }, [playing, url]);
-  useEffect(() => () => { audioRef.current?.pause(); }, []);
+  }, [playing]);
+  useEffect(() => () => {
+    nodesRef.current?.osc1.stop(); nodesRef.current?.osc2.stop(); nodesRef.current?.lfo.stop();
+    ctxRef.current?.close();
+  }, []);
+  return { playing, toggle };
+}
+
+function SoundToggle() {
+  const { playing, toggle } = useAmbientPad();
   return (
     <button onClick={toggle} className="fixed bottom-6 left-6 z-30 flex h-10 w-10 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition hover:scale-110" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(201,168,124,0.3)" }} title={playing ? "Pause music" : "Play music"}>
       <span className="text-sm">{playing ? "🔊" : "🔇"}</span>
@@ -311,9 +342,112 @@ function SoundToggle({ url }: { url: string }) {
   );
 }
 
+/* ─── Scroll-driven vignette ─── */
+function VignetteOverlay() {
+  const scrollY = useScrollY();
+  const intensity = Math.min(scrollY / 2000, 0.35);
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[3] transition-all duration-500" style={{
+      boxShadow: `inset 0 0 ${80 + intensity * 200}px rgba(61,44,44,${intensity})`,
+    }} />
+  );
+}
+
+/* ─── Photo lightbox ─── */
+function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", handler); document.body.style.overflow = ""; };
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", animation: "fade-in-glow 0.3s ease-out" }} onClick={onClose}>
+      <img src={src} alt="" className="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl" style={{ animation: "final-zoom-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both" }} onClick={(e) => e.stopPropagation()} />
+      <button onClick={onClose} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-white/60 transition hover:bg-white/15 hover:text-white" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)" }}>
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  );
+}
+
+/* ─── Cascade trigger ─── */
+function CascadeTrigger({ setTrigger }: { setTrigger: (v: boolean) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const o = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setTrigger(true); o.unobserve(el); } },
+      { threshold: 0.3 }
+    );
+    o.observe(el);
+    return () => o.disconnect();
+  }, [setTrigger]);
+  return <div ref={ref} className="pointer-events-none absolute bottom-0 h-4 w-full" />;
+}
+
+/* ─── Days counter ─── */
+function DaysCounter({ startDate }: { startDate: string }) {
+  const [days, setDays] = useState(0);
+  useEffect(() => {
+    const start = new Date(startDate);
+    const now = new Date();
+    setDays(Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+  }, [startDate]);
+  return <span>{days}</span>;
+}
+
+/* ─── Polaroid Cascade ─── */
+function PolaroidCascade({ pics, trigger }: { pics: string[]; trigger: boolean }) {
+  if (!trigger) return null;
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center overflow-hidden">
+      {pics.map((src, i) => {
+        const rotation = -12 + Math.random() * 24;
+        const startX = 10 + Math.random() * 80;
+        const delay = 0.2 + i * 0.35;
+        const endY = 40 + Math.random() * 30;
+        return (
+          <div key={i} className="absolute" style={{
+            left: `${startX}%`,
+            top: "-40%",
+            animation: `polaroid-fall 2s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s forwards`,
+            "--end-y": `${endY}vh`,
+            "--rotation": `${rotation}deg`,
+          } as React.CSSProperties}>
+            <div className="rounded-sm bg-white p-3 shadow-2xl" style={{ transform: `rotate(${rotation}deg)`, width: 160 }}>
+              <img src={src} alt="" className="h-44 w-full object-cover" style={{ filter: "contrast(1.05)" }} />
+              <div className="mt-2 text-center text-[9px] tracking-widest uppercase" style={{ color: MUTED, fontFamily: "'Caveat', cursive", fontSize: "0.7rem" }}>
+                our {["first moment", "little forever", "favorite memory"][i]}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(circle at 50% 50%, ${GOLD}22, transparent 70%)`,
+        animation: "fade-in-glow 1.5s ease-out 2s forwards",
+        opacity: 0,
+      }} />
+    </div>
+  );
+}
+
 export default function OurMemoriesPage() {
   const [mounted, setMounted] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
+  const [cascadeTrigger, setCascadeTrigger] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+
+  const handlePhotoClick = useCallback((src: string, index: number) => {
+    setFlippedIndex(index);
+    setTimeout(() => {
+      setFlippedIndex(null);
+      setLightboxSrc(src);
+    }, 900);
+  }, []);
 
   const pics = [
     "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&h=800&fit=crop&auto=format",
@@ -321,16 +455,16 @@ export default function OurMemoriesPage() {
     "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
   ];
   const memories = [
-    { title: "The First Smile", caption: "Some smiles stay in your heart forever.", date: "03. 2025" },
-    { title: "The Little Moments", caption: "It was never about the place. It was always about you.", date: "07. 2025" },
-    { title: "My Favorite Memory", caption: "If I could replay one feeling, it would be this.", date: "12. 2025" },
+    { title: "The First Time My World Stopped", caption: "I didn't just see you that day. I felt you. And something in me knew\u2014you were going to matter more than anyone ever had.", date: "03. 2025", note: "Your smile didn't just make me happy. It made me believe in love at first sight. Because that's exactly what it was." },
+    { title: "You, in the Silence", caption: "It was never about where we were. It was about the way your hand fit perfectly in mine, like it was always meant to be there.", date: "07. 2025", note: "Nobody saw us in those quiet moments. And maybe that's why they're so beautiful. Just you, just me, just real." },
+    { title: "The Memory I'd Live In Forever", caption: "If I could freeze one moment in time, it would be this one\u2014the exact second I realized I never wanted to love anyone but you.", date: "12. 2025", note: "I don't just want to remember this moment. I want to feel it over and over again, until my last breath." },
   ];
   const promises = [
-    "I promise to choose you even on ordinary days.",
-    "I promise to make you smile when the world feels heavy.",
-    "I promise to protect what we have.",
-    "I promise to create more beautiful memories with you.",
-    "I promise to stay\u2014not just in words, but in actions.",
+    "I promise to love you not just when it's easy, but especially when it's hard.",
+    "I promise to be the reason you smile, even on days when your heart feels heavy.",
+    "I promise to protect your heart like it's the most precious thing I've ever held\u2014because it is.",
+    "I promise to chase away your storms and stay in the rain with you until the sun comes back.",
+    "I promise to never stop choosing you\u2014not just today, not just tomorrow, but every single day for the rest of my life.",
   ];
 
   return (
@@ -386,6 +520,25 @@ export default function OurMemoriesPage() {
           0% { opacity: 0; transform: scale(0.85); }
           100% { opacity: 1; transform: scale(1); }
         }
+        @keyframes flip-card {
+          0% { transform: rotateY(0deg); }
+          100% { transform: rotateY(180deg); }
+        }
+        @keyframes flip-card-back {
+          0% { transform: rotateY(180deg); }
+          100% { transform: rotateY(0deg); }
+        }
+        @keyframes light-leak {
+          0% { transform: translateX(-120%) rotate(-20deg); opacity: 0; }
+          15% { opacity: 0.4; }
+          60% { opacity: 0.15; }
+          100% { transform: translateX(200%) rotate(-20deg); opacity: 0; }
+        }
+        @keyframes polaroid-fall {
+          0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
+          15% { opacity: 1; transform: translateY(10vh) rotate(calc(var(--rotation) * 0.3)) scale(0.9); }
+          100% { transform: translateY(var(--end-y)) rotate(var(--rotation)) scale(1); opacity: 1; }
+        }
         html { scroll-behavior: smooth; }
 body::before, body::after { display: none !important; }
 header, footer { display: none !important; }
@@ -402,7 +555,8 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
       <PageEdgeShadow />
       <Hearts />
       <Stars />
-      <SoundToggle url="" />
+      <SoundToggle />
+      <VignetteOverlay />
 
       {/* ───── HERO ───── */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -415,11 +569,14 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
               Hey Cutie <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
             </h1>
             <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed sm:text-lg" style={{ color: MUTED }}>
-              Every moment with you feels like a dream I never want to wake up from. So I kept a few memories here, just for us. Scroll slowly&hellip; some feelings deserve time.
+              I collected every heartbeat, every laugh, every quiet glance between us and tucked them somewhere safe. This is that place. This is us. Take your time&hellip; some feelings don't rush.
             </p>
+            <div className="mt-4 text-xs tracking-wider uppercase" style={{ color: PINK }}>
+              <DaysCounter startDate="2025-03-01" /> days of us
+            </div>
             <div className="mt-14 flex flex-col items-center gap-3">
               <div className="h-12 w-px" style={{ background: `linear-gradient(to bottom, ${PINK}55, transparent)` }} />
-              <span className="animate-pulse text-[10px] tracking-[0.25em] uppercase" style={{ color: MUTED }}>Scroll Down</span>
+              <span className="animate-pulse text-[10px] tracking-[0.25em] uppercase" style={{ color: MUTED }}>Come closer</span>
             </div>
           </div>
         </Parallax>
@@ -429,7 +586,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Reveal>
           <Parallax speed={-0.08}>
-            <StaggerText text="There are thousands of moments… but these are the ones my heart kept." className="mx-auto max-w-xl text-xl font-light leading-relaxed sm:text-2xl lg:text-3xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: MUTED }} />
+            <StaggerText text="I could tell you about a thousand moments. But some feelings can only be felt, not explained. These are the ones that still make my heart beat faster." className="mx-auto max-w-xl text-xl font-light leading-relaxed sm:text-2xl lg:text-3xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: MUTED }} />
             <div className="mt-4 flex justify-center gap-4">
               <PressedFlower color={PINK} size={28} />
               <PressedFlower color={GOLD} size={22} className="mt-2" />
@@ -457,14 +614,59 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
                     <div className="absolute -bottom-px -right-px z-10 h-8 w-8 overflow-hidden rounded-br-[16px]" style={{ background: CREAM }}>
                       <div className="absolute -bottom-2 -right-2 h-6 w-6 rotate-45 shadow-md" style={{ background: CREAM, boxShadow: `-2px -2px 8px ${BROWN}15` }} />
                     </div>
-                    <div className="relative overflow-hidden rounded-t-[16px]">
-                      <img src={pics[i]} alt={m.title} className="h-96 w-full object-cover transition-all duration-700 group-hover:scale-105 sm:h-[32rem]" loading="lazy" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                      <div className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-white/60 rounded-tl" />
-                      <div className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-white/60 rounded-tr" />
-                      <div className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-white/60 rounded-bl" />
-                      <div className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-white/60 rounded-br" />
-                      <DateStamp label={m.date} />
+                    {/* ─── Film strip top ─── */}
+                    <div className="flex items-center justify-center gap-[6px] px-3 pt-2" style={{ background: "#fff" }}>
+                      {Array.from({ length: 28 }, (_, j) => (
+                        <div key={j} className="h-[7px] w-[3px] shrink-0 rounded-sm" style={{ background: `${BROWN}18` }} />
+                      ))}
+                    </div>
+                    {/* ─── Flip card ─── */}
+                    <div onClick={() => handlePhotoClick(pics[i], i)} className="relative cursor-pointer" style={{ perspective: "1200px" }}>
+                      <div className="relative transition-all duration-700" style={{
+                        transform: flippedIndex === i ? "rotateY(180deg)" : "rotateY(0deg)",
+                        transformStyle: "preserve-3d",
+                      }}>
+                        {/* Front: photo */}
+                        <div className="relative overflow-hidden" style={{ backfaceVisibility: "hidden" }}>
+                          <img src={pics[i]} alt={m.title} className="h-96 w-full object-cover transition-all duration-700 group-hover:scale-105 sm:h-[32rem]" loading="lazy" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                          {/* Light leak */}
+                          <div className="pointer-events-none absolute inset-0" style={{
+                            animation: `light-leak 2.5s ease-out ${0.5 + i * 0.8}s forwards`,
+                          }}>
+                            <div className="absolute -left-[10%] top-[-10%] h-[120%] w-[35%]" style={{
+                              background: `linear-gradient(135deg, ${GOLD}30, ${PINK}20, transparent 60%)`,
+                              transform: "rotate(-20deg)",
+                            }} />
+                          </div>
+                          <div className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-white/60 rounded-tl" />
+                          <div className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-white/60 rounded-tr" />
+                          <div className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-white/60 rounded-bl" />
+                          <div className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-white/60 rounded-br" />
+                          <DateStamp label={m.date} />
+                        </div>
+                        {/* Back: handwritten note */}
+                        <div className="absolute inset-0 flex items-center justify-center rounded-t-[16px] p-6" style={{
+                          backfaceVisibility: "hidden",
+                          transform: "rotateY(180deg)",
+                          background: CREAM,
+                        }}>
+                          <p className="text-center leading-relaxed" style={{
+                            fontFamily: "'Caveat', cursive",
+                            fontSize: "1.25rem",
+                            color: BROWN,
+                            transform: "rotate(-1.5deg)",
+                          }}>
+                            {m.note}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ─── Film strip bottom ─── */}
+                    <div className="flex items-center justify-center gap-[6px] px-3 pb-2" style={{ background: "#fff" }}>
+                      {Array.from({ length: 28 }, (_, j) => (
+                        <div key={j} className="h-[7px] w-[3px] shrink-0 rounded-sm" style={{ background: `${BROWN}18` }} />
+                      ))}
                     </div>
                     <div className="space-y-1.5 px-5 py-5">
                       <h3 className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Fraunces', Georgia, serif", color: BROWN }}>
@@ -481,7 +683,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
                 <Reveal delay={i * 120 + 100}>
                   <div className="my-16 text-center">
                     <p className="text-sm font-light italic tracking-wide" style={{ color: MUTED }}>
-                      {["Some memories don't fade. They glow.", "Not every moment becomes a memory. But these did.", "Some feelings have no words. That's why we keep them close."][i]}
+                      {["Some memories don't fade. They stay in your chest and breathe with you.", "Not every moment becomes a memory. But you\u2014you became my everything.", "Some feelings don't need words. They just need to be held."][i]}
                     </p>
                     <Divider />
                   </div>
@@ -504,7 +706,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
               <PressedFlower color={GOLD} size={24} className="absolute -right-2 -bottom-2" />
               <span className="text-3xl sm:text-4xl" style={{ color: PINK }}>&ldquo;</span>
               <p className="-mt-2 text-2xl font-light italic leading-relaxed sm:text-3xl lg:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
-                Our best memories are not behind us.<br />We are still creating them.
+                I used to think the best part was remembering.<br />Then I realized\u2014the best part is that we're still writing our story.
               </p>
               <span className="mt-2 block text-right text-3xl sm:text-4xl" style={{ color: PINK }}>&rdquo;</span>
             </div>
@@ -517,7 +719,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         <div className="mx-auto w-full max-w-lg">
           <Reveal>
             <h2 className="mb-14 text-center text-3xl font-bold tracking-tight sm:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
-              My Promises To You <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+              I Swear On Every Beat Of My Heart <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
             </h2>
           </Reveal>
           <div className="space-y-4">
@@ -543,66 +745,71 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         </div>
       </section>
 
-      <GrandFinale />
-
       {/* ───── FINAL MESSAGE ───── */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <div className="mx-auto max-w-xl" style={{ animation: "final-zoom-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) both" }}>
-          <div className="mx-auto mb-12 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: GOLD, animation: "pulse-glow 4s ease-in-out infinite", boxShadow: `0 0 60px ${GOLD}33` }}>
-            <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
-          </div>
+        <div className="mx-auto max-w-xl">
+          <Reveal delay={100}>
+            <div className="mx-auto mb-12 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: GOLD, animation: "pulse-glow 4s ease-in-out infinite", boxShadow: `0 0 60px ${GOLD}33` }}>
+              <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
+            </div>
+          </Reveal>
           <div className="space-y-3">
             {[
-              "Thank you for being part of my favorite memories.",
-              "I don&apos;t just want to remember the past with you&hellip;",
-              "I want to create every beautiful tomorrow with you.",
+              "Thank you for being the best part of every single one of my days.",
+              "I don't want to live in the past\u2014because the past isn't where you are.",
+              "I want every sunrise, every sunset, every breath in between\u2014with you. Always you.",
             ].map((line, i) => (
-              <p key={i} className="text-xl font-light leading-relaxed sm:text-2xl" style={{
-                color: BROWN,
-                opacity: 0,
-                animation: `fade-in-up 0.8s ease-out ${0.4 + i * 0.3}s forwards`,
-              }} dangerouslySetInnerHTML={{ __html: line }} />
+              <Reveal key={i} delay={200 + i * 150}>
+                <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>{line}</p>
+              </Reveal>
             ))}
           </div>
-          <div style={{ opacity: 0, animation: "fade-in-up 0.8s ease-out 1.4s forwards" }}>
+          <Reveal delay={700}>
             <Divider />
-          </div>
-          <p className="text-lg font-bold tracking-wide sm:text-xl" style={{
-            fontFamily: "'Fraunces', Georgia, serif", color: PINK,
-            opacity: 0, animation: "fade-in-up 0.8s ease-out 1.7s forwards",
-          }}>
-            Forever yours <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
-          </p>
-          <div style={{ opacity: 0, animation: "fade-in-up 0.8s ease-out 2s forwards" }}>
+          </Reveal>
+          <Reveal delay={900}>
+            <p className="text-2xl font-bold tracking-wide" style={{
+              fontFamily: "'Caveat', cursive", color: PINK,
+            }}>
+              From your one and only
+            </p>
+          </Reveal>
+          <Reveal delay={1100}>
             <WaxSeal color={PINK} />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ───── CLOSING ───── */}
       <section className="relative z-10 px-6 pb-24 pt-4 text-center">
         <div className="mx-auto max-w-lg">
-          <div className="relative" style={{ opacity: 0, animation: "fade-in-up 1s ease-out 0.5s forwards" }}>
+          <Reveal delay={200}>
             <div className="flex items-center justify-center gap-4 py-6">
               <div className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${GOLD}44)` }} />
               <span className="text-lg" style={{ color: GOLD }}>✿</span>
               <div className="h-px flex-1" style={{ background: `linear-gradient(to left, transparent, ${GOLD}44)` }} />
             </div>
             <p className="text-base font-light italic leading-relaxed" style={{ color: MUTED, fontFamily: "'Caveat', cursive", fontSize: "1.3rem" }}>
-              Every love story is beautiful, but ours is my favorite.
+              Some people search their whole lives for what we found. I stopped searching the day I found you\u2014and I'll never need to look again.
             </p>
-          </div>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="mx-auto mt-10 flex items-center gap-3 rounded-full px-10 py-4 text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 hover:shadow-2xl" style={{
-            background: `linear-gradient(135deg, ${GOLD}, ${GOLD}bb)`,
-            color: "#fff",
-            boxShadow: `0 8px 40px ${GOLD}44, 0 0 0 1px ${GOLD}22`,
-            opacity: 0, animation: "fade-in-up 0.8s ease-out 1s forwards",
-          }}>
-            <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>♥</span>
-            Read again
-          </button>
+          </Reveal>
+          <Reveal delay={400}>
+            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="mx-auto mt-10 flex items-center gap-3 rounded-full px-10 py-4 text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 hover:shadow-2xl" style={{
+              background: `linear-gradient(135deg, ${GOLD}, ${GOLD}bb)`,
+              color: "#fff",
+              boxShadow: `0 8px 40px ${GOLD}44, 0 0 0 1px ${GOLD}22`,
+            }}>
+              <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>♥</span>
+              Read again
+            </button>
+          </Reveal>
         </div>
       </section>
+
+      <GrandFinale />
+      <CascadeTrigger setTrigger={setCascadeTrigger} />
+      <PolaroidCascade pics={pics} trigger={cascadeTrigger} />
+      {lightboxSrc && <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
     </div>
   );
 }
