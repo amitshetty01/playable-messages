@@ -320,8 +320,8 @@ export default function OurMemoriesPage() {
         }
         html { scroll-behavior: smooth; }
 body::before, body::after { display: none !important; }
-body > header, body > footer { display: none !important; }
-body > div:not(main) { display: none !important; }
+header, footer { display: none !important; }
+[class*="min-h-[90px]"] { display: none !important; }
 main#content ~ * { display: none !important; }
 main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: 100svh !important; }
         ::-webkit-scrollbar { width: 6px; }
