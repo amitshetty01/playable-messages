@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HomePageContent } from "@/components/HomePageContent";
-import { siteName, defaultDescription } from "@/lib/seo";
+import { siteName, defaultDescription, jsonLd } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -24,5 +24,41 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <HomePageContent />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd([
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: siteName,
+              url: absoluteUrl("/"),
+              description: defaultDescription,
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${absoluteUrl("/templates")}?q={search_term_string}`
+                },
+                "query-input": "required name=search_term_string"
+              }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: siteName,
+              url: absoluteUrl("/"),
+              description: defaultDescription,
+              applicationCategory: "Multimedia",
+              operatingSystem: "All",
+              browserRequirements: "Requires JavaScript"
+            }
+          ])
+        }}
+      />
+      <HomePageContent />
+    </>
+  );
 }
