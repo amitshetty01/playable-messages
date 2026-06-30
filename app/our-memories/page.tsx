@@ -434,12 +434,175 @@ function PolaroidCascade({ pics, trigger }: { pics: string[]; trigger: boolean }
   );
 }
 
+const DEFAULT = {
+  heroHeading: "Hey Cutie \u2764\ufe0f",
+  heroSubtitle: "I collected every heartbeat, every laugh, every quiet glance between us and tucked them somewhere safe. This is that place. This is us. Take your time\u2026 some feelings don't rush.",
+  heroImage: "/models/assets/Cat%20kiss.gif",
+  introText: "I could tell you about a thousand moments. But some feelings can only be felt, not explained. These are the ones that still make my heart beat faster.",
+  pics: [
+    "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&h=800&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&h=800&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
+  ],
+  memories: [
+    { title: "The First Time My World Stopped", caption: "I didn't just see you that day. I felt you. And something in me knew\u2014you were going to matter more than anyone ever had.", date: "03. 2025", note: "Your smile didn't just make me happy. It made me believe in love at first sight. Because that's exactly what it was." },
+    { title: "You, in the Silence", caption: "It was never about where we were. It was about the way your hand fit perfectly in mine, like it was always meant to be there.", date: "07. 2025", note: "Nobody saw us in those quiet moments. And maybe that's why they're so beautiful. Just you, just me, just real." },
+    { title: "The Memory I'd Live In Forever", caption: "If I could freeze one moment in time, it would be this one\u2014the exact second I realized I never wanted to love anyone but you.", date: "12. 2025", note: "I don't just want to remember this moment. I want to feel it over and over again, until my last breath." },
+  ],
+  interludeQuotes: [
+    "Some memories don't fade. They stay in your chest and breathe with you.",
+    "Not every moment becomes a memory. But you\u2014you became my everything.",
+    "Some feelings don't need words. They just need to be held.",
+  ],
+  quoteText: "I used to think the best part was remembering.<br />Then I realized\u2014the best part is that we're still writing our story.",
+  promisesHeading: "I Swear On Every Beat Of My Heart \u2764\ufe0f",
+  promises: [
+    "I promise to love you not just when it's easy, but especially when it's hard.",
+    "I promise to be the reason you smile, even on days when your heart feels heavy.",
+    "I promise to protect your heart like it's the most precious thing I've ever held\u2014because it is.",
+    "I promise to chase away your storms and stay in the rain with you until the sun comes back.",
+    "I promise to never stop choosing you\u2014not just today, not just tomorrow, but every single day for the rest of my life.",
+  ],
+  finalLines: [
+    "Thank you for being the best part of every single one of my days.",
+    "I don't want to live in the past\u2014because the past isn't where you are.",
+    "I want every sunrise, every sunset, every breath in between\u2014with you. Always you.",
+  ],
+  endingImage: "/models/assets/asset%2002.png",
+  closingQuote: "Some people search their whole lives for what we found. I stopped searching the day I found you\u2014and I'll never need to look again.",
+  signature: "From your one and only",
+  startDate: "2025-03-01",
+};
+const MAX_IMAGES = 5;
+
+/* ─── Edit Drawer ─── */
+function EditField({ label, value, onChange, type = "text", rows, hint }: { label: string; value: string; onChange: (v: string) => void; type?: string; rows?: number; hint?: string }) {
+  return (
+    <label className="mb-3 block">
+      <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>{label}</span>
+      {rows ? (
+        <textarea className="w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2" style={{ borderColor: `${BROWN}22`, background: "#fff", color: BROWN, resize: "vertical", minHeight: 50 + rows * 10 }} value={value} onChange={e => onChange(e.target.value)} rows={rows} />
+      ) : (
+        <input type={type} className="w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2" style={{ borderColor: `${BROWN}22`, background: "#fff", color: BROWN }} value={value} onChange={e => onChange(e.target.value)} />
+      )}
+      {hint && <span className="mt-0.5 block text-[10px]" style={{ color: MUTED }}>{hint}</span>}
+    </label>
+  );
+}
+
+function EditDrawer({ d, setD, onClose }: { d: typeof DEFAULT; setD: React.Dispatch<React.SetStateAction<typeof DEFAULT>>; onClose: () => void }) {
+  const customCount = [d.heroImage, ...d.pics, d.endingImage].filter(u => u && !u.startsWith("/models/assets/") && !u.startsWith("https://images.unsplash.com/")).length;
+  const imagesRemaining = MAX_IMAGES - customCount;
+
+  const update = (path: string, value: any) => setD(prev => {
+    const copy = JSON.parse(JSON.stringify(prev));
+    const keys = path.split(".");
+    let o = copy;
+    for (let i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+    o[keys[keys.length - 1]] = value;
+    return copy;
+  });
+
+  const resetAll = () => {
+    if (confirm("Reset all content to defaults?")) setD({ ...DEFAULT, pics: [...DEFAULT.pics], memories: DEFAULT.memories.map(m => ({ ...m })), interludeQuotes: [...DEFAULT.interludeQuotes], promises: [...DEFAULT.promises], finalLines: [...DEFAULT.finalLines] });
+  };
+
+  return (
+    <div className="fixed inset-y-0 right-0 z-[200] w-full max-w-md overflow-y-auto shadow-2xl" style={{ background: CREAM, borderLeft: `1px solid ${GOLD}33` }}>
+      <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4" style={{ background: CREAM, borderBottom: `1px solid ${GOLD}22` }}>
+        <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Fraunces', Georgia, serif", color: BROWN }}>Customize</h2>
+        <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-black/5"><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke={BROWN} strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      </div>
+      <div className="space-y-6 px-5 py-6">
+        {/* ── Hero ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Hero</h3>
+          <EditField label="Heading" value={d.heroHeading} onChange={v => update("heroHeading", v)} />
+          <EditField label="Subtitle" value={d.heroSubtitle} onChange={v => update("heroSubtitle", v)} rows={3} />
+          <EditField label="Image URL" value={d.heroImage} onChange={v => update("heroImage", v)} hint={`Remaining image slots: ${imagesRemaining}`} />
+        </div>
+        {/* ── Intro ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Intro</h3>
+          <EditField label="Text" value={d.introText} onChange={v => update("introText", v)} rows={3} />
+        </div>
+        {/* ── Memories ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Memories</h3>
+          {d.memories.map((m, i) => (
+            <div key={i} className="mb-4 rounded-lg p-3" style={{ background: `${PINK}08`, border: `1px solid ${PINK}15` }}>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>Memory {i + 1}</p>
+              <EditField label="Photo URL" value={d.pics[i]} onChange={v => update(`pics.${i}`, v)} hint={`Remaining: ${imagesRemaining}`} />
+              <EditField label="Title" value={m.title} onChange={v => update(`memories.${i}.title`, v)} />
+              <EditField label="Caption" value={m.caption} onChange={v => update(`memories.${i}.caption`, v)} rows={2} />
+              <EditField label="Date" value={m.date} onChange={v => update(`memories.${i}.date`, v)} />
+              <EditField label="Flip Note" value={m.note} onChange={v => update(`memories.${i}.note`, v)} rows={2} />
+            </div>
+          ))}
+        </div>
+        {/* ── Interlude Quotes ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Interlude Quotes</h3>
+          {d.interludeQuotes.map((q, i) => (
+            <EditField key={i} label={`Quote ${i + 1}`} value={q} onChange={v => update(`interludeQuotes.${i}`, v)} rows={2} />
+          ))}
+        </div>
+        {/* ── Quote Section ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Quote Section</h3>
+          <EditField label="Text (use &lt;br/&gt; for line break)" value={d.quoteText} onChange={v => update("quoteText", v)} rows={2} />
+        </div>
+        {/* ── Promises ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Promises</h3>
+          <EditField label="Heading" value={d.promisesHeading} onChange={v => update("promisesHeading", v)} />
+          {d.promises.map((p, i) => (
+            <EditField key={i} label={`Promise ${i + 1}`} value={p} onChange={v => update(`promises.${i}`, v)} rows={2} />
+          ))}
+        </div>
+        {/* ── Final Message ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Final Message</h3>
+          {d.finalLines.map((l, i) => (
+            <EditField key={i} label={`Line ${i + 1}`} value={l} onChange={v => update(`finalLines.${i}`, v)} rows={2} />
+          ))}
+          <EditField label="Ending Image URL" value={d.endingImage} onChange={v => update("endingImage", v)} hint={`Remaining: ${imagesRemaining}`} />
+        </div>
+        {/* ── Closing ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Closing</h3>
+          <EditField label="Quote" value={d.closingQuote} onChange={v => update("closingQuote", v)} rows={2} />
+          <EditField label="Signature" value={d.signature} onChange={v => update("signature", v)} />
+          <EditField label="Start Date (YYYY-MM-DD)" value={d.startDate} onChange={v => update("startDate", v)} />
+        </div>
+        {/* ── Reset ── */}
+        <button onClick={resetAll} className="w-full rounded-lg px-4 py-3 text-sm font-bold uppercase tracking-wider transition hover:opacity-80" style={{ background: `${BROWN}0a`, color: MUTED, border: `1px solid ${BROWN}15` }}>
+          Reset to defaults
+        </button>
+        <p className="text-center text-[10px]" style={{ color: MUTED }}>Changes save automatically</p>
+      </div>
+    </div>
+  );
+}
+
 export default function OurMemoriesPage() {
   const [mounted, setMounted] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
   const [cascadeTrigger, setCascadeTrigger] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [d, setD] = useState<typeof DEFAULT>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("our-memories-content");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return { ...DEFAULT, pics: [...DEFAULT.pics], memories: DEFAULT.memories.map(m => ({ ...m })), interludeQuotes: [...DEFAULT.interludeQuotes], promises: [...DEFAULT.promises], finalLines: [...DEFAULT.finalLines] };
+  });
+
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { try { localStorage.setItem("our-memories-content", JSON.stringify(d)); } catch {} }, [d]);
 
   const handlePhotoClick = useCallback((src: string, index: number) => {
     setFlippedIndex(index);
@@ -449,23 +612,7 @@ export default function OurMemoriesPage() {
     }, 900);
   }, []);
 
-  const pics = [
-    "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&h=800&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&h=800&fit=crop&auto=format",
-    "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
-  ];
-  const memories = [
-    { title: "The First Time My World Stopped", caption: "I didn't just see you that day. I felt you. And something in me knew\u2014you were going to matter more than anyone ever had.", date: "03. 2025", note: "Your smile didn't just make me happy. It made me believe in love at first sight. Because that's exactly what it was." },
-    { title: "You, in the Silence", caption: "It was never about where we were. It was about the way your hand fit perfectly in mine, like it was always meant to be there.", date: "07. 2025", note: "Nobody saw us in those quiet moments. And maybe that's why they're so beautiful. Just you, just me, just real." },
-    { title: "The Memory I'd Live In Forever", caption: "If I could freeze one moment in time, it would be this one\u2014the exact second I realized I never wanted to love anyone but you.", date: "12. 2025", note: "I don't just want to remember this moment. I want to feel it over and over again, until my last breath." },
-  ];
-  const promises = [
-    "I promise to love you not just when it's easy, but especially when it's hard.",
-    "I promise to be the reason you smile, even on days when your heart feels heavy.",
-    "I promise to protect your heart like it's the most precious thing I've ever held\u2014because it is.",
-    "I promise to chase away your storms and stay in the rain with you until the sun comes back.",
-    "I promise to never stop choosing you\u2014not just today, not just tomorrow, but every single day for the rest of my life.",
-  ];
+  const { pics, memories, interludeQuotes, promises, finalLines } = d;
 
   return (
     <div style={{ background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
@@ -557,22 +704,25 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
       <Stars />
       <SoundToggle />
       <VignetteOverlay />
+      <button onClick={() => setEditOpen(true)} className="fixed right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition hover:scale-110 sm:opacity-0 sm:hover:opacity-100" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(201,168,124,0.3)" }} title="Customize page">
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke={BROWN} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path strokeLinecap="round" strokeLinejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
 
       {/* ───── HERO ───── */}
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Parallax speed={0.12}>
           <div className={`max-w-2xl transition-all duration-1000 ${mounted ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}>
             <div className="mx-auto mb-10 h-72 w-72 overflow-hidden rounded-3xl ring-4 sm:h-80 sm:w-80" style={{ borderColor: "#f0e4d8", animation: "pulse-glow 4s ease-in-out infinite" }}>
-              <img src="/models/assets/Cat%20kiss.gif" alt="" className="h-full w-full object-cover" />
+              <img src={d.heroImage || "/models/assets/Cat%20kiss.gif"} alt="" className="h-full w-full object-cover" />
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
-              Hey Cutie <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+              {d.heroHeading}
             </h1>
             <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed sm:text-lg" style={{ color: MUTED }}>
-              I collected every heartbeat, every laugh, every quiet glance between us and tucked them somewhere safe. This is that place. This is us. Take your time&hellip; some feelings don't rush.
+              {d.heroSubtitle}
             </p>
             <div className="mt-4 text-xs tracking-wider uppercase" style={{ color: PINK }}>
-              <DaysCounter startDate="2025-03-01" /> days of us
+              <DaysCounter startDate={d.startDate} /> days of us
             </div>
             <div className="mt-14 flex flex-col items-center gap-3">
               <div className="h-12 w-px" style={{ background: `linear-gradient(to bottom, ${PINK}55, transparent)` }} />
@@ -586,7 +736,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Reveal>
           <Parallax speed={-0.08}>
-            <StaggerText text="I could tell you about a thousand moments. But some feelings can only be felt, not explained. These are the ones that still make my heart beat faster." className="mx-auto max-w-xl text-xl font-light leading-relaxed sm:text-2xl lg:text-3xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: MUTED }} />
+            <StaggerText text={d.introText} className="mx-auto max-w-xl text-xl font-light leading-relaxed sm:text-2xl lg:text-3xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: MUTED }} />
             <div className="mt-4 flex justify-center gap-4">
               <PressedFlower color={PINK} size={28} />
               <PressedFlower color={GOLD} size={22} className="mt-2" />
@@ -683,7 +833,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
                 <Reveal delay={i * 120 + 100}>
                   <div className="my-16 text-center">
                     <p className="text-sm font-light italic tracking-wide" style={{ color: MUTED }}>
-                      {["Some memories don't fade. They stay in your chest and breathe with you.", "Not every moment becomes a memory. But you\u2014you became my everything.", "Some feelings don't need words. They just need to be held."][i]}
+                      {interludeQuotes[i]}
                     </p>
                     <Divider />
                   </div>
@@ -691,6 +841,16 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
               )}
             </div>
           ))}
+          <Reveal delay={500}>
+            <div className="mt-20 text-center">
+              <Divider />
+              <p className="text-2xl font-bold tracking-wide" style={{
+                fontFamily: "'Caveat', cursive", color: PINK, fontSize: "1.6rem",
+              }}>
+                {d.signature}
+              </p>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -705,9 +865,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
               <PressedFlower color={PINK} size={32} className="absolute -left-3 -top-3" />
               <PressedFlower color={GOLD} size={24} className="absolute -right-2 -bottom-2" />
               <span className="text-3xl sm:text-4xl" style={{ color: PINK }}>&ldquo;</span>
-              <p className="-mt-2 text-2xl font-light italic leading-relaxed sm:text-3xl lg:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
-                I used to think the best part was remembering.<br />Then I realized\u2014the best part is that we're still writing our story.
-              </p>
+              <p className="-mt-2 text-2xl font-light italic leading-relaxed sm:text-3xl lg:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }} dangerouslySetInnerHTML={{ __html: d.quoteText }} />
               <span className="mt-2 block text-right text-3xl sm:text-4xl" style={{ color: PINK }}>&rdquo;</span>
             </div>
           </Parallax>
@@ -719,7 +877,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         <div className="mx-auto w-full max-w-lg">
           <Reveal>
             <h2 className="mb-14 text-center text-3xl font-bold tracking-tight sm:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
-              I Swear On Every Beat Of My Heart <span style={{ animation: "heartbeat 1.5s ease-in-out infinite", display: "inline-block" }}>❤️</span>
+              {d.promisesHeading}
             </h2>
           </Reveal>
           <div className="space-y-4">
@@ -750,15 +908,11 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         <div className="mx-auto max-w-xl">
           <Reveal delay={100}>
             <div className="mx-auto mb-12 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: GOLD, animation: "pulse-glow 4s ease-in-out infinite", boxShadow: `0 0 60px ${GOLD}33` }}>
-              <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
+              <img src={d.endingImage || "/models/assets/asset%2002.png"} alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
             </div>
           </Reveal>
           <div className="space-y-3">
-            {[
-              "Thank you for being the best part of every single one of my days.",
-              "I don't want to live in the past\u2014because the past isn't where you are.",
-              "I want every sunrise, every sunset, every breath in between\u2014with you. Always you.",
-            ].map((line, i) => (
+            {finalLines.map((line, i) => (
               <Reveal key={i} delay={200 + i * 150}>
                 <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>{line}</p>
               </Reveal>
@@ -768,13 +922,6 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
             <Divider />
           </Reveal>
           <Reveal delay={900}>
-            <p className="text-2xl font-bold tracking-wide" style={{
-              fontFamily: "'Caveat', cursive", color: PINK,
-            }}>
-              From your one and only
-            </p>
-          </Reveal>
-          <Reveal delay={1100}>
             <WaxSeal color={PINK} />
           </Reveal>
         </div>
@@ -790,7 +937,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
               <div className="h-px flex-1" style={{ background: `linear-gradient(to left, transparent, ${GOLD}44)` }} />
             </div>
             <p className="text-base font-light italic leading-relaxed" style={{ color: MUTED, fontFamily: "'Caveat', cursive", fontSize: "1.3rem" }}>
-              Some people search their whole lives for what we found. I stopped searching the day I found you\u2014and I'll never need to look again.
+              {d.closingQuote}
             </p>
           </Reveal>
           <Reveal delay={400}>
@@ -810,6 +957,13 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
       <CascadeTrigger setTrigger={setCascadeTrigger} />
       <PolaroidCascade pics={pics} trigger={cascadeTrigger} />
       {lightboxSrc && <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
+
+      {editOpen && (
+        <>
+          <div className="fixed inset-0 z-[199] bg-black/20 backdrop-blur-sm" onClick={() => setEditOpen(false)} />
+          <EditDrawer d={d} setD={setD} onClose={() => setEditOpen(false)} />
+        </>
+      )}
     </div>
   );
 }
