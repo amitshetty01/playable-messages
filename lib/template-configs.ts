@@ -343,6 +343,15 @@ const templateConfigs: Record<string, TemplateConfig> = {
     name: "Sorry Maze",
     editableFields: [],
   },
+  "our-memories": {
+    id: "our-memories",
+    name: "Our Memories", 
+    editableFields: [
+      { key: "photos", label: "Memory Photos", type: "image", required: false, helpText: "Upload photos of your memories (max 5)", imageCount: 5 },
+      { key: "steps", label: "Memory Captions", type: "textarea", required: false, helpText: "Write a caption for each memory, one per line", maxLength: 500 },
+      { key: "finalMessage", label: "Final Message", type: "textarea", required: false, helpText: "A heartfelt closing message", maxLength: 500 },
+    ],
+  },
 };
 
 export function getTemplateConfig(templateId: string): TemplateConfig {

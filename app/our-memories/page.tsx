@@ -371,22 +371,6 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
   );
 }
 
-/* ─── Cascade trigger ─── */
-function CascadeTrigger({ setTrigger }: { setTrigger: (v: boolean) => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const o = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setTrigger(true); o.unobserve(el); } },
-      { threshold: 0.3 }
-    );
-    o.observe(el);
-    return () => o.disconnect();
-  }, [setTrigger]);
-  return <div ref={ref} className="pointer-events-none absolute bottom-0 h-4 w-full" />;
-}
-
 /* ─── Days counter ─── */
 function DaysCounter({ startDate }: { startDate: string }) {
   const [days, setDays] = useState(0);
@@ -396,42 +380,6 @@ function DaysCounter({ startDate }: { startDate: string }) {
     setDays(Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
   }, [startDate]);
   return <span>{days}</span>;
-}
-
-/* ─── Polaroid Cascade ─── */
-function PolaroidCascade({ pics, trigger }: { pics: string[]; trigger: boolean }) {
-  if (!trigger) return null;
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center overflow-hidden">
-      {pics.map((src, i) => {
-        const rotation = -12 + Math.random() * 24;
-        const startX = 10 + Math.random() * 80;
-        const delay = 0.2 + i * 0.35;
-        const endY = 40 + Math.random() * 30;
-        return (
-          <div key={i} className="absolute" style={{
-            left: `${startX}%`,
-            top: "-40%",
-            animation: `polaroid-fall 2s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s forwards`,
-            "--end-y": `${endY}vh`,
-            "--rotation": `${rotation}deg`,
-          } as React.CSSProperties}>
-            <div className="rounded-sm bg-white p-3 shadow-2xl" style={{ transform: `rotate(${rotation}deg)`, width: 160 }}>
-              <img src={src} alt="" className="h-44 w-full object-cover" style={{ filter: "contrast(1.05)" }} />
-              <div className="mt-2 text-center text-[9px] tracking-widest uppercase" style={{ color: MUTED, fontFamily: "'Caveat', cursive", fontSize: "0.7rem" }}>
-                our {["first moment", "little forever", "favorite memory"][i]}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-      <div className="absolute inset-0" style={{
-        background: `radial-gradient(circle at 50% 50%, ${GOLD}22, transparent 70%)`,
-        animation: "fade-in-glow 1.5s ease-out 2s forwards",
-        opacity: 0,
-      }} />
-    </div>
-  );
 }
 
 const DEFAULT = {
@@ -589,7 +537,6 @@ export default function OurMemoriesPage() {
   const [mounted, setMounted] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
-  const [cascadeTrigger, setCascadeTrigger] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [d, setD] = useState<typeof DEFAULT>(() => {
     if (typeof window !== "undefined") {
@@ -680,11 +627,6 @@ export default function OurMemoriesPage() {
           15% { opacity: 0.4; }
           60% { opacity: 0.15; }
           100% { transform: translateX(200%) rotate(-20deg); opacity: 0; }
-        }
-        @keyframes polaroid-fall {
-          0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
-          15% { opacity: 1; transform: translateY(10vh) rotate(calc(var(--rotation) * 0.3)) scale(0.9); }
-          100% { transform: translateY(var(--end-y)) rotate(var(--rotation)) scale(1); opacity: 1; }
         }
         html { scroll-behavior: smooth; }
 body::before, body::after { display: none !important; }
@@ -954,8 +896,6 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
       </section>
 
       <GrandFinale />
-      <CascadeTrigger setTrigger={setCascadeTrigger} />
-      <PolaroidCascade pics={pics} trigger={cascadeTrigger} />
       {lightboxSrc && <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
 
       {editOpen && (

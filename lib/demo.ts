@@ -86,6 +86,11 @@ const DEMO_STEPS: Record<string, [string, string, string]> = {
     "Spin the wheel to see what fate chooses.",
     "Each segment unlocks a different theme.",
     "The real message awaits after the spin."
+  ],
+  "our-memories": [
+    "Every smile, every quiet moment, every laugh we shared\u2014I kept them all right here for you.",
+    "Some memories don't fade. They stay in your chest and breathe with you. These are the ones I'll carry forever.",
+    "I don't want to live in the past. I want every sunrise, every sunset, every breath in between\u2014with you."
   ]
 };
 

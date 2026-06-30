@@ -765,6 +765,20 @@ export const templates: Template[] = [
     formula: ["Enter maze", "Navigate walls", "Collect gems", "Reach the heart"],
     description: "Navigate a glowing maze to find your way back. Collect gems, avoid dead ends, and unlock a heartfelt message at the center."
   },
+  {
+    id: "our-memories",
+    slug: "our-memories",
+    title: "Our Memories",
+    hook: "A beautiful scrapbook of your favorite memories together.",
+    categorySlugs: ["love-crush"],
+    bestFor: "love, memories, anniversaries, couples",
+    length: "2 minutes",
+    tone: "Romantic",
+    theme: "Soft Pastel",
+    status: "full",
+    formula: ["Share your first memory", "Recall the little moments", "Make promises", "End with a heartfelt message"],
+    description: "A beautiful interactive scrapbook where you can share your favorite memories, make promises, and create a lasting keepsake for someone special."
+  },
 ];
 
 templates.sort((a, b) => {

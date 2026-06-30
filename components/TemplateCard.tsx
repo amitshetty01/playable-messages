@@ -64,6 +64,12 @@ const thumbVisuals: Record<string, ThumbVisual> = {
     floaters: [{ emoji: "🧭", style: "top-2 right-3 text-lg animate-spin-slow" }, { emoji: "💎", style: "bottom-3 left-4 text-base animate-float-slow" }, { emoji: "⭐", style: "top-4 left-2 text-xs animate-pulse" }],
     pattern: "stars",
   },
+  "our-memories": {
+    gradient: "from-pink-300 via-rose-400 to-blush-500",
+    mainIcon: "📖",
+    floaters: [{ emoji: "💕", style: "top-2 right-3 text-sm animate-float-slow" }, { emoji: "✨", style: "bottom-3 left-4 text-base animate-pulse" }, { emoji: "🌹", style: "top-4 left-2 text-xs animate-sway-gentle" }],
+    pattern: "stars",
+  },
 };
 
 const defaultVisual: ThumbVisual = {
