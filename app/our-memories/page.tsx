@@ -267,6 +267,7 @@ export default function OurMemoriesPage() {
           56% { transform: scale(1); }
         }
         html { scroll-behavior: smooth; }
+body::before, body::after { display: none !important; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: ${CREAM}; }
         ::-webkit-scrollbar-thumb { background: ${PINK}55; border-radius: 3px; }
@@ -283,7 +284,7 @@ export default function OurMemoriesPage() {
       <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Parallax speed={0.12}>
           <div className={`max-w-2xl transition-all duration-1000 ${mounted ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}>
-            <div className="mx-auto mb-10 h-64 w-64 overflow-hidden rounded-3xl ring-4 sm:h-72 sm:w-72" style={{ borderColor: "#f0e4d8", animation: "pulse-glow 4s ease-in-out infinite" }}>
+            <div className="mx-auto mb-10 h-72 w-72 overflow-hidden rounded-3xl ring-4 sm:h-80 sm:w-80" style={{ borderColor: "#f0e4d8", animation: "pulse-glow 4s ease-in-out infinite" }}>
               <img src="/models/assets/Cat%20kiss.gif" alt="" className="h-full w-full object-cover" />
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
@@ -333,7 +334,7 @@ export default function OurMemoriesPage() {
                       <div className="absolute -bottom-2 -right-2 h-6 w-6 rotate-45 shadow-md" style={{ background: CREAM, boxShadow: `-2px -2px 8px ${BROWN}15` }} />
                     </div>
                     <div className="relative overflow-hidden rounded-t-[16px]">
-                      <img src={pics[i]} alt={m.title} className="h-80 w-full object-cover transition-all duration-700 group-hover:scale-105 sm:h-96" loading="lazy" />
+                      <img src={pics[i]} alt={m.title} className="h-96 w-full object-cover transition-all duration-700 group-hover:scale-105 sm:h-[32rem]" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                       <div className="pointer-events-none absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-white/60 rounded-tl" />
                       <div className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-white/60 rounded-tr" />
@@ -423,7 +424,7 @@ export default function OurMemoriesPage() {
         <Reveal>
           <Parallax speed={-0.08}>
             <div className="mx-auto max-w-xl">
-              <div className="mx-auto mb-10 h-48 w-48 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-56 sm:w-56" style={{ borderColor: "#f0e4d8" }}>
+              <div className="mx-auto mb-10 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: "#f0e4d8" }}>
                 <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full object-contain" />
               </div>
               <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>

@@ -3,14 +3,9 @@ import Script from "next/script";
 import { Fraunces, Nunito_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "@/app/globals.css";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
+import { ConditionalChrome } from "@/components/ConditionalChrome";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme/context";
-import { SoundToggleWrapper } from "@/components/SoundToggleWrapper";
-import { SoundWelcome } from "@/components/SoundWelcome";
-import { CookieBanner } from "@/components/CookieBanner";
-import { NativeAd } from "@/components/NativeAd";
 import { defaultDescription, defaultOgImage, siteName } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -91,15 +86,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Analytics />
-        <Header />
-        <NativeAd />
-        <main id="content" className="mx-auto min-h-[calc(100svh-220px)] w-full max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <ConditionalChrome>
           {children}
-        </main>
-        <Footer />
-        <SoundWelcome />
-        <SoundToggleWrapper />
-        <CookieBanner />
+        </ConditionalChrome>
         </LanguageProvider>
         </ThemeProvider>
       </body>
