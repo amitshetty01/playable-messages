@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/utils";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const staticPaths = ["/", "/about", "/templates", "/faq", "/privacy", "/terms", "/report", "/contact", "/create", "/my-experiences", "/chat"];
+  const staticPaths = ["/", "/about", "/templates", "/faq", "/privacy", "/terms", "/report", "/contact", "/create", "/my-experiences", "/chat", "/our-memories"];
   const templatePaths = templates.map((template) => `/templates/${getTemplateSeoSlug(template)}`);
   const useCasePaths = useCasePages.map((page) => `/use-cases/${page.slug}`);
   const moodPaths = moods.map((mood) => `/mood/${mood.slug}`);

@@ -1,101 +1,242 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { OurMemoriesViewer } from "@/components/our-memories/OurMemoriesViewer";
-import { MemoryDrawer } from "@/components/our-memories/MemoryDrawer";
-import { encodeData, decodeData } from "@/lib/our-memories/types";
-import type { OurMemoriesData } from "@/lib/our-memories/types";
-import { defaultData } from "@/lib/our-memories/defaultData";
+import { useEffect, useRef, useState } from "react";
+
+const PINK = "#d4899e";
+const CREAM = "#faf5f0";
+const BROWN = "#3d2c2c";
+const MUTED = "#8c7a7a";
+const HEART = "#e8a0bf";
+
+/* ─── Floating hearts ─── */
+function Hearts() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {Array.from({ length: 14 }, (_, i) => (
+        <div
+          key={i}
+          className="absolute animate-float-up"
+          style={{
+            left: `${Math.random() * 100}%`,
+            bottom: "-8%",
+            width: 8 + Math.random() * 18,
+            height: 8 + Math.random() * 18,
+            opacity: 0.1 + Math.random() * 0.2,
+            animationDelay: `${Math.random() * 14}s`,
+            animationDuration: `${12 + Math.random() * 14}s`,
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill={HEART} className="h-full w-full">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Scroll reveal ─── */
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const o = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setTimeout(() => setVis(true), delay); o.unobserve(el); } },
+      { threshold: 0.12 }
+    );
+    o.observe(el);
+    return () => o.disconnect();
+  }, [delay]);
+  return (
+    <div ref={ref} className={`transition-all duration-700 ease-out ${vis ? "translate-y-0 scale-100 opacity-100" : "translate-y-10 scale-[0.97] opacity-0"}`}>
+      {children}
+    </div>
+  );
+}
 
 export default function OurMemoriesPage() {
-  const [data, setData] = useState<OurMemoriesData | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (!hash) { setError(true); return; }
-    const decoded = decodeData(hash);
-    if (decoded) setData(decoded);
-    else setError(true);
-  }, []);
+  const pics = [
+    "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&h=800&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&h=800&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
+  ];
 
-  const handleSave = (d: OurMemoriesData) => {
-    setData(d);
-    const encoded = encodeData(d);
-    const url = `${window.location.origin}/our-memories#${encoded}`;
-    window.history.replaceState(null, "", `#${encoded}`);
-    navigator.clipboard.writeText(url);
-    setDrawerOpen(false);
-  };
+  const memories = [
+    { title: "The First Smile", caption: "Some smiles stay in your heart forever." },
+    { title: "The Little Moments", caption: "It was never about the place. It was always about you." },
+    { title: "My Favorite Memory", caption: "If I could replay one feeling, it would be this." },
+  ];
 
-  const startFresh = () => {
-    const d = defaultData;
-    const encoded = encodeData(d);
-    const url = `${window.location.origin}/our-memories#${encoded}`;
-    window.location.href = url;
-  };
-
-  if (error) {
-    return (
-      <div style={{ background: "#faf5f0", color: "#3d2c2c" }} className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
-        <span className="text-6xl">♥</span>
-        <h1 className="text-3xl font-bold" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>No memories found</h1>
-        <p className="text-sm" style={{ color: "#8c7a7a" }}>This link doesn&apos;t contain any memory data.</p>
-        <div className="flex gap-4">
-          <button onClick={startFresh} className="rounded-full px-8 py-3 font-semibold text-white shadow-lg transition hover:scale-105" style={{ background: "#d4899e" }}>
-            Create Your Own ♥
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: "#faf5f0" }}>
-        <div className="h-10 w-10 animate-spin rounded-full border-4" style={{ borderColor: "#d4899e44", borderTopColor: "#d4899e" }} />
-      </div>
-    );
-  }
+  const promises = [
+    "I promise to choose you even on ordinary days.",
+    "I promise to make you smile when the world feels heavy.",
+    "I promise to protect what we have.",
+    "I promise to create more beautiful memories with you.",
+    "I promise to stay\u2014not just in words, but in actions.",
+  ];
 
   return (
-    <div className="relative">
-      <OurMemoriesViewer data={data} />
+    <div className="relative min-h-screen" style={{ background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
+      <Hearts />
 
-      {/* Customize button — always visible */}
-      <button
-        onClick={() => setDrawerOpen(true)}
-        className="fixed right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition hover:scale-110"
-        style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(201,168,124,0.3)" }}
-        title="Customize"
-      >
-        <svg className="h-5 w-5" style={{ color: "#8c7a7a" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </button>
+      <style>{`
+        @keyframes float-up {
+          0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
+          10% { opacity: 0.3; }
+          90% { opacity: 0.15; }
+          100% { transform: translateY(-120vh) rotate(360deg) scale(1); opacity: 0; }
+        }
+      `}</style>
 
-      {/* Share button */}
-      <button
-        onClick={() => {
-          const encoded = encodeData(data);
-          const url = `${window.location.origin}/our-memories#${encoded}`;
-          navigator.clipboard.writeText(url);
-        }}
-        className="fixed right-4 bottom-4 z-30 flex h-10 w-10 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition hover:scale-110"
-        style={{ background: "#d4899e", border: "1px solid rgba(255,255,255,0.3)" }}
-        title="Copy share link"
-      >
-        <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-        </svg>
-      </button>
+      {/* ───── HERO ───── */}
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-24 text-center">
+        <div className={`max-w-2xl transition-all duration-1000 ${mounted ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}>
+          <div className="mx-auto mb-10 h-64 w-64 overflow-hidden rounded-3xl shadow-2xl ring-4 sm:h-72 sm:w-72" style={{ borderColor: "#f0e4d8", boxShadow: `0 24px 80px ${PINK}22` }}>
+            <img src="/models/assets/Cat%20kiss.gif" alt="" className="h-full w-full object-cover" />
+          </div>
+          <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
+            Hey Cutie ❤️
+          </h1>
+          <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed sm:text-lg" style={{ color: MUTED }}>
+            Every moment with you feels like a dream I never want to wake up from. So I kept a few memories here, just for us. Scroll slowly&hellip; some feelings deserve time.
+          </p>
+          <div className="mt-14 flex flex-col items-center gap-3">
+            <div className="h-10 w-px" style={{ background: `linear-gradient(to bottom, ${PINK}44, transparent)` }} />
+            <span className="animate-pulse text-[10px] tracking-[0.2em] uppercase" style={{ color: MUTED }}>Scroll Down</span>
+          </div>
+        </div>
+      </section>
 
-      {/* Drawer */}
-      {drawerOpen && (
-        <MemoryDrawer data={data} onSave={handleSave} onClose={() => setDrawerOpen(false)} />
-      )}
+      {/* ───── INTRO ───── */}
+      <section className="relative z-10 px-6 py-24 text-center">
+        <Reveal>
+          <p className="mx-auto max-w-xl text-xl font-light leading-relaxed sm:text-2xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: MUTED }}>
+            There are thousands of moments&hellip;<br />but these are the ones my heart kept.
+          </p>
+          <div className="mx-auto mt-8 h-px w-16" style={{ background: `linear-gradient(to right, transparent, ${PINK}55, transparent)` }} />
+        </Reveal>
+      </section>
+
+      {/* ───── OUR MEMORIES ───── */}
+      <section className="relative z-10 px-6 py-8">
+        <div className="mx-auto max-w-lg">
+          {memories.map((m, i) => (
+            <div key={i}>
+              <Reveal delay={i * 100}>
+                <div
+                  className="mx-auto w-full max-w-sm transition-all duration-500 hover:shadow-2xl"
+                  style={{
+                    transform: `rotate(${((i % 5) - 2) * 2}deg)`,
+                    borderRadius: 16,
+                    background: "#fff",
+                    border: "1px solid rgba(201,168,124,0.25)",
+                    boxShadow: `0 12px 48px ${BROWN}0d`,
+                  }}
+                >
+                  <img
+                    src={pics[i]}
+                    alt={m.title}
+                    className="h-80 w-full rounded-t-[16px] object-cover sm:h-96"
+                    loading="lazy"
+                  />
+                  <div className="space-y-1.5 px-5 py-5">
+                    <h3 className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Fraunces', Georgia, serif", color: BROWN }}>
+                      {m.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
+                      {m.caption}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+              {i < memories.length - 1 && (
+                <Reveal delay={i * 100 + 120}>
+                  <div className="my-16 text-center">
+                    <p className="text-sm font-light italic tracking-wide" style={{ color: MUTED }}>
+                      {["Some memories don't fade. They glow.", "Not every moment becomes a memory. But these did.", "Some feelings have no words. That's why we keep them close."][i]}
+                    </p>
+                    <div className="mx-auto mt-4 h-px w-12" style={{ background: `linear-gradient(to right, transparent, ${PINK}44, transparent)` }} />
+                  </div>
+                </Reveal>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ───── QUOTE ───── */}
+      <section className="relative z-10 px-6 py-28">
+        <Reveal>
+          <div
+            className="mx-auto max-w-2xl rounded-3xl px-8 py-14 text-center backdrop-blur-sm"
+            style={{
+              background: `linear-gradient(135deg, ${PINK}08, ${PINK}14)`,
+              border: `1px solid ${PINK}22`,
+            }}
+          >
+            <p className="text-2xl font-light italic leading-relaxed sm:text-3xl lg:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
+              &ldquo;Our best memories are not behind us.<br />We are still creating them.&rdquo;
+            </p>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ───── PROMISES ───── */}
+      <section className="relative z-10 px-6 py-20">
+        <div className="mx-auto max-w-lg">
+          <Reveal>
+            <h2 className="mb-14 text-center text-3xl font-bold tracking-tight sm:text-4xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
+              My Promises To You <span style={{ color: HEART }}>❤️</span>
+            </h2>
+          </Reveal>
+          <div className="space-y-4">
+            {promises.map((p, i) => (
+              <Reveal key={i} delay={i * 70}>
+                <div
+                  className="rounded-2xl px-6 py-5 backdrop-blur-sm transition-all duration-500 hover:scale-[1.01]"
+                  style={{
+                    background: "#fff",
+                    border: "1px solid rgba(201,168,124,0.2)",
+                    boxShadow: `0 4px 20px ${BROWN}08`,
+                  }}
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="mt-0.5 text-lg" style={{ color: PINK }}>♥</span>
+                    <p className="text-base font-medium leading-relaxed sm:text-lg" style={{ color: BROWN }}>
+                      {p}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───── FINAL MESSAGE ───── */}
+      <section className="relative z-10 px-6 py-28 text-center">
+        <Reveal>
+          <div className="mx-auto max-w-xl">
+            <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>
+              Thank you for being part of my favorite memories. I don&apos;t just want to remember the past with you&hellip; I want to create every beautiful tomorrow with you.
+            </p>
+            <div className="mx-auto mt-8 h-px w-16" style={{ background: `linear-gradient(to right, transparent, ${PINK}66, transparent)` }} />
+            <p className="mt-8 text-lg font-bold tracking-wide sm:text-xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
+              Forever yours <span style={{ color: HEART }}>❤️</span>
+            </p>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ───── FOOTER ───── */}
+      <footer className="relative z-10 pb-8 text-center">
+        <p className="text-xs" style={{ color: MUTED }}>Made with love</p>
+      </footer>
     </div>
   );
 }
