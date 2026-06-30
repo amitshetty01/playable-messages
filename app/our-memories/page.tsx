@@ -424,7 +424,7 @@ export default function OurMemoriesPage() {
           <Parallax speed={-0.08}>
             <div className="mx-auto max-w-xl">
               <div className="mx-auto mb-10 h-48 w-48 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-56 sm:w-56" style={{ borderColor: "#f0e4d8" }}>
-                <img src="/models/assets/asset-02.png" alt="" className="h-full w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = "/models/assets/Cat%20kiss.gif"; }} />
+                <img src="/models/assets/asset%2002.png" alt="" className="h-full w-full object-contain" />
               </div>
               <p className="text-xl font-light leading-relaxed sm:text-2xl" style={{ color: BROWN }}>
                 Thank you for being part of my favorite memories. I don&apos;t just want to remember the past with you&hellip; I want to create every beautiful tomorrow with you.
