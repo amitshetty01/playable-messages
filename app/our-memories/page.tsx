@@ -223,7 +223,7 @@ export default function OurMemoriesPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const pics = [
-    "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600&h=800&fit=crop&auto=format",
+    "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&h=800&fit=crop&auto=format",
     "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&h=800&fit=crop&auto=format",
     "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
   ];
@@ -241,11 +241,10 @@ export default function OurMemoriesPage() {
   ];
 
   return (
-    <div className="relative w-screen overflow-x-hidden" style={{ marginLeft: "calc(-50vw + 50%)", width: "100vw", background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
+    <div className="w-screen overflow-x-auto" style={{ position: "fixed", inset: 0, zIndex: 9999, background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif", WebkitOverflowScrolling: "touch" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
-        header, footer, #content { display: none !important; }
-        body { background: ${CREAM} !important; }
+        body { background: ${CREAM} !important; overflow: hidden !important; }
         @keyframes float-up {
           0% { transform: translateY(0) rotate(0deg) scale(0.4); opacity: 0; }
           10% { opacity: 0.35; }
