@@ -241,10 +241,12 @@ export default function OurMemoriesPage() {
   ];
 
   return (
-    <div className="w-screen overflow-x-auto" style={{ position: "fixed", inset: 0, zIndex: 9999, background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif", WebkitOverflowScrolling: "touch" }}>
+    <div style={{ background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
-        body { background: ${CREAM} !important; overflow: hidden !important; }
+        body { background: ${CREAM} !important; }
+        header, footer, [class*="Ad"], [class*="adsterra"], [class*="Cookie"], [class*="Sound"], [class*="cookie"], iframe[src*="ad"], .native-ad { display: none !important; }
+        main#content { max-width: none !important; padding: 0 !important; margin: 0 !important; min-height: 100vh !important; }
         @keyframes float-up {
           0% { transform: translateY(0) rotate(0deg) scale(0.4); opacity: 0; }
           10% { opacity: 0.35; }
