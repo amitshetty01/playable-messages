@@ -7,7 +7,7 @@ import { useTheme } from "@/lib/theme/context";
 
 const links = [
   { href: "/templates", labelKey: "nav.templates" },
-  { href: "/our-memories/edit", label: "Our Memories" },
+  { href: "/our-memories", label: "Our Memories" },
   { href: "/my-experiences", labelKey: "nav.messages" },
   { href: "/chat", labelKey: "nav.chat" },
 ];
