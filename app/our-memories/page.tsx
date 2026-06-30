@@ -24,7 +24,7 @@ function useScrollY() {
 /* ─── Paper grain overlay ─── */
 function PaperTexture() {
   return (
-    <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.035]" style={{
+    <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.07]" style={{
       backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
       backgroundRepeat: "repeat",
       backgroundSize: "256px 256px",
@@ -46,17 +46,17 @@ function PageEdgeShadow() {
 function Hearts() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {Array.from({ length: 18 }, (_, i) => (
+      {Array.from({ length: 24 }, (_, i) => (
         <div key={i} className="absolute animate-float-up" style={{
-          left: `${5 + Math.random() * 90}%`,
-          bottom: "-8%",
-          width: 6 + Math.random() * 18,
-          height: 6 + Math.random() * 18,
-          opacity: 0.08 + Math.random() * 0.18,
-          animationDelay: `${Math.random() * 16}s`,
-          animationDuration: `${14 + Math.random() * 18}s`,
+          left: `${Math.random() * 100}%`,
+          bottom: "-10%",
+          width: 10 + Math.random() * 28,
+          height: 10 + Math.random() * 28,
+          opacity: 0.25 + Math.random() * 0.45,
+          animationDelay: `${Math.random() * 20}s`,
+          animationDuration: `${16 + Math.random() * 20}s`,
         }}>
-          <svg viewBox="0 0 24 24" fill={HEART} className="h-full w-full">
+          <svg viewBox="0 0 24 24" fill={HEART} className="h-full w-full" style={{ filter: `drop-shadow(0 0 6px ${HEART}44)` }}>
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </div>
@@ -69,16 +69,17 @@ function Hearts() {
 function Stars() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {Array.from({ length: 20 }, (_, i) => (
+      {Array.from({ length: 30 }, (_, i) => (
         <div key={i} className="absolute rounded-full animate-twinkle" style={{
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
-          width: 3,
-          height: 3,
-          background: PINK,
+          width: 2 + Math.random() * 4,
+          height: 2 + Math.random() * 4,
+          background: i % 3 === 0 ? GOLD : PINK,
           opacity: 0,
-          animationDelay: `${Math.random() * 8}s`,
-          animationDuration: `${3 + Math.random() * 4}s`,
+          boxShadow: `0 0 ${4 + Math.random() * 6}px ${i % 2 === 0 ? GOLD : PINK}`,
+          animationDelay: `${Math.random() * 10}s`,
+          animationDuration: `${2.5 + Math.random() * 4}s`,
         }} />
       ))}
     </div>
@@ -281,15 +282,6 @@ function PressedFlower({ className = "", color = PINK, size = 40 }: { className?
   );
 }
 
-/* ─── Photo date stamp ─── */
-function DateStamp({ label }: { label: string }) {
-  return (
-    <div className="absolute bottom-3 right-3 rounded bg-white/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest shadow-sm" style={{ color: MUTED, fontFamily: "'Courier New', monospace" }}>
-      {label}
-    </div>
-  );
-}
-
 /* ─── Ambient sound (Web Audio API soft pad) ─── */
 function useAmbientPad() {
   const ctxRef = useRef<AudioContext | null>(null);
@@ -373,13 +365,58 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
 
 /* ─── Days counter ─── */
 function DaysCounter({ startDate }: { startDate: string }) {
-  const [days, setDays] = useState(0);
+  const [days, setDays] = useState<number | null>(null);
+  const [formatted, setFormatted] = useState("");
+  const [display, setDisplay] = useState(0);
   useEffect(() => {
+    if (!startDate) { setDays(null); setFormatted(""); setDisplay(0); return; }
     const start = new Date(startDate);
+    if (isNaN(start.getTime())) { setDays(null); setFormatted(""); setDisplay(0); return; }
     const now = new Date();
-    setDays(Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    const d = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    setDays(d);
+    setFormatted(start.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }));
+    let count = 0;
+    const step = Math.max(1, Math.floor(d / 40));
+    const iv = setInterval(() => {
+      count += step;
+      if (count >= d) { count = d; clearInterval(iv); }
+      setDisplay(count);
+    }, 30);
+    return () => clearInterval(iv);
   }, [startDate]);
-  return <span>{days}</span>;
+  if (days === null) return (
+    <span className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-[11px] italic tracking-wide" style={{ background: `${PINK}12`, color: `${MUTED}aa` }}>
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill={PINK}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      Set your start date
+    </span>
+  );
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex items-baseline gap-1">
+        <span className="text-5xl font-black tabular-nums tracking-tight" style={{
+          color: GOLD,
+          fontFamily: "'Fraunces', Georgia, serif",
+          textShadow: `0 0 40px ${GOLD}44, 0 0 80px ${GOLD}22`,
+          lineHeight: 1,
+        }}>
+          {display.toLocaleString()}
+        </span>
+        <span className="text-lg font-medium tracking-wide" style={{ color: PINK, fontFamily: "'Caveat', cursive" }}>
+          days of us
+        </span>
+      </div>
+      {formatted && (
+        <div className="mt-1 flex items-center gap-2">
+          <span className="h-px w-6" style={{ background: `linear-gradient(to right, transparent, ${GOLD}66)` }} />
+          <span className="text-[10px] font-light tracking-[0.25em] uppercase" style={{ color: `${GOLD}aa` }}>
+            Since {formatted}
+          </span>
+          <span className="h-px w-6" style={{ background: `linear-gradient(to right, ${GOLD}66, transparent)` }} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 const DEFAULT = {
@@ -393,9 +430,9 @@ const DEFAULT = {
     "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=600&h=800&fit=crop&auto=format",
   ],
   memories: [
-    { title: "The First Time My World Stopped", caption: "I didn't just see you that day. I felt you. And something in me knew\u2014you were going to matter more than anyone ever had.", date: "03. 2025", note: "Your smile didn't just make me happy. It made me believe in love at first sight. Because that's exactly what it was." },
-    { title: "You, in the Silence", caption: "It was never about where we were. It was about the way your hand fit perfectly in mine, like it was always meant to be there.", date: "07. 2025", note: "Nobody saw us in those quiet moments. And maybe that's why they're so beautiful. Just you, just me, just real." },
-    { title: "The Memory I'd Live In Forever", caption: "If I could freeze one moment in time, it would be this one\u2014the exact second I realized I never wanted to love anyone but you.", date: "12. 2025", note: "I don't just want to remember this moment. I want to feel it over and over again, until my last breath." },
+    { title: "The First Time My World Stopped", caption: "I didn't just see you that day. I felt you. And something in me knew\u2014you were going to matter more than anyone ever had.", note: "Your smile didn't just make me happy. It made me believe in love at first sight. Because that's exactly what it was." },
+    { title: "You, in the Silence", caption: "It was never about where we were. It was about the way your hand fit perfectly in mine, like it was always meant to be there.", note: "Nobody saw us in those quiet moments. And maybe that's why they're so beautiful. Just you, just me, just real." },
+    { title: "The Memory I'd Live In Forever", caption: "If I could freeze one moment in time, it would be this one\u2014the exact second I realized I never wanted to love anyone but you.", note: "I don't just want to remember this moment. I want to feel it over and over again, until my last breath." },
   ],
   interludeQuotes: [
     "Some memories don't fade. They stay in your chest and breathe with you.",
@@ -419,7 +456,7 @@ const DEFAULT = {
   endingImage: "/models/assets/asset%2002.png",
   closingQuote: "Some people search their whole lives for what we found. I stopped searching the day I found you\u2014and I'll never need to look again.",
   signature: "From your one and only",
-  startDate: "2025-03-01",
+  startDate: "",
 };
 const MAX_IMAGES = 5;
 
@@ -462,6 +499,21 @@ function EditDrawer({ d, setD, onClose }: { d: typeof DEFAULT; setD: React.Dispa
         <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-black/5"><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke={BROWN} strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
       <div className="space-y-6 px-5 py-6">
+        {/* ── Start Date ── */}
+        <div>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Your Start Date</h3>
+          <label className="mb-3 block">
+            <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider" style={{ color: GOLD }}>Start Date (YYYY-MM-DD)</span>
+            <input type="text" className="w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2" style={{ borderColor: `${BROWN}22`, background: "#fff", color: BROWN }} value={d.startDate} onChange={e => {
+              const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+              let f = digits;
+              if (digits.length > 4) f = digits.slice(0, 4) + "-" + digits.slice(4);
+              if (digits.length > 6) f = f.slice(0, 7) + "-" + f.slice(7);
+              update("startDate", f);
+            }} placeholder="YYYY-MM-DD" />
+            <span className="mt-0.5 block text-[10px]" style={{ color: MUTED }}>Used for the 'X days of us' counter</span>
+          </label>
+        </div>
         {/* ── Hero ── */}
         <div>
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Hero</h3>
@@ -483,7 +535,6 @@ function EditDrawer({ d, setD, onClose }: { d: typeof DEFAULT; setD: React.Dispa
               <EditField label="Photo URL" value={d.pics[i]} onChange={v => update(`pics.${i}`, v)} hint={`Remaining: ${imagesRemaining}`} />
               <EditField label="Title" value={m.title} onChange={v => update(`memories.${i}.title`, v)} />
               <EditField label="Caption" value={m.caption} onChange={v => update(`memories.${i}.caption`, v)} rows={2} />
-              <EditField label="Date" value={m.date} onChange={v => update(`memories.${i}.date`, v)} />
               <EditField label="Flip Note" value={m.note} onChange={v => update(`memories.${i}.note`, v)} rows={2} />
             </div>
           ))}
@@ -521,7 +572,6 @@ function EditDrawer({ d, setD, onClose }: { d: typeof DEFAULT; setD: React.Dispa
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: PINK }}>Closing</h3>
           <EditField label="Quote" value={d.closingQuote} onChange={v => update("closingQuote", v)} rows={2} />
           <EditField label="Signature" value={d.signature} onChange={v => update("signature", v)} />
-          <EditField label="Start Date (YYYY-MM-DD)" value={d.startDate} onChange={v => update("startDate", v)} />
         </div>
         {/* ── Reset ── */}
         <button onClick={resetAll} className="w-full rounded-lg px-4 py-3 text-sm font-bold uppercase tracking-wider transition hover:opacity-80" style={{ background: `${BROWN}0a`, color: MUTED, border: `1px solid ${BROWN}15` }}>
@@ -531,6 +581,11 @@ function EditDrawer({ d, setD, onClose }: { d: typeof DEFAULT; setD: React.Dispa
       </div>
     </div>
   );
+}
+
+const DEFAULT_PREFIXES = ["/models/assets/", "https://images.unsplash.com/"];
+function isCustomImage(url: string): boolean {
+  return !DEFAULT_PREFIXES.some(p => url.startsWith(p));
 }
 
 export default function OurMemoriesPage() {
@@ -548,10 +603,14 @@ export default function OurMemoriesPage() {
     return { ...DEFAULT, pics: [...DEFAULT.pics], memories: DEFAULT.memories.map(m => ({ ...m })), interludeQuotes: [...DEFAULT.interludeQuotes], promises: [...DEFAULT.promises], finalLines: [...DEFAULT.finalLines] };
   });
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    if (window.location.search.includes("edit=true")) setEditOpen(true);
+  }, []);
   useEffect(() => { try { localStorage.setItem("our-memories-content", JSON.stringify(d)); } catch {} }, [d]);
 
   const handlePhotoClick = useCallback((src: string, index: number) => {
+    if (!isCustomImage(src)) return;
     setFlippedIndex(index);
     setTimeout(() => {
       setFlippedIndex(null);
@@ -566,15 +625,15 @@ export default function OurMemoriesPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
         body { background: ${CREAM} !important; }
-        @keyframes float-up {
-          0% { transform: translateY(0) rotate(0deg) scale(0.4); opacity: 0; }
-          10% { opacity: 0.35; }
-          90% { opacity: 0.1; }
-          100% { transform: translateY(-120vh) rotate(360deg) scale(1); opacity: 0; }
-        }
         @keyframes twinkle {
-          0%, 100% { opacity: 0; transform: scale(0.5); }
-          50% { opacity: 0.6; transform: scale(1.3); }
+          0%, 100% { opacity: 0; transform: scale(0.3); }
+          50% { opacity: 1; transform: scale(1.6); }
+        }
+        @keyframes float-up {
+          0% { transform: translateY(0) rotate(0deg) scale(0.3); opacity: 0; }
+          8% { opacity: 0.8; }
+          85% { opacity: 0.4; }
+          100% { transform: translateY(-120vh) rotate(420deg) scale(1.1); opacity: 0; }
         }
         @keyframes pulse-glow {
           0%, 100% { box-shadow: 0 0 20px ${PINK}22, 0 24px 80px ${PINK}22; }
@@ -642,12 +701,13 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
 
       <PaperTexture />
       <PageEdgeShadow />
-      <Hearts />
-      <Stars />
+      {mounted && <Hearts />}
+      {mounted && <Stars />}
       <SoundToggle />
       <VignetteOverlay />
-      <button onClick={() => setEditOpen(true)} className="fixed right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition hover:scale-110 sm:opacity-0 sm:hover:opacity-100" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid rgba(201,168,124,0.3)" }} title="Customize page">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke={BROWN} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path strokeLinecap="round" strokeLinejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <button onClick={() => setEditOpen(true)} className="fixed right-4 top-2 z-[300] flex items-center gap-2 rounded-full px-4 py-2 shadow-lg backdrop-blur-sm transition hover:scale-105" style={{ background: "rgba(255,255,255,0.9)", border: "1px solid rgba(201,168,124,0.3)" }} title="Customize page">
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke={BROWN} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path strokeLinecap="round" strokeLinejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span className="text-xs font-bold" style={{ color: BROWN }}>Edit</span>
       </button>
 
       {/* ───── HERO ───── */}
@@ -655,7 +715,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         <Parallax speed={0.12}>
           <div className={`max-w-2xl transition-all duration-1000 ${mounted ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}>
             <div className="mx-auto mb-10 h-72 w-72 overflow-hidden rounded-3xl ring-4 sm:h-80 sm:w-80" style={{ borderColor: "#f0e4d8", animation: "pulse-glow 4s ease-in-out infinite" }}>
-              <img src={d.heroImage || "/models/assets/Cat%20kiss.gif"} alt="" className="h-full w-full object-cover" />
+              <img src={d.heroImage || "/models/assets/Cat%20kiss.gif"} alt="" className="h-full w-full object-cover" onClick={() => { const u = d.heroImage || "/models/assets/Cat%20kiss.gif"; if (isCustomImage(u)) setLightboxSrc(u); }} style={isCustomImage(d.heroImage || "") ? { cursor: "pointer" } : {}} />
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl" style={{ fontFamily: "'Fraunces', Georgia, serif", color: PINK }}>
               {d.heroHeading}
@@ -663,8 +723,26 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
             <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed sm:text-lg" style={{ color: MUTED }}>
               {d.heroSubtitle}
             </p>
-            <div className="mt-4 text-xs tracking-wider uppercase" style={{ color: PINK }}>
-              <DaysCounter startDate={d.startDate} /> days of us
+            <div className="mt-10">
+              <div className="relative mx-auto inline-block rounded-2xl px-8 py-5" style={{
+                background: `linear-gradient(135deg, ${PINK}08, ${GOLD}06)`,
+                border: `1px solid ${GOLD}22`,
+                boxShadow: `0 0 60px ${GOLD}15, inset 0 0 60px ${GOLD}08`,
+              }}>
+                <div className="pointer-events-none absolute -left-2 -top-2 h-5 w-5 border-l-2 border-t-2 rounded-tl" style={{ borderColor: GOLD }} />
+                <div className="pointer-events-none absolute -right-2 -top-2 h-5 w-5 border-r-2 border-t-2 rounded-tr" style={{ borderColor: GOLD }} />
+                <div className="pointer-events-none absolute -bottom-2 -left-2 h-5 w-5 border-b-2 border-l-2 rounded-bl" style={{ borderColor: GOLD }} />
+                <div className="pointer-events-none absolute -bottom-2 -right-2 h-5 w-5 border-b-2 border-r-2 rounded-br" style={{ borderColor: GOLD }} />
+                <p className="mb-3 text-[9px] tracking-[0.35em] uppercase" style={{ color: `${GOLD}aa`, fontFamily: "'Fraunces', Georgia, serif" }}>
+                  We've been together for
+                </p>
+                <DaysCounter startDate={d.startDate} />
+                <div className="mx-auto mt-3 flex items-center gap-2">
+                  <span className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${GOLD}44)` }} />
+                  <svg viewBox="0 0 16 16" className="h-3 w-3" fill={GOLD}><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm0 2.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11z"/></svg>
+                  <span className="h-px flex-1" style={{ background: `linear-gradient(to right, ${GOLD}44, transparent)` }} />
+                </div>
+              </div>
             </div>
             <div className="mt-14 flex flex-col items-center gap-3">
               <div className="h-12 w-px" style={{ background: `linear-gradient(to bottom, ${PINK}55, transparent)` }} />
@@ -735,7 +813,6 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
                           <div className="pointer-events-none absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-white/60 rounded-tr" />
                           <div className="pointer-events-none absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-white/60 rounded-bl" />
                           <div className="pointer-events-none absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-white/60 rounded-br" />
-                          <DateStamp label={m.date} />
                         </div>
                         {/* Back: handwritten note */}
                         <div className="absolute inset-0 flex items-center justify-center rounded-t-[16px] p-6" style={{
@@ -850,7 +927,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
         <div className="mx-auto max-w-xl">
           <Reveal delay={100}>
             <div className="mx-auto mb-12 h-56 w-56 overflow-hidden rounded-3xl shadow-xl ring-4 sm:h-64 sm:w-64" style={{ borderColor: GOLD, animation: "pulse-glow 4s ease-in-out infinite", boxShadow: `0 0 60px ${GOLD}33` }}>
-              <img src={d.endingImage || "/models/assets/asset%2002.png"} alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" />
+              <img src={d.endingImage || "/models/assets/asset%2002.png"} alt="" className="h-full w-full animate-[slow-zoom_20s_ease-in-out_infinite] object-contain" onClick={() => { const u = d.endingImage || "/models/assets/asset%2002.png"; if (isCustomImage(u)) setLightboxSrc(u); }} style={isCustomImage(d.endingImage || "") ? { cursor: "pointer" } : {}} />
             </div>
           </Reveal>
           <div className="space-y-3">
