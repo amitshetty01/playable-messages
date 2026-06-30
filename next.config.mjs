@@ -18,6 +18,7 @@ const csp = [
 const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  skipTrailingSlashRedirect: true,
   turbopack: {
     root: projectRoot
   },

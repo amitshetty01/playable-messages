@@ -1,0 +1,38 @@
+# Craft Your Message
+> Turn your words into an interactive experience. Create personalized, shareable message links with mini-games, animations, and reveals.
+
+## Summary
+Craft Your Message is a web application that lets users create interactive messages for any occasion — apologies, birthday wishes, love confessions, funny roasts, and friendship notes. Each message becomes a unique link with a mini-game or animation that the recipient plays through before seeing the final message.
+
+## Pages
+- Home: https://craftyourmessage.com/ — Create interactive messages with games and animations
+- Templates: https://craftyourmessage.com/templates — Browse all message templates (51 available)
+- Create: https://craftyourmessage.com/create — Start building an interactive message
+- About: https://craftyourmessage.com/about — Learn about the platform
+- FAQ: https://craftyourmessage.com/faq — Frequently asked questions
+- Contact: https://craftyourmessage.com/contact — Get in touch
+- Privacy: https://craftyourmessage.com/privacy — Privacy policy
+- Terms: https://craftyourmessage.com/terms — Terms of service
+
+## Categories
+- Love & Crush: https://craftyourmessage.com/category/love-crush
+- Apology & Fight Repair: https://craftyourmessage.com/category/apology-fight-repair
+- Friendship & Best Friend: https://craftyourmessage.com/category/friendship-best-friend
+- Birthday & Special Days: https://craftyourmessage.com/category/birthday-special-days
+- Funny & Roast: https://craftyourmessage.com/category/funny-roast
+
+## Use Cases
+- Send an apology: https://craftyourmessage.com/use-cases/send-apology
+- Birthday wishes: https://craftyourmessage.com/use-cases/birthday-wishes
+- Love confession: https://craftyourmessage.com/use-cases/love-confession
+- Funny roast: https://craftyourmessage.com/use-cases/funny-roast
+- Friendship message: https://craftyourmessage.com/use-cases/friendship-message
+
+## Features
+- 51+ interactive templates with unique game mechanics
+- No account or sign-up required
+- Works on all devices (mobile-first)
+- Share via WhatsApp, Instagram, or any messaging app
+- Customizable themes, tones, and colors
+- Private, unguessable links
+- Free to use

@@ -83,7 +83,7 @@ export function QuickFlow() {
           <Link key={m.slug} href={`/mood/${m.slug}`}
             className="group relative flex flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden"
           >
-            <div className="absolute inset-0 bg-cover bg-center opacity-60 group-hover:opacity-80 transition-opacity" style={{ backgroundImage: `url(${m.img})` }} />
+            <img alt="" src={m.img} className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" loading="lazy" />
             <div className={`absolute inset-0 bg-gradient-to-br ${m.overlay}`} />
             <span className="relative z-10 text-2xl sm:text-3xl">{m.emoji}</span>
             <span className="relative z-10 text-[10px] font-bold tracking-wide text-white/90">{t(m.labelKey)}</span>

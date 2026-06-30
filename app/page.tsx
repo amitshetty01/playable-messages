@@ -54,6 +54,17 @@ export default function Page() {
               applicationCategory: "Multimedia",
               operatingSystem: "All",
               browserRequirements: "Requires JavaScript"
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: siteName,
+              url: absoluteUrl("/"),
+              description: defaultDescription,
+              foundingDate: "2025",
+              sameAs: [
+                "https://github.com/amitshetty01"
+              ]
             }
           ])
         }}
