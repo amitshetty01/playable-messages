@@ -114,8 +114,7 @@ export function HomePageContent() {
         </article>
       </section>
 
-      <div className="mt-10 flex flex-col items-center gap-4">
-        <AdsterraAd type="rectangle" />
+      <div className="mt-10 flex justify-center">
         <AdsterraAd type="rectangle" />
       </div>
 
@@ -162,10 +161,8 @@ export function HomePageContent() {
         </Link>
       </div>
 
-      <div className="mt-12 flex flex-wrap justify-center gap-4">
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
+      <div className="mt-12 flex justify-center">
+        <AdsterraAd type="rectangle" />
       </div>
 
     </div>

@@ -908,3 +908,58 @@ html.light .text-white-static {
     @apply rounded-xl border border-pink-200 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition placeholder:text-gray-300 focus:border-pink-400 focus:ring-2 focus:ring-pink-200;
   }
 }
+
+/* ========== Our Story Universe ========== */
+
+@keyframes atmos-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+
+@keyframes atmos-fall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(500px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes firefly-drift {
+  0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+  25% { transform: translate(30px, -20px); opacity: 1; }
+  50% { transform: translate(-20px, -40px); opacity: 0.6; }
+  75% { transform: translate(10px, -10px); opacity: 1; }
+}
+
+@keyframes atmos-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+  50% { transform: translateY(-20px) scale(1.2); opacity: 0.8; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes candle-flicker {
+  0% { opacity: 0.2; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.1); }
+  100% { opacity: 0.3; transform: scaleY(0.95); }
+}
+
+@keyframes wind-blow {
+  0% { transform: translateX(-60px); opacity: 0; }
+  50% { opacity: 0.6; }
+  100% { transform: translateX(400px); opacity: 0; }
+}
+
+@keyframes bird-fly {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(40px, -30px); }
+  50% { transform: translate(80px, 0); }
+  75% { transform: translate(40px, -15px); }
+}
+
+@keyframes completion-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.2; }
+  50% { transform: translateY(-15px) scale(1.2); opacity: 0.6; }
+}
