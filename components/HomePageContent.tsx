@@ -163,9 +163,7 @@ export function HomePageContent() {
       </div>
 
       <div className="mt-12 flex justify-center">
-        <div className="w-full max-w-[728px] h-[90px] max-md:h-[50px] overflow-hidden bg-white/[0.02] flex items-center justify-center">
-          <AdsterraAd type="rectangle" />
-        </div>
+        <AdsterraAd type="rectangle" />
       </div>
 
     </div>
