@@ -7,7 +7,6 @@ import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
 import { AdsterraAd } from "@/components/AdsterraAd";
-import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
 
 const TestimonialCarousel = dynamic(
   () => import("@/components/TestimonialCarousel").then((m) => m.TestimonialCarousel),
@@ -164,7 +163,9 @@ export function HomePageContent() {
       </div>
 
       <div className="mt-12 flex justify-center">
-        <ResponsiveBannerAd />
+        <div className="w-full max-w-[728px] h-[90px] max-md:h-[50px] overflow-hidden bg-white/[0.02] flex items-center justify-center">
+          <AdsterraAd type="rectangle" />
+        </div>
       </div>
 
     </div>
