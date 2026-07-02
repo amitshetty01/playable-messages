@@ -162,7 +162,7 @@ export function HomePageContent() {
         </Link>
       </div>
 
-      <div className="mt-12 flex justify-center">
+      <div className="mt-12 flex flex-wrap justify-center gap-4">
         <AdsterraAd type="rectangle" />
       </div>
 
