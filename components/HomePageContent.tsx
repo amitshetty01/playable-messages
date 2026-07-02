@@ -115,7 +115,8 @@ export function HomePageContent() {
         </article>
       </section>
 
-      <div className="mt-10 flex justify-center">
+      <div className="mt-10 flex flex-col items-center gap-4">
+        <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />
       </div>
 
