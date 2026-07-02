@@ -116,7 +116,7 @@ export function HomePageContent() {
       </section>
 
       <div className="mt-10 flex justify-center">
-        <div className="w-full max-w-[728px]" style={{ height: 90 }}>
+        <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
           <Script id="ad-rect-config">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
           <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" />
         </div>
@@ -165,10 +165,11 @@ export function HomePageContent() {
         </Link>
       </div>
 
-      <div className="mt-12 flex flex-wrap justify-center gap-4">
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
+      <div className="mt-12 flex justify-center">
+        <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
+          <Script id="ad-rect-config-2">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
+          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" />
+        </div>
       </div>
 
     </div>
