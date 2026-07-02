@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import Script from "next/script";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
@@ -114,9 +115,11 @@ export function HomePageContent() {
         </article>
       </section>
 
-      <div className="mt-10 flex flex-col items-center gap-4">
-        <AdsterraAd type="rectangle" />
-        <AdsterraAd type="rectangle" />
+      <div className="mt-10 flex justify-center">
+        <div className="w-full max-w-[728px]" style={{ height: 90 }}>
+          <Script id="ad-rect-config">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
+          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" />
+        </div>
       </div>
 
       {/* ─── Escape hatches ─── */}
@@ -163,7 +166,9 @@ export function HomePageContent() {
       </div>
 
       <div className="mt-12 flex flex-wrap justify-center gap-4">
-        <AdsterraAd type="rectangle" />
+        <AdsterraAd type="square" />
+        <AdsterraAd type="square" />
+        <AdsterraAd type="square" />
       </div>
 
     </div>
