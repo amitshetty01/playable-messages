@@ -31,8 +31,8 @@ export default function FAQPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }} />
       <section className="glass rounded-[2rem] p-5 sm:p-8 lg:p-10">
         <p className="text-xs font-bold tracking-[0.08em] text-white/50">FAQ</p>
-        <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">Questions about interactive message links</h1>
-        <p className="mt-5 max-w-3xl text-white/70">Everything you need to know before creating apology messages, birthday messages, friendship notes, confession reveals, funny roast messages, and surprise shareable links.</p>
+        <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">Questions? We've got answers.</h1>
+        <p className="mt-5 max-w-3xl text-white/70">Everything you want to know before creating your first interactive message — whether it's a birthday surprise, a love confession, a sorry, or just something fun.</p>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="premium-button" href="/create">Create Your Own</Link>
           <Link className="ghost-button" href="/templates">Browse templates</Link>

@@ -622,8 +622,10 @@ export default function OurMemoriesPage() {
 
   return (
     <div style={{ background: CREAM, color: BROWN, fontFamily: "'Nunito Sans', system-ui, sans-serif" }}>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="stylesheet" media="print" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
         body { background: ${CREAM} !important; }
         @keyframes twinkle {
           0%, 100% { opacity: 0; transform: scale(0.3); }

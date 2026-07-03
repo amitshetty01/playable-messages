@@ -27,8 +27,8 @@ const nunito = Nunito_Sans({
   variable: "--font-body",
 });
 
-const title = "Craft Your Message - Create Interactive Love, Birthday, Sorry & Memory Messages";
-const description = defaultDescription;
+const title = "Craft Your Message - Send Love, Birthday & Sorry Messages That Feel Like a Surprise";
+const description = "Turn your words into an interactive link. Send birthday surprises, love confessions, apology messages, and funny roasts that people actually want to open.";
 
 export const metadata: Metadata = {
   title,

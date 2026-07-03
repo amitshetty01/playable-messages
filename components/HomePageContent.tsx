@@ -272,8 +272,8 @@ export function HomePageContent() {
       {/* ─── Ad ─── */}
       <div className="mt-16 flex justify-center">
         <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
-          <Script id="ad-rect-config">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
-          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" />
+          <Script id="ad-rect-config" strategy="lazyOnload">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
+          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" strategy="lazyOnload" />
         </div>
       </div>
 
@@ -449,8 +449,8 @@ export function HomePageContent() {
       {/* ─── Ad ─── */}
       <div className="mt-12 flex justify-center">
         <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
-          <Script id="ad-rect-config-2">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
-          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" />
+          <Script id="ad-rect-config-2" strategy="lazyOnload">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
+          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" strategy="lazyOnload" />
         </div>
       </div>
 

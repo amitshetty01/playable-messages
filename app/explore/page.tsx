@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Explore - Interactive Message Templates & Games | Craft Your Message",
-  description: "Explore featured, trending, and new interactive message templates. Browse by mood, category, or game type.",
+  description: "Find the perfect interactive message template — love confessions, birthday surprises, apology games, and more. Browse by mood or category.",
   path: "/explore",
 });
 
@@ -19,8 +19,8 @@ export default function ExplorePage() {
     <div className="space-y-12 sm:space-y-16">
       <section className="glass rounded-[2rem] p-5 sm:p-8 lg:p-10">
         <p className="text-xs font-bold tracking-[0.08em] text-white/50">Explore</p>
-        <h1 className="display-title mt-3 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl">Discover interactive messages</h1>
-        <p className="mt-4 max-w-3xl text-lg text-white/70">Browse featured templates, popular games, and AI generators. Find the perfect way to express yourself.</p>
+        <h1 className="display-title mt-3 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl">Find the right template for your moment</h1>
+        <p className="mt-4 max-w-3xl text-lg text-white/70">Love confession, birthday surprise, apology, or just something fun — pick a template and make it yours in seconds.</p>
       </section>
 
       <section>

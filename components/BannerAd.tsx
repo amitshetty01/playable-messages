@@ -21,6 +21,6 @@ export function BannerAd() {
   }, [blocked]);
 
   return (
-    <div ref={containerRef} className="flex justify-center" />
+    <div ref={containerRef} className="flex justify-center min-h-[250px]" />
   );
 }

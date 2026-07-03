@@ -28,8 +28,8 @@ export default function AboutPage() {
       <article className="mx-auto max-w-4xl space-y-8">
         <section className="glass rounded-[2rem] p-5 sm:p-8 lg:p-10">
           <p className="text-xs font-bold tracking-[0.08em] text-white/50">About</p>
-          <h1 className="display-title mt-3 text-4xl font-bold leading-tight text-white sm:text-6xl">A more memorable way to send personal messages</h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-white/70">Craft Your Message helps people turn simple texts into interactive links with choices, playful moments, and final reveals. It is built for mobile sharing, quick previews, and messages that feel personal without needing design or coding skills.</p>
+          <h1 className="display-title mt-3 text-4xl font-bold leading-tight text-white sm:text-6xl">A better way to send a message that actually lands</h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-white/70">Craft Your Message lets you turn plain words into an interactive link — with choices, little games, and a moment of reveal at the end. No design skills needed. No coding. Just your message, wrapped in something worth opening.</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link className="premium-button" href="/create">Create your own</Link>
             <Link className="ghost-button" href="/templates">Browse templates</Link>
@@ -38,7 +38,7 @@ export default function AboutPage() {
 
         <section className="glass rounded-[2rem] p-5 sm:p-8">
           <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-white">Our Story</h2>
-          <p className="mt-4 leading-8 text-white/70">Text messaging is how most of us communicate, but plain text often lacks warmth, personality, and presence. We wanted a way to send messages that feel more like an experience and less like a notification. So we built Craft Your Message — a platform where a simple link can carry emotion, pacing, and a personal touch that a wall of text cannot.</p>
+          <p className="mt-4 leading-8 text-white/70">Texting is how most of us talk now. But a wall of text — it doesn't land the way you want it to. We wanted something that felt more like a moment and less like a notification. So we built this: a place where a single link can carry warmth, timing, and a little bit of magic that plain words just can't deliver.</p>
         </section>
 
         <section className="grid gap-5 md:grid-cols-3">
