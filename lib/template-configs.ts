@@ -343,6 +343,13 @@ const templateConfigs: Record<string, TemplateConfig> = {
     name: "Sorry Maze",
     editableFields: [],
   },
+  "love-contract": {
+    id: "love-contract",
+    name: "Love Contract",
+    editableFields: [
+      { key: "photos", label: "Couple Photo", type: "image", required: false, imageCount: 1, helpText: "Upload a couple photo for the certificate" },
+    ],
+  },
   "our-memories": {
     id: "our-memories",
     name: "Our Memories", 

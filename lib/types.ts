@@ -93,6 +93,8 @@ export type ExperienceAnalytics = {
   templateUsed: string;
 };
 
+export type LockType = "password" | "nickname" | "date" | "puzzle" | null;
+
 export type ExperienceRecord = {
   id: string;
   templateId: string;
@@ -115,6 +117,13 @@ export type ExperienceRecord = {
   togetherSince?: string;
   reaction?: string;
   templateData?: Record<string, any>;
+  scheduledAt?: string;
+  lockType?: LockType;
+  lockValue?: string;
+  giftSongUrl?: string;
+  giftSongTitle?: string;
+  isReply?: boolean;
+  replyToId?: string;
 };
 
 export type EditableFieldType = "text" | "textarea" | "image" | "password" | "date" | "time" | "number" | "color";

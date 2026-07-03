@@ -87,6 +87,11 @@ const DEMO_STEPS: Record<string, [string, string, string]> = {
     "Each segment unlocks a different theme.",
     "The real message awaits after the spin."
   ],
+  "love-contract": [
+    "This contract is made between two hearts who chose each other.",
+    "On these pages, parties agree to be ridiculous together.",
+    "Signed and sealed — this love is legally unofficial."
+  ],
   "our-memories": [
     "Every smile, every quiet moment, every laugh we shared\u2014I kept them all right here for you.",
     "Some memories don't fade. They stay in your chest and breathe with you. These are the ones I'll carry forever.",

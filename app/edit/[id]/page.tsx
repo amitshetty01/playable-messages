@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CreateForm } from "@/components/CreateForm";
 import { AdsterraAd } from "@/components/AdsterraAd";
+import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
 import { getTemplate, templates } from "@/lib/data";
 import { getExperience } from "@/lib/experiences";
 import { buildMetadata } from "@/lib/seo";
@@ -27,19 +28,14 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
 
   return (
     <>
-      <div className="mb-6 flex justify-center">
-        <AdsterraAd type="rectangle" />
+      <div className="mb-8 mt-4 flex justify-center">
+        <ResponsiveBannerAd />
       </div>
       <CreateForm existingExperience={data} initialTemplate={template} templates={templates} />
       <div className="mt-10 flex flex-col items-center gap-4">
         <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />
         <AdsterraAd type="rectangle" />
-      </div>
-      <div className="mt-10 flex flex-wrap justify-center gap-4">
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
-        <AdsterraAd type="square" />
       </div>
     </>
   );

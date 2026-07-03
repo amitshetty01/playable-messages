@@ -1,5 +1,5 @@
 import { categories, defaultCustomMessages, defaultFinalMessage, getTemplate, themes, tones } from "@/lib/data";
-import type { CustomMessages, ExperienceAnalytics, ExperienceRecord, RelationshipTag, ThemeName, Tone } from "@/lib/types";
+import type { CustomMessages, ExperienceAnalytics, ExperienceRecord, LockType, RelationshipTag, ThemeName, Tone } from "@/lib/types";
 
 const max = (value: unknown, fallback: string, length: number) => {
   const text = typeof value === "string" ? value.trim() : fallback;
@@ -23,7 +23,14 @@ function parseExpiresAt(raw: unknown): string | null {
   return date.toISOString();
 }
 
-export function normalizeExperiencePayload(body: Record<string, unknown>): Omit<ExperienceRecord, "id" | "createdAt" | "analytics"> & { expiresAt?: string } {
+function parseScheduledAt(raw: unknown): string | null {
+  if (typeof raw !== "string" || !raw) return null;
+  const date = new Date(raw);
+  if (isNaN(date.getTime()) || date.getTime() <= Date.now()) return null;
+  return date.toISOString();
+}
+
+export function normalizeExperiencePayload(body: Record<string, unknown>): Omit<ExperienceRecord, "id" | "createdAt" | "analytics"> & { expiresAt?: string; scheduledAt?: string } {
   const rawImages = body.images;
   const images = Array.isArray(rawImages) ? rawImages.filter((img): img is string => typeof img === "string" && img.startsWith("data:image")).slice(0, 6) : undefined;
   const templateId = max(body.templateId, "the-final-button", 80);
@@ -61,6 +68,13 @@ export function normalizeExperiencePayload(body: Record<string, unknown>): Omit<
     passwordQuestion: typeof body.passwordQuestion === "string" ? body.passwordQuestion.slice(0, 200) : undefined,
     passwordAnswer: typeof body.passwordAnswer === "string" ? body.passwordAnswer.slice(0, 80) : undefined,
     togetherSince: typeof body.togetherSince === "string" ? body.togetherSince.slice(0, 10) : undefined,
+    scheduledAt: parseScheduledAt(body.scheduledAt) ?? undefined,
+    lockType: (["password", "nickname", "date", "puzzle"].includes(body.lockType as string) ? body.lockType : null) as LockType,
+    lockValue: typeof body.lockValue === "string" ? body.lockValue.slice(0, 80) : undefined,
+    giftSongUrl: typeof body.giftSongUrl === "string" ? body.giftSongUrl.slice(0, 500) : undefined,
+    giftSongTitle: typeof body.giftSongTitle === "string" ? body.giftSongTitle.slice(0, 200) : undefined,
+    isReply: typeof body.isReply === "boolean" ? body.isReply : false,
+    replyToId: typeof body.replyToId === "string" ? body.replyToId.slice(0, 14) : undefined,
   };
 }
 

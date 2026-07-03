@@ -1,56 +1,252 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
-import { AdsterraAd } from "@/components/AdsterraAd";
+import { TrendingTemplates } from "@/components/TrendingTemplates";
+import { TemplatePreviewOverlay } from "@/components/TemplatePreviewOverlay";
+import { getTemplate, templates } from "@/lib/data";
 
 const TestimonialCarousel = dynamic(
   () => import("@/components/TestimonialCarousel").then((m) => m.TestimonialCarousel),
   { ssr: false }
 );
 
+const REACTIONS = [
+  { emoji: "😭", text: "She cried at the last reveal", author: "— Riya" },
+  { emoji: "😂", text: "He chased the button for 40 seconds", author: "— Aarav" },
+  { emoji: "❤️", text: "My girlfriend replayed it 5 times", author: "— Karan" },
+  { emoji: "🥹", text: "I wasn't ready for that ending", author: "— Neha" },
+  { emoji: "😍", text: "Best birthday surprise ever", author: "— Priya" },
+  { emoji: "🤯", text: "He thought it was spam at first", author: "— Ananya" },
+];
+
+const OCCASIONS = [
+  { label: "Anniversary", icon: "💍", slug: "love" },
+  { label: "Birthday", icon: "🎂", slug: "birthday" },
+  { label: "Proposal", icon: "💎", slug: "love" },
+  { label: "Sorry", icon: "💔", slug: "sorry" },
+  { label: "Love", icon: "💖", slug: "love" },
+  { label: "Friendship", icon: "🤝", slug: "memory" },
+  { label: "Roast", icon: "🏆", slug: "roast" },
+  { label: "Long Distance", icon: "🌍", slug: "love" },
+];
+
+const ACTIVITIES = [
+  { emoji: "❤️", text: "Someone just created Love Contract", delay: 0 },
+  { emoji: "😂", text: "A Moving Button was shared", delay: 2000 },
+  { emoji: "🎂", text: "Birthday Reveal completed", delay: 4000 },
+  { emoji: "💔", text: "Kitty Apology sent to patch things up", delay: 6000 },
+  { emoji: "🧩", text: "Escape Me was solved in 28 seconds", delay: 8000 },
+  { emoji: "💜", text: "Heart Vault unlocked by someone special", delay: 10000 },
+];
+
+const HOW_IT_WORKS = [
+  { step: "1", icon: "✍️", title: "Write your message", desc: "Type what you want to say — love, sorry, funny, or just because." },
+  { step: "2", icon: "🎨", title: "Choose a template", desc: "Pick from 50+ interactive experiences that match your mood." },
+  { step: "3", icon: "🎵", title: "Customize it", desc: "Add names, photos, music, and text to make it truly yours." },
+  { step: "4", icon: "🔗", title: "Share your link", desc: "Send it anywhere — WhatsApp, Instagram, SMS, or email." },
+  { step: "5", icon: "🎬", title: "Watch them experience it", desc: "They open the link and play through your message live." },
+];
+
+const fullTemplates = templates.filter((t) => t.status === "full");
 export function HomePageContent() {
   const [showGuided, setShowGuided] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
+  const [preview, setPreview] = useState<{ id: string; rect: DOMRect } | null>(null);
+
+  const handlePreview = useCallback((id: string, rect?: DOMRect) => {
+    const r = rect || { top: 0, left: 0, width: 340, height: 280 } as DOMRect;
+    setPreview({ id, rect: r });
+  }, []);
+
+  const closePreview = useCallback(() => {
+    setPreview(null);
+  }, []);
+
+  const previewTemplate = preview ? getTemplate(preview.id) : null;
 
   return (
-    <div className="pb-24">
+    <>
+    <div className={`pb-24 ${preview ? "pointer-events-none select-none" : ""}`}>
 
-      {/* ─── Primary: Quick flow ─── */}
-      <section className="section-fade min-h-[80dvh] pt-12 sm:pt-20">
+      {/* ─── Hero ─── */}
+      <section className="section-fade pt-8 sm:pt-16">
         <QuickFlow />
       </section>
 
-      {/* ─── Long-tail SEO keywords ─── */}
-      <div className="mx-auto mt-20 max-w-3xl text-center">
-        <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Ways to use Craft Your Message</h2>
-        <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-white/40">
-          <span>interactive birthday message link</span>
-          <span>send a fun apology message</span>
-          <span>creative way to say sorry over text</span>
-          <span>romantic confession maker</span>
-          <span>funny roast generator</span>
-          <span>friendship message with games</span>
-          <span>surprise text reveal</span>
-          <span>interactive love letter online</span>
-        </div>
-      </div>
+      {/* ─── Trending templates ─── */}
+      <section className="mt-24">
+        <TrendingTemplates onDemo={handlePreview} />
+      </section>
 
-      {/* ─── Social proof / Testimonial carousel ─── */}
-      <div className="mx-auto mt-20 max-w-3xl">
+      {/* ─── How it works ─── */}
+      <section className="mx-auto mt-28 max-w-5xl px-4">
+        <div className="text-center">
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">How it works</h2>
+          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+          <p className="mt-4 text-lg text-white/60">Five simple steps to create an unforgettable message.</p>
+        </div>
+        <div className="relative mt-14">
+          {/* Connecting line (desktop) */}
+          <div className="absolute left-1/2 top-12 hidden h-[calc(100%-6rem)] w-px -translate-x-1/2 bg-gradient-to-b from-blush/20 via-violet/20 to-neon/20 lg:block" />
+          <div className="grid gap-8 lg:grid-cols-5 lg:gap-4">
+            {HOW_IT_WORKS.map((item, i) => (
+              <div key={item.step} className="relative flex flex-col items-center text-center">
+                {/* Step circle */}
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10 transition-all duration-500 hover:ring-blush/30 hover:bg-white/[0.08]">
+                  <span className="text-3xl transition-transform duration-300 hover:scale-110">{item.icon}</span>
+                  {/* Step number */}
+                  <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blush to-violet text-[10px] font-extrabold text-white shadow-lg">
+                    {item.step}
+                  </div>
+                </div>
+                {/* Arrow (between steps) */}
+                {i < HOW_IT_WORKS.length - 1 && (
+                  <div className="hidden lg:block absolute -right-3 top-8 text-white/15">
+                    <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor"><path d="M8 0L6.59 1.41 12.17 7H0v2h12.17l-5.58 5.59L8 16l8-8z"/></svg>
+                  </div>
+                )}
+                <h3 className="mt-4 text-base font-extrabold text-white">{item.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-white/50 max-w-[200px]">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Choose by occasion ─── */}
+      <section className="mx-auto mt-28 max-w-5xl px-4">
+        <div className="text-center">
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Choose by occasion</h2>
+          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+          <p className="mt-4 text-lg text-white/60">Pick the moment and find the perfect experience.</p>
+        </div>
+        <div className="mt-10 grid grid-cols-4 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          {OCCASIONS.map((o) => (
+            <Link
+              key={o.label}
+              href={`/mood/${o.slug}`}
+              className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5"
+            >
+              <span className="text-xl transition-transform duration-300 group-hover:scale-125">{o.icon}</span>
+              <span className="text-[10px] font-extrabold text-white/70 transition-colors group-hover:text-white text-center leading-tight">{o.label}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Trending Today tabs ─── */}
+      <section className="mx-auto mt-28 max-w-6xl px-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Discover</h2>
+            <div className="mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+          </div>
+          </div>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {fullTemplates.slice(0, 4).map((t) => (
+            <div
+              key={t.id}
+              data-card
+              onClick={(e) => { const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
+              className="glass group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 text-lg ring-1 ring-white/10">
+                  {t.id === "the-final-button" ? "🎯" :
+                   t.id === "love-chase" ? "💖" :
+                   t.id === "love-contract" ? "📜" :
+                   t.id === "birthday-surprise-journey" ? "🎂" :
+                   t.id === "come-closer" ? "👻" :
+                   t.id === "our-memories" ? "📖" :
+                   t.id === "escape-me" ? "🧩" :
+                   t.id === "kitty-apology" ? "🐱" :
+                   t.id === "memory-maze" ? "💜" :
+                   t.id === "sorry-maze" ? "💛" :
+                   t.id === "birthday-journey" ? "🎈" : "✨"}
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-extrabold text-white truncate">{t.title}</h4>
+                  <p className="text-[10px] text-white/40">{t.length}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
+                  className="flex-1 rounded-lg border border-white/15 bg-white/[0.06] py-1.5 text-[10px] font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white active:scale-95"
+                >
+                  Demo
+                </button>
+                <Link
+                  href={t.id === "our-memories" ? "/our-memories?edit=true" : `/create/${t.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 rounded-lg bg-gradient-to-r from-blush/80 to-violet/80 py-1.5 text-center text-[10px] font-extrabold text-white shadow transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  Create
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Recent activity ─── */}
+      <section className="mx-auto mt-28 max-w-3xl px-4">
+        <div className="text-center">
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Live activity</h2>
+          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+        </div>
+        <div className="mt-10 space-y-3">
+          {ACTIVITIES.map((a, i) => (
+            <div
+              key={i}
+              className="animate-fade-in glass flex items-center gap-3 rounded-xl px-4 py-3"
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              <span className="text-lg">{a.emoji}</span>
+              <p className="text-sm text-white/70">{a.text}</p>
+              <span className="ml-auto text-[10px] text-white/25">just now</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Social proof ─── */}
+      <section className="mx-auto mt-28 max-w-5xl px-4">
+        <div className="text-center">
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Real reactions</h2>
+          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {REACTIONS.map((r, i) => (
+            <div
+              key={i}
+              className="glass group rounded-xl p-5 transition-all duration-300 hover:-translate-y-1"
+              style={{ animationDelay: `${i * 120}ms` }}
+            >
+              <p className="flex items-start gap-2 text-base leading-relaxed text-white/85">
+                <span className="mt-0.5 text-xl">{r.emoji}</span>
+                <span>{r.text}</span>
+              </p>
+              <p className="mt-3 text-xs font-bold text-white/35">{r.author}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Testimonials + Stats ─── */}
+      <div className="mx-auto mt-28 max-w-3xl px-4">
         <div className="text-center">
           <h2 className="text-xs font-bold tracking-[0.18em] text-white/50 uppercase">What people create</h2>
           <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
         </div>
-
         <TestimonialCarousel />
-
-        {/* Stats row */}
         <div className="mt-6">
           <h3 className="text-center text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">Trusted by thousands</h3>
           <div className="mt-5 grid grid-cols-4 gap-3">
@@ -72,58 +268,42 @@ export function HomePageContent() {
         </div>
       </div>
 
-      {/* ─── SEO content section ─── */}
-      <section className="mx-auto mt-20 max-w-3xl space-y-10 px-4">
-        <article>
-          <h2 className="text-xl font-bold text-white sm:text-2xl">What is Craft Your Message?</h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            Craft Your Message is a creative online platform that turns your words into interactive, shareable experiences. Instead of sending a plain text message, you create a unique link that opens a mini-game, animation, or reveal sequence. Your recipient plays through the experience and discovers your message at the end. It is a fun and memorable way to say something meaningful.
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            Whether you want to send an apology after a fight, confess your feelings to a crush, wish a friend a happy birthday, or roast your best friend in good humor, Craft Your Message makes every word count. Each template is designed with a specific emotion in mind, so your message lands the way you intend it to.
-          </p>
-        </article>
-
-        <article>
-          <h2 className="text-xl font-bold text-white sm:text-2xl">How It Works</h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            Using Craft Your Message is simple. Type your message into the text box above, choose a mood that matches your feelings, and generate your link. The platform automatically picks the best template for your words. You can then share the link via WhatsApp, Instagram, or any other messaging app. When your recipient opens the link, they are guided through a beautifully designed interactive moment before your message is revealed.
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            You can also browse the full collection of templates, preview how each one works, and customize the colors, tone, and theme to match your style. Every experience is fully responsive and works on any device, so your message looks great whether it is opened on a phone, tablet, or desktop.
-          </p>
-        </article>
-
-        <article>
-          <h2 className="text-xl font-bold text-white sm:text-2xl">Popular Ways to Use Interactive Messages</h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            People use Craft Your Message for all kinds of occasions. Send an interactive birthday message link that your friends actually enjoy opening. Create a fun apology message after an argument to break the ice and show you care. Write a romantic confession maker that turns "I like you" into an unforgettable moment. Generate a funny roast generator to tease your best friend in the best way possible. Or build a friendship message with games to celebrate the people who matter most.
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            Our surprise text reveal templates are perfect for proposals, announcements, or any moment that deserves a dramatic reveal. The interactive love letter online templates let you pour your heart out in a way that feels authentic and personal. No matter what you want to say, there is a template that fits.
-          </p>
-        </article>
-
-        <article>
-          <h2 className="text-xl font-bold text-white sm:text-2xl">Why Choose Craft Your Message?</h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            Unlike a regular text message, an interactive experience creates anticipation and emotion. The mini-games and animations draw the recipient in and make the final message more impactful. Each template is carefully crafted by designers and developers who understand both storytelling and user experience. We offer over fifty templates across multiple moods and categories, with new ones added regularly.
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
-            Craft Your Message is free to use, requires no account or sign-up, and works entirely in your browser. Your privacy matters to us, and we do not share your messages. Start creating your interactive message today and see the difference it makes.
-          </p>
-        </article>
-      </section>
-
-      <div className="mt-10 flex justify-center">
+      {/* ─── Ad ─── */}
+      <div className="mt-16 flex justify-center">
         <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
           <Script id="ad-rect-config">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
           <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" />
         </div>
       </div>
 
+      {/* ─── SEO text ─── */}
+      <section className="mx-auto mt-20 max-w-4xl px-4">
+        <div className="glass rounded-[2rem] p-6 sm:p-10">
+          <h2 className="display-title text-2xl font-bold text-white sm:text-3xl">What is Craft Your Message?</h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-base">
+            Craft Your Message is a creative online platform that turns your words into interactive, shareable experiences. Instead of sending a plain text message, you create a unique link that opens a mini-game, animation, or reveal sequence. Your recipient plays through the experience and discovers your message at the end. It is a fun and memorable way to say something meaningful.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-white/60 sm:text-base">
+            Whether you want to send an apology after a fight, confess your feelings to a crush, wish a friend a happy birthday, or roast your best friend in good humor, Craft Your Message makes every word count. Each template is designed with a specific emotion in mind, so your message lands the way you intend it to.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {[
+              { icon: "🎮", title: "Playful", desc: "Every message is a mini game or animation they play through." },
+              { icon: "🔗", title: "Shareable", desc: "One link. Works on any phone, any chat app, anywhere." },
+              { icon: "💝", title: "Emotional", desc: "The format makes your words hit harder and feel deeper." },
+            ].map((item) => (
+              <div key={item.title} className="flex flex-col items-center rounded-xl bg-white/[0.04] p-4 text-center ring-1 ring-white/10">
+                <span className="text-3xl">{item.icon}</span>
+                <h3 className="mt-3 text-sm font-extrabold text-white">{item.title}</h3>
+                <p className="mt-1 text-xs text-white/50">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── Escape hatches ─── */}
-      <div className="mt-10 flex flex-col items-center gap-3 text-center">
+      <div className="mt-16 flex flex-col items-center gap-3 text-center">
         <button
           type="button"
           onClick={() => { setShowGuided(!showGuided); if (!showGuided) setShowBrowse(false); }}
@@ -140,22 +320,40 @@ export function HomePageContent() {
         </button>
       </div>
 
-      {/* ─── Guided flow (expands inline) ─── */}
+      {/* ─── Guided flow ─── */}
       {showGuided && (
         <section className="section-fade mt-12">
           <GuidedFlow />
         </section>
       )}
 
-      {/* ─── Browse flow (expands inline) ─── */}
+      {/* ─── Browse flow ─── */}
       {showBrowse && (
         <section className="section-fade mt-12">
           <BrowseFlow />
         </section>
       )}
 
+      {/* ─── Explore & Messages bottom links ─── */}
+      <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          href="/explore"
+          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+          Explore
+        </Link>
+        <Link
+          href="/messages"
+          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+          Messages
+        </Link>
+      </div>
+
       {/* ─── Secret space ─── */}
-      <div className="mt-16 text-center">
+      <div className="mt-8 text-center">
         <Link
           href="/chat"
           className="group inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[0.65rem] font-bold text-white/35 transition-all hover:bg-white/5 hover:text-white/60"
@@ -165,6 +363,7 @@ export function HomePageContent() {
         </Link>
       </div>
 
+      {/* ─── Ad ─── */}
       <div className="mt-12 flex justify-center">
         <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
           <Script id="ad-rect-config-2">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
@@ -173,5 +372,14 @@ export function HomePageContent() {
       </div>
 
     </div>
+
+    {preview && previewTemplate && (
+      <TemplatePreviewOverlay
+        template={previewTemplate}
+        cardRect={preview.rect}
+        onClose={closePreview}
+      />
+    )}
+    </>
   );
 }

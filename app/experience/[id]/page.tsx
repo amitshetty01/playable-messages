@@ -4,17 +4,37 @@ import { ExperiencePlayer } from "@/components/ExperiencePlayer";
 import { getTemplate } from "@/lib/data";
 import { getExperience } from "@/lib/experiences";
 import { SCENE_ENGINE_TEMPLATES } from "@/lib/scene-registry";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, siteName } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  return buildMetadata({
-    title: "Private Interactive Message",
-    description: "A generated interactive message link. Generated experience pages are noindex by default.",
-    path: `/experience/${id}`,
-    noIndex: true
-  });
+  const { data } = await getExperience(id);
+  const title = data?.finalMessage ? `${data.finalMessage.slice(0, 60)}...` : "Interactive Message";
+  const ogImage = data?.templateId
+    ? `/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(`A ${data.templateId.replace(/-/g, " ")} interactive message created on ${siteName}`)}&type=message`
+    : undefined;
+
+  return {
+    title: `${title} | ${siteName}`,
+    description: "An interactive message experience created with love on Craft Your Message.",
+    alternates: { canonical: absoluteUrl(`/experience/${id}`) },
+    openGraph: {
+      title,
+      description: "Open this interactive message experience.",
+      url: absoluteUrl(`/experience/${id}`),
+      siteName,
+      type: "website",
+      images: ogImage ? [{ url: absoluteUrl(ogImage), width: 1200, height: 630 }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: "Open this interactive message experience.",
+      images: ogImage ? [absoluteUrl(ogImage)] : undefined,
+    },
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function ExperiencePage({ params }: { params: Promise<{ id: string }> }) {

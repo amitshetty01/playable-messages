@@ -9,7 +9,7 @@ type NavLink = { href: string; label?: string; labelKey?: string };
 const links: NavLink[] = [
   { href: "/templates", labelKey: "nav.templates" },
   { href: "/my-experiences", labelKey: "nav.messages" },
-  { href: "/chat", labelKey: "nav.chat" },
+  { href: "/reminders", label: "Reminders" },
 ];
 
 export function Header() {

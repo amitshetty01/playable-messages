@@ -779,6 +779,20 @@ export const templates: Template[] = [
     formula: ["Share your first memory", "Recall the little moments", "Make promises", "End with a heartfelt message"],
     description: "A beautiful interactive scrapbook where you can share your favorite memories, make promises, and create a lasting keepsake for someone special."
   },
+  {
+    id: "love-contract",
+    slug: "love-contract",
+    title: "Love Contract",
+    hook: "A funny + emotional relationship contract with promises, rules, penalties, and signatures.",
+    categorySlugs: ["love-crush", "funny-roast"],
+    bestFor: "couples, anniversaries, proposals, funny relationship goals",
+    length: "5 minutes",
+    tone: "Romantic",
+    theme: "Dark Romantic",
+    status: "full",
+    formula: ["Parchment opening", "Partner details", "Funny rules", "Heartfelt promises", "Penalties clause", "Secret wax seal", "Signatures", "Certificate"],
+    description: "An interactive relationship contract between two partners with funny rules, heartfelt promises, playful penalties, a secret wax seal clause, and a beautiful signed certificate."
+  },
 ];
 
 templates.sort((a, b) => {

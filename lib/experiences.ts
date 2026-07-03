@@ -3,7 +3,7 @@ import path from "path";
 import os from "os";
 import { getSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { emptyAnalytics, generateExperienceId, normalizeExperiencePayload } from "@/lib/validation";
-import type { AnalyticsPayload, ExperienceAnalytics, ExperienceRecord } from "@/lib/types";
+import type { AnalyticsPayload, ExperienceAnalytics, ExperienceRecord, LockType } from "@/lib/types";
 
 type ExperienceRow = {
   id: string;
@@ -26,6 +26,13 @@ type ExperienceRow = {
   password_question?: string | null;
   password_answer?: string | null;
   together_since?: string | null;
+  scheduled_at?: string | null;
+  lock_type?: string | null;
+  lock_value?: string | null;
+  gift_song_url?: string | null;
+  gift_song_title?: string | null;
+  is_reply?: boolean | null;
+  reply_to_id?: string | null;
 };
 
 const STORE_PATH = path.join(os.tmpdir(), "craftyourmessage-store.json");
@@ -70,6 +77,13 @@ function toRecord(row: ExperienceRow): ExperienceRecord {
     passwordAnswer: row.password_answer ?? undefined,
     togetherSince: row.together_since ?? undefined,
     reaction: row.reaction ?? undefined,
+    scheduledAt: row.scheduled_at ?? undefined,
+    lockType: (["password", "nickname", "date", "puzzle"].includes(row.lock_type ?? "") ? row.lock_type : null) as LockType,
+    lockValue: row.lock_value ?? undefined,
+    giftSongUrl: row.gift_song_url ?? undefined,
+    giftSongTitle: row.gift_song_title ?? undefined,
+    isReply: row.is_reply ?? undefined,
+    replyToId: row.reply_to_id ?? undefined,
   };
 }
 
@@ -98,6 +112,13 @@ export async function createExperience(body: Record<string, unknown>) {
       password_answer: input.passwordAnswer ?? null,
       together_since: input.togetherSince ?? null,
       images: input.images,
+      scheduled_at: input.scheduledAt ?? null,
+      lock_type: input.lockType ?? null,
+      lock_value: input.lockValue ?? null,
+      gift_song_url: input.giftSongUrl ?? null,
+      gift_song_title: input.giftSongTitle ?? null,
+      is_reply: input.isReply ?? null,
+      reply_to_id: input.replyToId ?? null,
     };
     const store = await readLocalStore();
     store.set(id, row);
@@ -126,6 +147,13 @@ export async function createExperience(body: Record<string, unknown>) {
   if (input.passwordAnswer) row.password_answer = input.passwordAnswer;
   if (input.togetherSince) row.together_since = input.togetherSince;
   if (input.expiresAt) row.expires_at = input.expiresAt;
+  if (input.scheduledAt) row.scheduled_at = input.scheduledAt;
+  if (input.lockType) row.lock_type = input.lockType;
+  if (input.lockValue) row.lock_value = input.lockValue;
+  if (input.giftSongUrl) row.gift_song_url = input.giftSongUrl;
+  if (input.giftSongTitle) row.gift_song_title = input.giftSongTitle;
+  if (input.isReply) row.is_reply = input.isReply;
+  if (input.replyToId) row.reply_to_id = input.replyToId;
 
   const { data, error } = await supabase.from("generated_experiences").insert(row).select("*").single<ExperienceRow>();
   if (error) return { data: null, error: error.message };
@@ -182,7 +210,14 @@ export async function updateExperience(body: Record<string, unknown>) {
       password_question: input.passwordQuestion ?? existing.password_question,
       password_answer: input.passwordAnswer ?? existing.password_answer,
       together_since: input.togetherSince ?? existing.together_since,
-      images: input.images ?? existing.images
+      images: input.images ?? existing.images,
+      scheduled_at: input.scheduledAt ?? existing.scheduled_at,
+      lock_type: input.lockType ?? existing.lock_type,
+      lock_value: input.lockValue ?? existing.lock_value,
+      gift_song_url: input.giftSongUrl ?? existing.gift_song_url,
+      gift_song_title: input.giftSongTitle ?? existing.gift_song_title,
+      is_reply: input.isReply ?? existing.is_reply,
+      reply_to_id: input.replyToId ?? existing.reply_to_id,
     };
     store.set(id, updated);
     await writeLocalStore(store);
@@ -208,6 +243,13 @@ export async function updateExperience(body: Record<string, unknown>) {
   if (input.passwordAnswer) updateRow.password_answer = input.passwordAnswer;
   if (input.togetherSince) updateRow.together_since = input.togetherSince;
   if (input.expiresAt) updateRow.expires_at = input.expiresAt;
+  if (input.scheduledAt) updateRow.scheduled_at = input.scheduledAt;
+  if (input.lockType) updateRow.lock_type = input.lockType;
+  if (input.lockValue) updateRow.lock_value = input.lockValue;
+  if (input.giftSongUrl) updateRow.gift_song_url = input.giftSongUrl;
+  if (input.giftSongTitle) updateRow.gift_song_title = input.giftSongTitle;
+  if (input.isReply) updateRow.is_reply = input.isReply;
+  if (input.replyToId) updateRow.reply_to_id = input.replyToId;
   const { data, error } = await supabase
     .from("generated_experiences")
     .update(updateRow)
