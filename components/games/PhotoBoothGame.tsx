@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { TypewriterText } from "@/components/TypewriterText";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StepTransition } from "@/components/StepTransition";
@@ -97,7 +98,7 @@ export function PhotoBoothGame({ template, experience, mode, shareUrl }: Props) 
                       {i < slots.length ? (
                         hasImages && userImages[i] ? (
                           <>
-                            <img src={userImages[i]} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
+                            <Image src={userImages[i]} alt="" fill className="object-cover opacity-50" sizes="200px" unoptimized />
                             <span className="relative z-10"><TypewriterText text={slots[i]} speed={15} /></span>
                           </>
                         ) : (

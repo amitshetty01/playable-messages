@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import type { ExperienceRecord, Template } from "@/lib/types";
 
@@ -750,8 +751,8 @@ export function LoveContractGame({ template, experience, mode }: Props) {
                     {/* Photo */}
                     {photo && (
                       <div className="mt-4 flex justify-center">
-                        <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-[#b8860b]/30">
-                          <img src={photo} alt="couple" className="h-full w-full object-cover" />
+                        <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[#b8860b]/30">
+                          <Image src={photo} alt="couple" fill className="object-cover" sizes="64px" unoptimized />
                         </div>
                       </div>
                     )}
@@ -839,7 +840,7 @@ export function LoveContractGame({ template, experience, mode }: Props) {
                           {recipientSignature && (
                             <div className="text-center">
                               <p className="font-serif text-[10px] text-[#3a1a0a]/50">{partner2}</p>
-                              <img src={recipientSignature} alt="signature" className="h-6" />
+                              <Image src={recipientSignature} alt="signature" width={100} height={24} className="h-6 w-auto" unoptimized />
                             </div>
                           )}
                         </motion.div>

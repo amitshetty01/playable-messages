@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { SceneStep } from "@/lib/scene-types";
 
 function anim(a: string | undefined): string {
@@ -175,7 +176,9 @@ function PhotoCard3D({ animation, index = 0, image }: { animation?: string; inde
         }}
       >
         {image ? (
-          <img src={image} alt="memory" className="h-48 w-full rounded-xl object-cover" style={{ transform: "translateZ(5px)" }} />
+          <div className="relative h-48 w-full overflow-hidden rounded-xl" style={{ transform: "translateZ(5px)" }}>
+            <Image src={image} alt="memory" fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" unoptimized />
+          </div>
         ) : (
           <div className="h-48 w-full rounded-xl bg-white/10" style={{ transform: "translateZ(5px)" }} />
         )}
@@ -299,7 +302,9 @@ function Polaroid3D({ animation, image, index = 0 }: { animation?: string; image
         }}
       >
         {image ? (
-          <img src={image} alt="" className="h-44 w-full rounded-xl object-cover" style={{ transform: "translateZ(5px)" }} />
+          <div className="relative h-44 w-full overflow-hidden rounded-xl" style={{ transform: "translateZ(5px)" }}>
+            <Image src={image} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" unoptimized />
+          </div>
         ) : (
           <div className="h-44 w-full rounded-xl bg-gradient-to-br from-amber-100 to-amber-200" style={{ transform: "translateZ(5px)" }} />
         )}

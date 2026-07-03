@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { FinalScreen } from "@/components/FinalScreen";
 import type { ExperienceRecord, Template } from "@/lib/types";
 
@@ -139,9 +140,9 @@ function PhotoGrid({ images }: { images: string[] }) {
   return (
     <div className="grid grid-cols-2 gap-4 w-full max-w-lg mx-auto">
       {images.slice(0, 4).map((src, i) => (
-        <div key={i} className="overflow-hidden rounded-2xl shadow-xl aspect-[4/3] bg-amber-800/30"
+        <div key={i} className="relative overflow-hidden rounded-2xl shadow-xl aspect-[4/3] bg-amber-800/30"
           style={{ animation: `cgUp 0.6s ease-out ${i * 0.15}s both` }}>
-          <img src={src} alt="" className="h-full w-full object-cover hover:scale-110 transition-transform duration-500" />
+          <Image src={src} alt="" fill className="object-cover hover:scale-110 transition-transform duration-500" sizes="(max-width: 768px) 50vw, 300px" unoptimized />
         </div>
       ))}
     </div>
@@ -749,8 +750,8 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-3 mb-4" style={{ animation: "cgUp 0.6s ease-out 0.3s both" }}>
                 {images.slice(0, 3).map((src, i) => (
-                  <div key={i} className="h-14 w-14 sm:h-16 sm:w-16 overflow-hidden rounded-full border-2 border-amber-500/40 shadow-lg" style={{ animation: `cgPhotoDrop 0.5s ease-out ${0.4 + i * 0.12}s both` }}>
-                    <img src={src} alt="" className="h-full w-full object-cover" crossOrigin="anonymous" />
+                  <div key={i} className="relative h-14 w-14 sm:h-16 sm:w-16 overflow-hidden rounded-full border-2 border-amber-500/40 shadow-lg" style={{ animation: `cgPhotoDrop 0.5s ease-out ${0.4 + i * 0.12}s both` }}>
+                    <Image src={src} alt="" fill className="object-cover" sizes="80px" unoptimized />
                   </div>
                 ))}
               </div>

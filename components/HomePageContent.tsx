@@ -8,9 +8,9 @@ import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
 import { TrendingTemplates } from "@/components/TrendingTemplates";
-import { TemplatePreviewOverlay } from "@/components/TemplatePreviewOverlay";
 import { getTemplate, templates } from "@/lib/data";
 
+const TemplatePreviewOverlay = dynamic(() => import("@/components/TemplatePreviewOverlay").then((m) => m.TemplatePreviewOverlay), { ssr: false });
 const TestimonialCarousel = dynamic(
   () => import("@/components/TestimonialCarousel").then((m) => m.TestimonialCarousel),
   { ssr: false }

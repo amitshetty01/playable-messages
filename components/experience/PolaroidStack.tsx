@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import Image from "next/image";
 import { StepTransition } from "@/components/StepTransition";
 import { ProgressBar } from "@/components/ProgressBar";
 import { FinalScreen } from "@/components/FinalScreen";
@@ -392,7 +393,9 @@ export function PolaroidStack({ template, experience, mode, shareUrl }: Props) {
                         <div className="w-52 rounded-sm p-3 pb-8 shadow-xl sm:w-60" style={{ backgroundColor: POLAROID_COLORS[photo.id % POLAROID_COLORS.length] }}>
                           <div className="aspect-square w-full rounded-sm bg-gradient-to-br from-white/90 to-stone-200 flex items-center justify-center overflow-hidden">
                             {userImages[photo.id] ? (
-                              <img src={userImages[photo.id]} alt="" className="h-full w-full object-cover" />
+                              <div className="relative h-full w-full">
+                                <Image src={userImages[photo.id]} alt="" fill className="object-cover" sizes="240px" unoptimized />
+                              </div>
                             ) : (
                               <div className="h-full w-full" style={{ background: `linear-gradient(135deg, ${["#fce4ec","#f3e5f5","#e8eaf6","#e0f2f1","#fff3e0"][photo.id % 5]} 0%, transparent 100%)` }} />
                             )}

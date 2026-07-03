@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import type { SceneStep } from "@/lib/scene-types";
 
 function ClientOnly({ children }: { children: React.ReactNode }) {
@@ -238,7 +239,7 @@ export function SceneBackground({ scene }: { scene: SceneStep }) {
   return (
     <>
       {imageUrl && (
-        <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <Image src={imageUrl} alt="" fill className="object-cover" sizes="100vw" unoptimized />
       )}
       <div className={`absolute inset-0 ${imageUrl ? "bg-gradient-to-br from-black/60 via-black/40 to-black/60" : `bg-gradient-to-br ${baseGradient}`}`} />
 
