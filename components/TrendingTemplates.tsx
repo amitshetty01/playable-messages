@@ -53,11 +53,7 @@ const TRENDING_ORDER = [
 export function TrendingTemplates({ onDemo }: { onDemo: (id: string, rect?: DOMRect) => void }) {
   const allTemplates = templates
     .filter((t) => t.status === "full")
-    .sort((a, b) => TRENDING_ORDER.indexOf(a.id) - TRENDING_ORDER.indexOf(b.id));
-  const recentlyAdded = templates.filter((t) => {
-    return ["birthday-journey", "kitty-apology", "sorry-maze", "escape-me", "our-memories"].includes(t.id);
-  });
-  const staffPicks = ["love-contract", "our-memories", "the-final-button", "memory-maze"];
+    .slice().sort((a, b) => TRENDING_ORDER.indexOf(a.id) - TRENDING_ORDER.indexOf(b.id));
 
   return (
     <section className="mx-auto max-w-6xl px-4">

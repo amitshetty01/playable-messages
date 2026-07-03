@@ -184,7 +184,7 @@ export function TemplatePreviewOverlay({
   }, []);
 
   /* ─── Layout ─── */
-  const [vp, setVp] = useState({ w: 1200, h: 800 });
+  const [vp, setVp] = useState<{ w: number; h: number } | null>(null);
   useEffect(() => {
     setVp({ w: window.innerWidth, h: window.innerHeight });
     const o = () => setVp({ w: window.innerWidth, h: window.innerHeight });
@@ -192,6 +192,7 @@ export function TemplatePreviewOverlay({
     return () => window.removeEventListener("resize", o);
   }, []);
 
+  if (!vp) return null;
   const isMobile = vp.w < 1024;
   const pw = Math.min(360, vp.w * 0.65);
   const ph = pw * (16 / 9);

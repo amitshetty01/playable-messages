@@ -60,7 +60,8 @@ export function HomePageContent() {
   const [preview, setPreview] = useState<{ id: string; rect: DOMRect } | null>(null);
 
   const handlePreview = useCallback((id: string, rect?: DOMRect) => {
-    const r = rect || { top: 0, left: 0, width: 340, height: 280 } as DOMRect;
+    const fallback = { top: 120, left: 0, width: 340, height: 280, x: 0, y: 120, bottom: 400, right: 340 };
+    const r: DOMRect = rect || (fallback as DOMRect);
     setPreview({ id, rect: r });
   }, []);
 

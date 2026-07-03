@@ -8,6 +8,22 @@ import type { ExperienceRecord } from "@/lib/types";
 
 type Step = "message" | "receiver" | "sender" | "relation" | "confirm";
 
+function Bubble({ text, from }: { text: string; from: "bot" | "user" }) {
+  return (
+    <div className={`flex ${from === "bot" ? "justify-start" : "justify-end"}`}>
+      <div
+        className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-6 ${
+          from === "bot"
+            ? "rounded-bl-lg bg-white/10 text-white/80"
+            : "rounded-br-lg bg-gradient-to-r from-blush/60 to-violet/60 text-white shadow-sm"
+        }`}
+      >
+        {text}
+      </div>
+    </div>
+  );
+}
+
 export function GuidedFlow() {
   const [step, setStep] = useState<Step>("message");
   const [message, setMessage] = useState("");
@@ -37,22 +53,15 @@ export function GuidedFlow() {
       });
       const json = await res.json();
       if (!res.ok || !json.id) { setError(json.error || "Could not generate."); return; }
+      if (!json.experience) { setError("Could not generate."); return; }
       setExperience(json.experience);
     } catch { setError("Something went wrong."); }
     finally { setLoading(false); }
-  }, [message, receiver, sender]);
+  }, [message, receiver, sender, relationshipTag]);
 
   if (experience) {
     return <ExperiencePreview experience={experience} onClose={() => { setExperience(null); setStep("message"); setMessage(""); setReceiver(""); setSender(""); }} />;
   }
-
-  const Bubble = ({ text, from }: { text: string; from: "bot" | "user" }) => (
-    <div className={`flex ${from === "bot" ? "justify-start" : "justify-end"}`}>
-      <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm leading-6 ${from === "bot" ? "rounded-bl-md bg-white/10 text-white/80" : "rounded-br-md bg-gradient-to-r from-[#ff6b9d] to-[#c44dff] text-white"}`}>
-        {text}
-      </div>
-    </div>
-  );
 
   return (
     <div className="mx-auto flex max-w-lg flex-col">
