@@ -1,0 +1,441 @@
+// QUICK START EXAMPLES - Copy and paste to get started
+
+// ============================================================================
+// 1. CREATE A NEW BOOK
+// ============================================================================
+
+async function createNewBook() {
+  const response = await fetch('/api/books', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: 'My Epic Novel',
+      genre: 'fantasy',
+      writingStyle: 'literary',
+      description: 'A tale of adventure and magic',
+      targetWordCount: 100000,
+      templateId: 'heros-journey', // Optional
+      userId: 'user-123', // Get from auth in production
+    }),
+  });
+
+  const book = await response.json();
+  console.log('Book created:', book.id);
+  return book;
+}
+
+// ============================================================================
+// 2. USE AI TO GENERATE A CHAPTER
+// ============================================================================
+
+import { bookAI } from '@/lib/book-ai-service';
+
+async function generateChapterWithAI(book) {
+  try {
+    const response = await bookAI.generateChapter(
+      book,
+      'The hero discovers the ancient prophecy and realizes their true destiny',
+      3000 // Target word count
+    );
+
+    if (response.success) {
+      console.log('Generated chapter:', response.data?.content);
+      // Add to your book...
+    } else {
+      console.error('Failed:', response.error);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// ============================================================================
+// 3. GET REAL-TIME WRITING SUGGESTIONS
+// ============================================================================
+
+async function getWritingSuggestions(content, bookContext) {
+  const response = await bookAI.realTimeSuggestions(content, {
+    book: bookContext,
+    instruction: 'Provide writing improvement suggestions',
+  });
+
+  if (response.success) {
+    return response.data?.suggestions || [];
+  }
+}
+
+// ============================================================================
+// 4. CHECK CHARACTER CONSISTENCY
+// ============================================================================
+
+async function validateCharacterConsistency(book, character, recentScenes) {
+  const response = await bookAI.checkCharacterConsistency(
+    book,
+    character,
+    recentScenes
+  );
+
+  if (response.success) {
+    console.log('Character consistency score:', response.data?.analysis);
+    // Character is consistent or needs adjustments
+  }
+}
+
+// ============================================================================
+// 5. DETECT PLOT HOLES
+// ============================================================================
+
+async function detectPlotHoles(book) {
+  const response = await bookAI.batchAnalyzePlotHoles(book);
+
+  if (response.success) {
+    const issues = response.data?.analysis;
+    console.log('Plot issues found:', issues);
+    // Display issues to user for review
+  }
+}
+
+// ============================================================================
+// 6. EXPORT YOUR BOOK
+// ============================================================================
+
+import { bookExport } from '@/lib/book-export-service';
+
+async function exportBook(book) {
+  try {
+    // Export to PDF
+    await bookExport.downloadFile(book, 'pdf');
+    // File automatically downloads
+
+    // Or get all recommendations
+    const recommendations = await bookExport.getFormatRecommendations(book);
+    console.log('Recommended formats:', recommendations);
+  } catch (error) {
+    console.error('Export failed:', error);
+  }
+}
+
+// ============================================================================
+// 7. PUBLISH TO AMAZON KDP
+// ============================================================================
+
+async function publishToAmazon(book) {
+  try {
+    const result = await bookExport.publishToAmazonKDP(book, {
+      title: book.title,
+      description: book.description,
+      author: 'Your Name',
+      isbn: '978-0-123456-78-9',
+      keywords: ['fantasy', 'adventure', 'magic'],
+      targetAudience: 'Adult readers',
+      price: 14.99,
+      currency: 'USD',
+    });
+
+    console.log('Published successfully:', result);
+  } catch (error) {
+    console.error('Publishing failed:', error);
+  }
+}
+
+// ============================================================================
+// 8. UPDATE BOOK PROGRESS
+// ============================================================================
+
+async function updateBookProgress(book, newWordCount) {
+  const updatedBook = {
+    ...book,
+    currentWordCount: newWordCount,
+    stats: {
+      ...book.stats,
+      completionPercentage: (newWordCount / book.targetWordCount) * 100,
+    },
+  };
+
+  const response = await fetch('/api/books', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedBook),
+  });
+
+  return await response.json();
+}
+
+// ============================================================================
+// 9. ADD A CHAPTER TO YOUR BOOK
+// ============================================================================
+
+function addChapterToBook(book, chapterData) {
+  const newChapter = {
+    id: `chapter-${Date.now()}`,
+    bookId: book.id,
+    title: chapterData.title,
+    description: chapterData.description || '',
+    scenes: [],
+    wordCount: 0,
+    order: book.chapters.length + 1,
+    status: 'draft',
+    plotPoints: [],
+    themes: [],
+    emotionalArc: [],
+    suggestedLength: 3000,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  const updatedBook = {
+    ...book,
+    chapters: [...book.chapters, newChapter],
+  };
+
+  return updateBook(updatedBook);
+}
+
+// ============================================================================
+// 10. CREATE A CHARACTER
+// ============================================================================
+
+function createCharacter(bookId, characterData) {
+  return {
+    id: `char-${Date.now()}`,
+    name: characterData.name,
+    role: characterData.role || 'supporting',
+    description: characterData.description,
+    traits: characterData.traits || [],
+    motivations: characterData.motivations || [],
+    arc: characterData.arc || '',
+    voiceProfile: {
+      vocabulary: characterData.vocabulary || 'moderate',
+      tone: characterData.tone || 'casual',
+      speechPatterns: characterData.speechPatterns || [],
+    },
+    relationships: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+// ============================================================================
+// 11. GENERATE DIALOGUE
+// ============================================================================
+
+async function generateDialogueScene(characters, situation) {
+  const response = await bookAI.generateDialogue(
+    characters,
+    situation,
+    'natural' // or 'formal', 'sarcastic', etc.
+  );
+
+  if (response.success) {
+    return response.data?.content;
+  }
+}
+
+// Example usage:
+// const dialogue = await generateDialogueScene(
+//   [{ name: 'Alice', role: 'protagonist' }, { name: 'Bob', role: 'antagonist' }],
+//   'They meet for the first time in the castle, tension is high'
+// );
+
+// ============================================================================
+// 12. EXPAND A SHORT SCENE
+// ============================================================================
+
+async function expandSceneWithAI(scene, targetWordCount = 2000) {
+  const response = await bookAI.expandScene(scene, targetWordCount);
+
+  if (response.success && response.data?.content) {
+    return {
+      ...scene,
+      content: response.data.content,
+      wordCount: response.data.content.split(' ').length,
+    };
+  }
+}
+
+// ============================================================================
+// 13. USE STORY TEMPLATES
+// ============================================================================
+
+import { STORY_TEMPLATES, GENRE_TEMPLATES, WRITING_STYLE_PRESETS } from '@/lib/templates';
+
+function useHeroJourneyTemplate() {
+  const template = STORY_TEMPLATES['heros-journey'];
+
+  console.log('Template chapters:');
+  template.chapters.forEach(ch => {
+    console.log(`- ${ch.title} (${ch.suggestedLength} words)`);
+  });
+
+  return template;
+}
+
+function getGenreGuidelines(genre) {
+  const guidelines = GENRE_TEMPLATES[genre];
+  console.log('Genre themes:', guidelines.themes);
+  console.log('Recommended pacing:', guidelines.pacing);
+  return guidelines;
+}
+
+function getWritingStyleSettings(style) {
+  const settings = WRITING_STYLE_PRESETS[style];
+  console.log('Style vocabulary level:', settings.vocabulary);
+  console.log('Descriptiveness:', settings.descriptiveness);
+  return settings;
+}
+
+// ============================================================================
+// 14. COMPLETE BOOK CREATION WORKFLOW
+// ============================================================================
+
+async function completeBookCreationWorkflow() {
+  // 1. Create book
+  const book = await createNewBook();
+
+  // 2. Add characters
+  const protagonist = createCharacter(book.id, {
+    name: 'Aurora',
+    role: 'protagonist',
+    description: 'A brave warrior',
+    traits: ['courageous', 'determined'],
+  });
+
+  // 3. Add chapters (using template)
+  const template = STORY_TEMPLATES['heros-journey'];
+  const chapters = template.chapters.map((tmpl, idx) => ({
+    id: `ch-${idx}`,
+    bookId: book.id,
+    title: tmpl.title,
+    description: tmpl.description,
+    scenes: [],
+    wordCount: 0,
+    order: idx + 1,
+    status: 'outline',
+    plotPoints: tmpl.keyPoints,
+    themes: [],
+    emotionalArc: [],
+    suggestedLength: tmpl.suggestedLength,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+
+  // 4. Generate first chapter content
+  const firstChapterOutline = chapters[0].description;
+  const generatedContent = await bookAI.generateChapter(
+    book,
+    firstChapterOutline,
+    chapters[0].suggestedLength
+  );
+
+  // 5. Save and return
+  const finalBook = {
+    ...book,
+    characters: [protagonist],
+    chapters: chapters,
+    status: 'editing',
+  };
+
+  return finalBook;
+}
+
+// ============================================================================
+// 15. ERROR HANDLING TEMPLATE
+// ============================================================================
+
+async function safeAIRequest(aiFunction, ...args) {
+  try {
+    const response = await aiFunction(...args);
+
+    if (!response.success) {
+      console.error('AI Error:', response.error);
+      throw new Error(response.error || 'AI operation failed');
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Request failed:', error);
+    // Show user-friendly error message
+    return null;
+  }
+}
+
+// Usage:
+// const result = await safeAIRequest(bookAI.generateChapter, book, outline, 3000);
+
+// ============================================================================
+// COPY-PASTE READY COMPONENTS
+// ============================================================================
+
+// Component: Book creation form (basic example)
+/*
+import React, { useState } from 'react';
+
+export function QuickBookCreator() {
+  const [title, setTitle] = useState('');
+
+  const handleCreate = async () => {
+    const book = await createNewBook();
+    // Redirect to editor
+  };
+
+  return (
+    <div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Book title..."
+      />
+      <button onClick={handleCreate}>Create Book</button>
+    </div>
+  );
+}
+*/
+
+// ============================================================================
+// DEBUGGING TIPS
+// ============================================================================
+
+// 1. Log AI responses
+function debugAIResponse(response) {
+  console.group('AI Response Debug');
+  console.log('Success:', response.success);
+  console.log('Error:', response.error);
+  console.log('Data:', response.data);
+  console.log('Usage:', response.usage);
+  console.groupEnd();
+}
+
+// 2. Monitor book state
+function debugBookState(book) {
+  console.group('Book State');
+  console.log('Title:', book.title);
+  console.log('Chapters:', book.chapters.length);
+  console.log('Characters:', book.characters.length);
+  console.log('Progress:', `${Math.round((book.currentWordCount / book.targetWordCount) * 100)}%`);
+  console.groupEnd();
+}
+
+// ============================================================================
+// PERFORMANCE OPTIMIZATION
+// ============================================================================
+
+// Debounced auto-save
+function useAutoSave(book, delayMs = 5000) {
+  const [timeout, setTimeout] = React.useState(null);
+
+  const save = React.useCallback(() => {
+    clearTimeout(timeout);
+    const newTimeout = window.setTimeout(async () => {
+      await updateBook(book);
+      console.log('Auto-saved');
+    }, delayMs);
+    setTimeout(newTimeout);
+  }, [book, delayMs, timeout]);
+
+  return save;
+}
+
+// Batch AI requests
+async function batchAIRequests(requests) {
+  return Promise.all(requests.map(req => req()));
+}
