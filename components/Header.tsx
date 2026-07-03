@@ -7,6 +7,7 @@ import { useTheme } from "@/lib/theme/context";
 
 type NavLink = { href: string; label?: string; labelKey?: string };
 const links: NavLink[] = [
+  { href: "/explore", label: "Explore" },
   { href: "/templates", labelKey: "nav.templates" },
   { href: "/my-experiences", labelKey: "nav.messages" },
   { href: "/reminders", label: "Reminders" },

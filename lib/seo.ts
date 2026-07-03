@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { absoluteUrl } from "@/lib/utils";
 
 export const siteName = "Craft Your Message";
-export const defaultDescription = "Create interactive messages, apology messages, birthday wishes, confession reveals, friendship notes, funny roasts, and unique shareable message links.";
+export const defaultDescription = "Create interactive love, birthday, sorry, and memory messages you can share as a link. Turn words into surprises with games, reveals, and heartfelt moments.";
 export const defaultOgImage = "/opengraph-image";
 
 type MetadataInput = {

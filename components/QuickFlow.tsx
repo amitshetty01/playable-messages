@@ -44,9 +44,12 @@ export function QuickFlow() {
   return (
     <div className="flex flex-col items-center text-center">
       <h1 className="display-title text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-        Send a message they can{" "}
-        <span className="text-gradient">actually experience</span>
+        Create interactive love, birthday, sorry,{" "}
+        <span className="text-gradient">and memory messages</span>
       </h1>
+      <p className="mt-4 max-w-2xl text-lg text-white/60">
+        Turn simple words into shareable links with games, reveals, and surprises. No app download needed.
+      </p>
 
       <textarea
         value={text}
@@ -64,7 +67,7 @@ export function QuickFlow() {
         onClick={generate}
         className="premium-button mt-5 min-w-[200px] disabled:opacity-40"
       >
-        {loading ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> Generating...</span> : "Create my experience"}
+        {loading ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> Generating...</span> : "Create your surprise message"}
       </button>
       {error && <p className="mt-4 rounded-2xl border border-rose-200/30 bg-rose-300/10 px-5 py-3 text-sm font-bold text-rose-100" role="alert">{error}</p>}
     </div>

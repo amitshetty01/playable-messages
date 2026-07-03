@@ -334,6 +334,88 @@ export function HomePageContent() {
         </section>
       )}
 
+      {/* ─── Why use it ─── */}
+      <section className="mx-auto mt-28 max-w-5xl px-4">
+        <div className="text-center">
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Why use it</h2>
+          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+          <p className="mt-4 text-lg text-white/60">Plain texts get lost. Interactive messages get remembered.</p>
+        </div>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="glass rounded-[1.6rem] p-5">
+            <span className="text-2xl">🎯</span>
+            <h3 className="mt-3 text-lg font-extrabold text-white">More than text</h3>
+            <p className="mt-2 text-sm leading-6 text-white/60">A link carries emotion, pacing, and surprise that a plain message cannot.</p>
+          </div>
+          <div className="glass rounded-[1.6rem] p-5">
+            <span className="text-2xl">🔗</span>
+            <h3 className="mt-3 text-lg font-extrabold text-white">Share anywhere</h3>
+            <p className="mt-2 text-sm leading-6 text-white/60">Works in WhatsApp, Instagram, SMS, email — anywhere you can paste a link.</p>
+          </div>
+          <div className="glass rounded-[1.6rem] p-5">
+            <span className="text-2xl">🎨</span>
+            <h3 className="mt-3 text-lg font-extrabold text-white">50+ templates</h3>
+            <p className="mt-2 text-sm leading-6 text-white/60">Choose from love, apology, birthday, funny, memory, and mystery experiences.</p>
+          </div>
+          <div className="glass rounded-[1.6rem] p-5">
+            <span className="text-2xl">🔒</span>
+            <h3 className="mt-3 text-lg font-extrabold text-white">Private by default</h3>
+            <p className="mt-2 text-sm leading-6 text-white/60">Each link is unique and unguessable. You control who sees it.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Homepage FAQs ─── */}
+      <section className="mx-auto mt-28 max-w-3xl px-4">
+        <div className="text-center">
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Questions</h2>
+          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+          <p className="mt-4 text-lg text-white/60">Everything you need to know before creating your first message.</p>
+        </div>
+        <div className="mt-10 space-y-4">
+          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+              <span>What can I create?</span>
+              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+            </summary>
+            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Love confessions, birthday surprises, apology messages, anniversary notes, proposal questions, good morning texts, good night wishes, friendship appreciation, funny roasts, farewell messages, and more. Each one is interactive and shareable as a link.</p>
+          </details>
+          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+              <span>Does the recipient need to sign up?</span>
+              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+            </summary>
+            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">No. They just tap the link and the experience opens in their browser. No account, no app, no download.</p>
+          </details>
+          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+              <span>Can I send it on WhatsApp?</span>
+              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+            </summary>
+            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Copy your unique link and paste it into any WhatsApp chat. The recipient taps it and the experience opens instantly.</p>
+          </details>
+          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+              <span>Is it really free?</span>
+              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+            </summary>
+            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every template, every generator, every AI tool is completely free. No hidden charges or subscriptions.</p>
+          </details>
+          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+              <span>Can I edit after sharing?</span>
+              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+            </summary>
+            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every created message includes an edit link. You can update the text, change the template, or customize it even after the recipient has seen it.</p>
+          </details>
+        </div>
+        <div className="mt-8 text-center">
+          <Link href="/faq" className="text-sm font-bold text-white/50 underline underline-offset-4 transition-colors hover:text-white/70">
+            See all FAQs →
+          </Link>
+        </div>
+      </section>
+
       {/* ─── Explore & Messages bottom links ─── */}
       <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
         <Link

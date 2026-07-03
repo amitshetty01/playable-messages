@@ -451,16 +451,21 @@ export const templateSeoPages: TemplateSeoContent[] = [
 ];
 
 export const faqItems: FaqItem[] = [
-  { question: "What is Craft Your Message?", answer: "Craft Your Message is an interactive message generator for creating personalized shareable links with small games, choices, and final reveals." },
-  { question: "What can I create?", answer: "You can create apology messages, birthday messages, friendship notes, confession reveals, funny roast messages, thank-you messages, and surprise links." },
-  { question: "Is it free to use?", answer: "Yes, Craft Your Message is completely free. There are no hidden charges or subscription fees. You can create and share as many messages as you like." },
-  { question: "Do recipients need an account?", answer: "No. Recipients can open generated public links directly in their browser without signing up or downloading anything." },
-  { question: "Can I preview before sharing?", answer: "Yes. You can preview your message flow before generating a public link to make sure everything looks perfect." },
-  { question: "How long does the link work?", answer: "Links do not expire by default and will work indefinitely. You can optionally set an expiration date when creating your message if you want it to auto-expire." },
-  { question: "Can I edit my message after creating it?", answer: "Yes. You can edit your message after creation using the edit link. Simply open your experience and click the edit button to update the text or settings." },
-  { question: "Are generated links private?", answer: "Generated links are public to anyone who has the URL. Do not include sensitive information unless you have permission and understand the link can be shared." },
-  { question: "Can I see who opened my link?", answer: "Yes. The creator dashboard shows analytics including how many times your message was opened, completed, and how recipients interacted with choices." },
-  { question: "Is this relationship advice?", answer: "No. This website is for fun and entertainment only. It does not provide relationship advice, psychological assessment, or proof of anyone's feelings." }
+  { question: "What is Craft Your Message?", answer: "Craft Your Message is an interactive message generator for creating personalized shareable links with small games, choices, and final reveals. It is designed for love confessions, birthday surprises, apology messages, friendship notes, funny roasts, and any moment that deserves more than a plain text." },
+  { question: "How is this different from a normal text message?", answer: "Instead of sending a plain text, you create an interactive link that the recipient opens in their browser. They experience taps, choices, animations, mini-games, and a final reveal — turning your message into a moment they actually feel." },
+  { question: "What can I create?", answer: "You can create apology messages, birthday wishes, love confessions, anniversary surprises, proposal messages, good morning texts, good night notes, long-distance love letters, friendship appreciation, farewell messages, thank-you notes, funny roasts, and more. Each can be customized with names, tone, and a personal reveal." },
+  { question: "Can I send birthday messages?", answer: "Yes. Birthday templates like Blow Out the Candles, Cut the Cake, and Birthday Journey let you hide your wishes behind candle-blowing, cake-cutting, or a memory path reveal. Perfect for making their day unforgettable." },
+  { question: "Can I send apology messages?", answer: "Yes. Apology templates like Kitty Apology, Sorry Maze, and Calm the Storm help you say sorry in a way that feels thoughtful and sincere — not rushed or copied." },
+  { question: "Can I send love messages and confessions?", answer: "Absolutely. Love templates like Catch My Heart, Love Contract, Our Memories, and Escape Me help you confess feelings, celebrate your relationship, or create a romantic surprise." },
+  { question: "Can I share on WhatsApp?", answer: "Yes. Every message generates a unique link you can copy and paste into WhatsApp, Instagram, SMS, email, or any messaging app. The recipient just taps the link to open it in their browser — no app download needed." },
+  { question: "Is it free to use?", answer: "Yes, Craft Your Message is completely free. There are no hidden charges, subscriptions, or paywalls. You can create and share as many messages as you like." },
+  { question: "Do recipients need an account?", answer: "No. Recipients open the link directly in their browser. No sign-up, no app download, no friction." },
+  { question: "Can I preview before sharing?", answer: "Yes. You can preview the full experience flow before generating a public link to make sure every step looks and feels perfect." },
+  { question: "Can I edit my message after creating it?", answer: "Yes. Every created message includes an edit link. You can update the text, change settings, or customize further even after sharing." },
+  { question: "Are my messages private?", answer: "Yes. Every link is unique and unguessable — like a private room only you and your recipient know about. You control who receives the link. Only share it with the person you intend to see it." },
+  { question: "How long does the link work?", answer: "Links work indefinitely by default. You can optionally set an expiration date during creation if you want the message to auto-delete after a certain time." },
+  { question: "Can I see if someone opened my message?", answer: "Yes. The message dashboard shows analytics including how many times the link was opened, whether it was completed, and how recipients interacted with choices along the way." },
+  { question: "Is this relationship advice?", answer: "No. This website is for entertainment and creative expression only. It does not provide professional relationship advice, psychological assessment, or proof of anyone's feelings." }
 ];
 
 export function getUseCase(slug: string) {
