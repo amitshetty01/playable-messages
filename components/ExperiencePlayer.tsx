@@ -45,6 +45,8 @@ const EchoChamber = dynamic(() => import("@/components/experience/EchoChamber").
 const BalanceScale = dynamic(() => import("@/components/experience/BalanceScale").then((m) => ({ default: m.BalanceScale })), { ssr: false });
 const GameAdapter = dynamic(() => import("@/components/GameAdapter").then((m) => ({ default: m.GameAdapter })), { ssr: false });
 const EscapeMeGame = dynamic(() => import("@/components/games/EscapeMeGame").then((m) => ({ default: m.EscapeMeGame })), { ssr: false });
+const OurMemoriesPreview = dynamic(() => import("@/components/OurMemoriesPreview").then((m) => ({ default: m.OurMemoriesPreview })), { ssr: false });
+const SorryMazePreview = dynamic(() => import("@/components/SorryMazePreview").then((m) => ({ default: m.SorryMazePreview })), { ssr: false });
 type Mode = "demo" | "generated" | "preview";
 
 const FLOWS: Record<string, (props: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) => React.ReactNode> = {
@@ -90,6 +92,8 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "mystery-fog": (props) => <GameAdapter {...props} />,
   "escape-me": (props) => <EscapeMeGame {...props} />,
   "love-contract": (props) => <LoveContractGame {...props} />,
+  "our-memories": () => <OurMemoriesPreview />,
+  "sorry-maze": () => <SorryMazePreview />,
 };
 
 export function ExperiencePlayer({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) {
@@ -182,13 +186,17 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
 
   const content = sceneFlow ? (
     <SceneErrorBoundary>
-      <FullscreenExperience templateId={template.id}>
+      {mode === "demo" ? (
         <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} />
-      </FullscreenExperience>
+      ) : (
+        <FullscreenExperience templateId={template.id}>
+          <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} />
+        </FullscreenExperience>
+      )}
     </SceneErrorBoundary>
   ) : FLOWS[template.id] ? (
     <SceneErrorBoundary>
-      {(template.id === "kitty-apology" || template.id === "escape-me") ? (
+      {(template.id === "kitty-apology" || template.id === "escape-me" || mode === "demo") ? (
         FLOWS[template.id]({ template, experience, mode, shareUrl })
       ) : (
         <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
@@ -198,9 +206,13 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
     </SceneErrorBoundary>
   ) : (
     <SceneErrorBoundary>
-      <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
+      {mode === "demo" ? (
         <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
-      </FullscreenExperience>
+      ) : (
+        <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
+          <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
+        </FullscreenExperience>
+      )}
     </SceneErrorBoundary>
   );
 

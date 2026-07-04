@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { Template } from "@/lib/types";
+import { createDemoExperience } from "@/lib/demo";
+
+const ExperiencePlayer = dynamic(
+  () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
+  { ssr: false }
+);
 
 /* ─── Visual registry ─── */
 const VISUALS: Record<string, { emoji: string; gradient: string; pattern: string }> = {
@@ -29,6 +36,25 @@ const SVG_PATTERNS: Record<string, string> = {
 };
 
 interface CardRect { top: number; left: number; width: number; height: number; }
+
+/* ─── Template registry (slug → available) ─── */
+const TEMPLATE_SLUGS = new Set([
+  "moving-button", "love-chase", "love-contract", "birthday-surprise-journey",
+  "come-closer", "escape-me", "kitty-apology",
+  "memory-maze", "sorry-maze", "birthday-journey",
+  "heartbeat-sync", "polaroid-stack", "candle-countdown",
+  "scratch-card", "tilt-maze", "morse-code",
+  "dissolve-wall", "lock-pick", "gravity-flip",
+  "echo-chamber", "balance-scale", "love-beats",
+  "sorry-puzzle", "funny-slots", "secret-decoder",
+  "birthday-cake", "roast-wheel", "memory-flip",
+  "mystery-fog", "the-final-button", "the-last-deleted-message",
+  "glitch-truth", "dont-smile-challenge", "choose-my-punishment",
+  "mood-repair-machine", "the-secret-room", "roast-to-respect",
+  "type-or-else", "the-trust-scale", "inkblot",
+  "two-lies-one-truth", "the-closer-you-get", "spin-to-reveal",
+  "our-memories",
+]);
 
 /* ─── Particles ─── */
 function Particles() {
@@ -75,8 +101,8 @@ function CardFace({ emoji, gradient, pattern }: { emoji: string; gradient: strin
   );
 }
 
-/* ─── Phone ─── */
-function PhoneFrame({ onIframe }: { onIframe: (el: HTMLIFrameElement | null) => void }) {
+/* ─── Phone with preview children ─── */
+function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-full w-full overflow-hidden" style={{ borderRadius: "36px" }}>
       <div className="h-full w-full bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_0_1px_rgba(255,255,255,0.10)]">
@@ -91,17 +117,24 @@ function PhoneFrame({ onIframe }: { onIframe: (el: HTMLIFrameElement | null) => 
               <div className="h-full w-full rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900" />
             </div>
           </div>
-          <div className="h-full w-full relative bg-zinc-950" style={{ borderRadius: "33px" }}>
-            <iframe
-              ref={onIframe}
-              src="about:blank"
-              className="absolute inset-0 h-full w-full"
-              title="Preview"
-              scrolling="no"
-            />
+          <div className="h-full w-full relative bg-zinc-950 overflow-hidden" style={{ borderRadius: "33px", transform: "translateZ(0)" }}>
+            {children}
           </div>
           <div className="absolute bottom-2 left-1/2 z-20 h-[4px] w-28 -translate-x-1/2 rounded-full bg-zinc-900" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Preview Coming Soon ─── */
+function PreviewComingSoon() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-zinc-950 p-6 text-center">
+      <div>
+        <p className="text-4xl mb-3">✨</p>
+        <p className="text-sm font-bold text-white/60">Preview coming soon</p>
+        <p className="mt-1 text-xs text-white/30">This template is being prepared.</p>
       </div>
     </div>
   );
@@ -118,12 +151,19 @@ export function TemplatePreviewOverlay({
   onClose: () => void;
 }) {
   const [phase, setPhase] = useState<"enter" | "show" | "exit">("enter");
-  const [showIframe, setShowIframe] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
   const morphTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const v = VISUALS[template.id] || VISUALS["the-final-button"]!;
+
+  const isAvailable = TEMPLATE_SLUGS.has(template.slug) && template.status === "full";
+
+  const experience = useMemo(() => {
+    if (!isAvailable) return null;
+    return createDemoExperience(template);
+  }, [template, isAvailable]);
 
   // Lock scroll + cleanup timeouts on unmount
   useEffect(() => {
@@ -143,34 +183,21 @@ export function TemplatePreviewOverlay({
     return () => cancelAnimationFrame(a);
   }, []);
 
-  // Show iframe element after morph completes
+  // Show preview after morph completes
   useEffect(() => {
-    if (phase === "show" && !showIframe) {
-      morphTimeoutRef.current = setTimeout(() => setShowIframe(true), 750);
+    if (phase === "show" && !showPreview) {
+      morphTimeoutRef.current = setTimeout(() => setShowPreview(true), 750);
     }
     return () => { if (morphTimeoutRef.current) clearTimeout(morphTimeoutRef.current); };
-  }, [phase, showIframe]);
-
-  // Load real template src after iframe element exists in DOM
-  useEffect(() => {
-    if (showIframe && iframeRef.current) {
-      iframeRef.current.src = `/demo/${template.id}`;
-    }
-  }, [showIframe, template.id]);
+  }, [phase, showPreview]);
 
   /* ─── Handlers ─── */
   const restart = useCallback(() => {
-    if (iframeRef.current) {
-      const src = iframeRef.current.src;
-      iframeRef.current.src = "about:blank";
-      requestAnimationFrame(() => { iframeRef.current!.src = src; });
-    }
+    setPreviewKey((k) => k + 1);
   }, []);
 
   const handleBack = useCallback(() => {
-    // Kill iframe instantly
-    if (iframeRef.current) iframeRef.current.src = "about:blank";
-    setShowIframe(false);
+    setShowPreview(false);
     setPhase("exit");
     exitTimeoutRef.current = setTimeout(() => onClose(), 800);
   }, [onClose]);
@@ -178,10 +205,6 @@ export function TemplatePreviewOverlay({
   const handleBg = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget && phase === "show") handleBack();
   }, [handleBack, phase]);
-
-  const storeIframe = useCallback((el: HTMLIFrameElement | null) => {
-    iframeRef.current = el;
-  }, []);
 
   /* ─── Layout ─── */
   const [vp, setVp] = useState<{ w: number; h: number } | null>(null);
@@ -227,7 +250,7 @@ export function TemplatePreviewOverlay({
 
       {/* Gradient orb */}
       <AnimatePresence>
-        {!isEnter && !isExit && showIframe && (
+        {!isEnter && !isExit && showPreview && (
           <motion.div
             initial={{ opacity: 0, scale: 0.6 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -265,16 +288,27 @@ export function TemplatePreviewOverlay({
         </div>
 
         {/* Phone frame — only during active preview */}
-        {showIframe && !isExit && (
+        {showPreview && !isExit && (
           <div className="absolute inset-0">
-            <PhoneFrame onIframe={storeIframe} />
+            <PhoneFrame>
+              {isAvailable && experience ? (
+                <ExperiencePlayer
+                  key={previewKey}
+                  template={template}
+                  experience={experience}
+                  mode="demo"
+                />
+              ) : (
+                <PreviewComingSoon />
+              )}
+            </PhoneFrame>
           </div>
         )}
       </motion.div>
 
       {/* Floating glow on phone */}
       <AnimatePresence>
-        {showIframe && !isExit && (
+        {showPreview && !isExit && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.3, 0.6, 0.3] }}
@@ -296,12 +330,12 @@ export function TemplatePreviewOverlay({
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{
-          opacity: showIframe && !isExit ? 1 : 0,
-          x: showIframe && !isExit ? 0 : -20,
+          opacity: showPreview && !isExit ? 1 : 0,
+          x: showPreview && !isExit ? 0 : -20,
         }}
         transition={{
           type: "spring", stiffness: 100, damping: 22,
-          delay: showIframe ? 0.35 : 0,
+          delay: showPreview ? 0.35 : 0,
         }}
         className="fixed z-20"
         style={{
@@ -327,17 +361,21 @@ export function TemplatePreviewOverlay({
               <span className="rounded-full border border-white/[0.06] bg-white/[0.04] px-3 py-1 text-[10px] font-bold text-white/50 tracking-wider uppercase">{template.length}</span>
             </div>
             <div className="mt-6 space-y-2.5">
-              <Link href={template.id === "our-memories" ? "/our-memories?edit=true" : `/create/${template.id}`}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blush via-violet to-violet py-3 text-sm font-extrabold text-white shadow-lg shadow-blush/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <Link
+                href={template.id === "our-memories" ? "/our-memories?edit=true" : `/create/${template.id}`}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blush via-violet to-violet py-3 text-sm font-extrabold text-white shadow-lg shadow-blush/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
                 ✨ Create Yours
               </Link>
               <button type="button" onClick={restart}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] py-3 text-sm font-bold text-white/60 transition-all hover:bg-white/[0.08] hover:text-white/80 active:scale-[0.98]">
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] py-3 text-sm font-bold text-white/60 transition-all hover:bg-white/[0.08] hover:text-white/80 active:scale-[0.98]"
+              >
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 Play Again
               </button>
               <button type="button" onClick={handleBack}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.04] py-2.5 text-xs font-bold text-white/40 transition-all hover:text-white/60 active:scale-[0.98]">
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.04] py-2.5 text-xs font-bold text-white/40 transition-all hover:text-white/60 active:scale-[0.98]"
+              >
                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
                 Back
               </button>

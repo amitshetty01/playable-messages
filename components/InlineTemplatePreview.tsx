@@ -1,5 +1,15 @@
+"use client";
+
+import { useMemo } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { templates, getTemplate } from "@/lib/data";
+import { createDemoExperience } from "@/lib/demo";
+
+const ExperiencePlayer = dynamic(
+  () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
+  { ssr: false }
+);
 
 const TEMPLATE_PREVIEW_INFO: Record<string, { label: string }> = {
   "love-chase": { label: "Catch My Heart" },
@@ -15,9 +25,12 @@ const TEMPLATE_PREVIEW_INFO: Record<string, { label: string }> = {
 export function InlineTemplatePreview({ templateId }: { templateId: string | null }) {
   const info = templateId ? TEMPLATE_PREVIEW_INFO[templateId] : null;
   const template = templateId ? getTemplate(templateId) : null;
-  if (!info || !template) return null;
+  const experience = useMemo(() => {
+    if (!template) return null;
+    return createDemoExperience(template);
+  }, [template]);
 
-  const demoUrl = `/demo/${templateId}`;
+  if (!info || !template || !experience) return null;
 
   return (
     <section className="glass rounded-[2rem] p-5 sm:p-8">
@@ -39,12 +52,13 @@ export function InlineTemplatePreview({ templateId }: { templateId: string | nul
           <div className="pointer-events-none absolute inset-0 z-10 rounded-[2.5rem] border-[3px] border-white/15 shadow-2xl" />
           <div className="pointer-events-none absolute -top-1 left-1/2 z-20 h-1 w-16 -translate-x-1/2 rounded-full bg-black" />
           <div className="overflow-hidden rounded-[2.35rem] bg-black">
-            <iframe
-              src={demoUrl}
-              className="h-[600px] w-full"
-              title={info.label}
-              loading="lazy"
-            />
+            <div className="aspect-[9/16] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
+              <ExperiencePlayer
+                template={template}
+                experience={experience}
+                mode="demo"
+              />
+            </div>
           </div>
         </div>
       </div>

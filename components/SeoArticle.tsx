@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TemplateCard } from "@/components/TemplateCard";
 import { BannerAd } from "@/components/BannerAd";
+import { categories } from "@/lib/data";
 import type { FaqItem } from "@/lib/seo-content";
 import type { Template } from "@/lib/types";
 
@@ -32,7 +33,10 @@ export function SeoArticle({ eyebrow, h1, intro, examples, relatedTemplates, faq
       <nav className="glass rounded-[1.6rem] p-4" aria-label="Helpful internal links">
         <div className="flex flex-col gap-3 text-sm font-bold text-white/75 sm:flex-row sm:flex-wrap sm:items-center">
           <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/mood/love">Love messages</Link>
-          <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/templates">Templates</Link>
+          <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/mood/sorry">Sorry messages</Link>
+          <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/mood/funny">Funny messages</Link>
+          <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/mood/birthday">Birthday messages</Link>
+          <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/templates">All templates</Link>
           <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/faq">FAQ</Link>
           <Link className="rounded-full bg-white/10 px-4 py-2 transition hover:bg-white/15" href="/create">Create page</Link>
         </div>

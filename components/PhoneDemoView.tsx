@@ -1,21 +1,24 @@
 "use client";
 
-import { useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { Template } from "@/lib/types";
+import { createDemoExperience } from "@/lib/demo";
+
+const ExperiencePlayer = dynamic(
+  () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
+  { ssr: false }
+);
 
 export function PhoneDemoView({ template }: { template: Template }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [previewKey, setPreviewKey] = useState(0);
 
-  const restart = () => {
-    if (iframeRef.current) {
-      const src = iframeRef.current.src;
-      iframeRef.current.src = "";
-      requestAnimationFrame(() => {
-        if (iframeRef.current) iframeRef.current.src = src;
-      });
-    }
-  };
+  const experience = useMemo(() => createDemoExperience(template), [template]);
+
+  const restart = useCallback(() => {
+    setPreviewKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950">
@@ -62,7 +65,7 @@ export function PhoneDemoView({ template }: { template: Template }) {
                     <div className="absolute -left-1/2 top-0 h-full w-1/3 skew-x-[20deg] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
                   </div>
 
-                  {/* Top edge - speaker grille (landscape: left side) */}
+                  {/* Top edge - speaker grille */}
                   <div className="absolute left-1/2 top-0 z-20 h-[3px] w-20 -translate-x-1/2 rounded-b-full bg-zinc-800" />
 
                   {/* Camera dot */}
@@ -71,17 +74,16 @@ export function PhoneDemoView({ template }: { template: Template }) {
                   </div>
 
                   {/* Screen */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-zinc-950">
-                    <iframe
-                      ref={iframeRef}
-                      src={`/demo/${template.id}`}
-                      className="absolute inset-0 h-full w-full"
-                      title={`Preview of ${template.title}`}
-                      scrolling="no"
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
+                    <ExperiencePlayer
+                      key={previewKey}
+                      template={template}
+                      experience={experience}
+                      mode="demo"
                     />
                   </div>
 
-                  {/* Bottom edge - home indicator (landscape: bottom) */}
+                  {/* Bottom edge - home indicator */}
                   <div className="absolute bottom-2 left-1/2 z-20 h-[4px] w-28 -translate-x-1/2 rounded-full bg-zinc-800" />
                 </div>
               </div>
