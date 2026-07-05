@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
@@ -59,7 +59,103 @@ const HOW_IT_WORKS = [
   { step: "5", icon: "🎬", title: "Watch them experience it", desc: "They open the link and play through your message live." },
 ];
 
+const STATS = [
+  { value: "50K", suffix: "+", label: "Messages created" },
+  { value: "42", suffix: "K+", label: "Happy recipients" },
+  { value: "20", suffix: "+", label: "Interactive templates" },
+  { value: "7", suffix: "", label: "Mood categories" },
+];
+
+const TEMPLATE_ICONS: Record<string, string> = {
+  "the-final-button": "🎯",
+  "love-chase": "💖",
+  "love-contract": "📜",
+  "birthday-surprise-journey": "🎂",
+  "come-closer": "👻",
+  "our-memories": "📖",
+  "escape-me": "🧩",
+  "kitty-apology": "🐱",
+  "memory-maze": "💜",
+  "sorry-maze": "💛",
+  "birthday-journey": "🎈",
+};
+
+const TEMPLATE_GRADIENTS: Record<string, string> = {
+  "the-final-button": "from-rose/30 via-blush/20 to-transparent",
+  "love-chase": "from-blush/30 via-violet/20 to-transparent",
+  "love-contract": "from-violet/30 via-neon/20 to-transparent",
+  "birthday-surprise-journey": "from-sky-500/20 via-violet/20 to-transparent",
+};
+
 const fullTemplates = templates.filter((t) => t.status === "full");
+
+function ScrollReveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function StaggerGrid({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={className}>{children}</div>;
+}
+
+function StatNumber({ value, suffix }: { value: string; suffix: string }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const [displayed, setDisplayed] = useState("0");
+  const num = parseInt(value.replace(/\D/g, ""), 10);
+
+  useEffect(() => {
+    if (!isInView || !num) { if (isInView) setDisplayed(value); return; }
+    let start = 0;
+    const duration = 1200;
+    const step = Math.ceil(num / 30);
+    const interval = setInterval(() => {
+      start += step;
+      if (start >= num) {
+        setDisplayed(value);
+        clearInterval(interval);
+      } else {
+        setDisplayed(String(start));
+      }
+    }, duration / 30);
+    return () => clearInterval(interval);
+  }, [isInView, num, value]);
+
+  return (
+    <span ref={ref} className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+      <span>{displayed}</span>{suffix}
+    </span>
+  );
+}
+
+function SectionHeader({ eyebrow, title, lead, center = true }: { eyebrow?: string; title?: string; lead?: string; center?: boolean }) {
+  return (
+    <div className={`${center ? "text-center" : ""}`}>
+      {eyebrow && (
+        <p className="text-xs font-bold tracking-[0.15em] text-white/50 uppercase">{eyebrow}</p>
+      )}
+      <div className={`mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40 ${center ? "" : "ml-0"}`} />
+      {title && (
+        <p className="mt-5 text-xl font-bold leading-snug text-white sm:text-2xl">{title}</p>
+      )}
+      {lead && (
+        <p className={`mt-3 text-base leading-relaxed text-white/60 ${center ? "mx-auto max-w-xl" : ""}`}>{lead}</p>
+      )}
+    </div>
+  );
+}
+
 export function HomePageContent() {
   const [showGuided, setShowGuided] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
@@ -96,10 +192,12 @@ export function HomePageContent() {
     <>
     <div className={`pb-24 ${preview ? "pointer-events-none select-none" : ""}`}>
 
-      {/* ─── Premium Hero ─── */}
+      {/* ════════════════════════════════════════
+          HERO
+          ════════════════════════════════════════ */}
       <section className="relative overflow-hidden pt-6 sm:pt-10">
-        <div className="pointer-events-none absolute -left-32 top-12 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[160px]" />
-        <div className="pointer-events-none absolute -right-32 top-24 h-[400px] w-[400px] rounded-full bg-blush/10 blur-[140px]" />
+        <div className="pointer-events-none absolute -left-32 top-12 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[160px] float-orb" />
+        <div className="pointer-events-none absolute -right-32 top-24 h-[400px] w-[400px] rounded-full bg-blush/10 blur-[140px] float-orb" style={{ animationDelay: "-4s" }} />
         <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[600px] bg-gradient-to-r from-violet/5 via-blush/5 to-neon/5 blur-[120px]" />
 
         <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between">
@@ -118,8 +216,9 @@ export function HomePageContent() {
             </div>
 
             <h1 className="display-title text-[clamp(2.2rem,7vw,4.5rem)] font-extrabold leading-[1.08] tracking-tight text-white">
-              Don't send another text.{' '}
-              <span className="font-display italic text-gradient">Send an experience.</span>
+              Turn your message into an{' '}
+              <span className="font-display italic text-gradient">interactive experience</span>{' '}
+              they will replay.
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/55 sm:text-xl">
@@ -148,6 +247,10 @@ export function HomePageContent() {
                 Watch Live Demo
               </button>
             </motion.div>
+
+            <p className="mt-4 text-xs font-medium text-white/40">
+              Free to try · No sign-up required · Mobile-first
+            </p>
           </motion.div>
 
           <motion.div
@@ -189,207 +292,384 @@ export function HomePageContent() {
         </div>
       </section>
 
-      {/* ─── Quick Create ─── */}
+      {/* ════════════════════════════════════════
+          QUICK CREATE
+          ════════════════════════════════════════ */}
       <section id="quick-create" className="section-fade mt-20 sm:mt-28 scroll-mt-24">
         <QuickFlow />
       </section>
 
-      {/* ─── Trending templates ─── */}
-      <section className="mt-24">
-        <TrendingTemplates onDemo={handlePreview} />
-      </section>
-
-      {/* ─── How it works ─── */}
-      <section className="mx-auto mt-28 max-w-5xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">How it works</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-          <p className="mt-4 text-lg text-white/60">Five simple steps to create an unforgettable message.</p>
-        </div>
-        <div className="relative mt-14">
-          {/* Connecting line (desktop) */}
-          <div className="absolute left-1/2 top-12 hidden h-[calc(100%-6rem)] w-px -translate-x-1/2 bg-gradient-to-b from-blush/20 via-violet/20 to-neon/20 lg:block" />
-          <div className="grid gap-8 lg:grid-cols-5 lg:gap-4">
-            {HOW_IT_WORKS.map((item, i) => (
-              <div key={item.step} className="relative flex flex-col items-center text-center">
-                {/* Step circle */}
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10 transition-all duration-500 hover:ring-blush/30 hover:bg-white/[0.08]">
-                  <span className="text-3xl transition-transform duration-300 hover:scale-110" aria-hidden="true">{item.icon}</span>
-                  {/* Step number */}
-                  <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blush to-violet text-[10px] font-extrabold text-white shadow-lg">
-                    {item.step}
-                  </div>
-                </div>
-                {/* Arrow (between steps) */}
-                {i < HOW_IT_WORKS.length - 1 && (
-                  <div className="hidden lg:block absolute -right-3 top-8 text-white/15">
-                    <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor"><path d="M8 0L6.59 1.41 12.17 7H0v2h12.17l-5.58 5.59L8 16l8-8z"/></svg>
-                  </div>
-                )}
-                <h3 className="mt-4 text-base font-extrabold text-white">{item.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-white/60 max-w-[200px]">{item.desc}</p>
-              </div>
-            ))}
+      {/* ════════════════════════════════════════
+          TRENDING TEMPLATES
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-6xl px-4">
+          <SectionHeader eyebrow="Trending now" title="Most-loved experiences" lead="These templates are being shared the most right now." />
+          <div className="mt-10">
+            <TrendingTemplates onDemo={handlePreview} />
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollReveal>
 
-      {/* ─── Choose by occasion ─── */}
-      <section className="mx-auto mt-28 max-w-5xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Choose by occasion</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-          <p className="mt-4 text-lg text-white/60">Pick the moment and find the perfect experience.</p>
-        </div>
-        <div className="mt-10 grid grid-cols-4 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {OCCASIONS.map((o) => (
-            <Link
-              key={o.label}
-              href={`/mood/${o.slug}`}
-              className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5"
-            >
-              <span className="text-xl transition-transform duration-300 group-hover:scale-125" aria-hidden="true">{o.icon}</span>
-              <span className="text-[10px] font-extrabold text-white/70 transition-colors group-hover:text-white text-center leading-tight">{o.label}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* ════════════════════════════════════════
+          HOW IT WORKS
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-5xl px-4">
+          <SectionHeader eyebrow="How it works" title="Five simple steps to create an unforgettable message." />
+          <div className="relative mt-14">
+            <div className="absolute left-1/2 top-12 hidden h-[calc(100%-6rem)] w-px -translate-x-1/2 bg-gradient-to-b from-blush/20 via-violet/20 to-neon/20 lg:block" />
+            <div className="grid gap-8 lg:grid-cols-5 lg:gap-4">
+              {HOW_IT_WORKS.map((item, i) => (
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative flex flex-col items-center text-center"
+                >
+                  <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10 transition-all duration-500 hover:ring-blush/30 hover:bg-white/[0.08]">
+                    <span className="text-3xl transition-transform duration-300 hover:scale-110" aria-hidden="true">{item.icon}</span>
+                    <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blush to-violet text-[10px] font-extrabold text-white shadow-lg">
+                      {item.step}
+                    </div>
+                  </div>
+                  {i < HOW_IT_WORKS.length - 1 && (
+                    <div className="hidden lg:block absolute -right-3 top-8 text-white/15">
+                      <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor"><path d="M8 0L6.59 1.41 12.17 7H0v2h12.17l-5.58 5.59L8 16l8-8z"/></svg>
+                    </div>
+                  )}
+                  <h3 className="mt-4 text-base font-extrabold text-white">{item.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-white/60 max-w-[200px]">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
 
-      {/* ─── Trending Today tabs ─── */}
-      <section className="mx-auto mt-28 max-w-6xl px-4">
-        <div>
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Discover</h2>
-          <div className="mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-        </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {fullTemplates.slice(0, 4).map((t) => (
-            <div
-              key={t.id}
-              data-card
-              onClick={(e) => { const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
-              className="glass group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 text-lg ring-1 ring-white/10">
-                  {t.id === "the-final-button" ? "🎯" :
-                   t.id === "love-chase" ? "💖" :
-                   t.id === "love-contract" ? "📜" :
-                   t.id === "birthday-surprise-journey" ? "🎂" :
-                   t.id === "come-closer" ? "👻" :
-                   t.id === "our-memories" ? "📖" :
-                   t.id === "escape-me" ? "🧩" :
-                   t.id === "kitty-apology" ? "🐱" :
-                   t.id === "memory-maze" ? "💜" :
-                   t.id === "sorry-maze" ? "💛" :
-                   t.id === "birthday-journey" ? "🎈" : "✨"}
-                </span>
-                <div className="min-w-0">
-                  <h4 className="text-sm font-extrabold text-white truncate">{t.title}</h4>
-                  <p className="text-[10px] text-white/50">{t.length}</p>
-                </div>
-              </div>
-              <div className="mt-3 flex gap-2">
+      {/* ════════════════════════════════════════
+          MID-PAGE CTA BANNER
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-4xl px-4">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet/15 via-blush/10 to-neon/10 p-8 text-center sm:p-12">
+            <div className="pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-violet/20 blur-[100px]" />
+            <div className="pointer-events-none absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-blush/15 blur-[100px]" />
+            <div className="relative z-10">
+              <p className="text-xs font-bold tracking-[0.15em] text-white/50 uppercase">Ready to create?</p>
+              <h2 className="mt-3 text-2xl font-extrabold text-white sm:text-3xl">Make them feel something they will not forget.</h2>
+              <p className="mx-auto mt-3 max-w-lg text-base text-white/60">50+ interactive templates. Zero design skills. Share anywhere with one link.</p>
+              <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
-                  className="flex-1 rounded-lg border border-white/15 bg-white/[0.06] py-1.5 text-[10px] font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white active:scale-95"
+                  onClick={handleHeroCreate}
+                  className="premium-button min-w-[200px] text-base"
                 >
-                  Demo
+                  Create Your Experience
                 </button>
                 <Link
-                  href={t.id === "our-memories" ? "/our-memories?edit=true" : `/create/${t.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-blush/80 to-violet/80 py-1.5 text-center text-[10px] font-extrabold text-white shadow transition-all hover:scale-[1.02] active:scale-95"
+                  href="/explore"
+                  className="ghost-button min-w-[160px] text-base"
                 >
-                  Create
+                  Browse Templates
                 </Link>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      </ScrollReveal>
 
-      {/* ─── Recent activity ─── */}
-      <section className="mx-auto mt-28 max-w-3xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Live activity</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-        </div>
-        <div className="mt-10 space-y-3">
-          {ACTIVITIES.map((a, i) => (
-            <div
-              key={i}
-              className="animate-fade-in glass flex items-center gap-3 rounded-xl px-4 py-3"
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <span className="text-lg">{a.emoji}</span>
-              <p className="text-sm text-white/70">{a.text}</p>
-              <span className="ml-auto text-[10px] text-white/25">just now</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ════════════════════════════════════════
+          CHOOSE BY OCCASION
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-5xl px-4">
+          <SectionHeader eyebrow="Choose by occasion" lead="Pick the moment and find the perfect experience." />
+          <div className="mt-10 grid grid-cols-4 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+            {OCCASIONS.map((o) => (
+              <Link
+                key={o.label}
+                href={`/mood/${o.slug}`}
+                className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5"
+              >
+                <span className="text-xl transition-transform duration-300 group-hover:scale-125" aria-hidden="true">{o.icon}</span>
+                <span className="text-[10px] font-extrabold text-white/70 transition-colors group-hover:text-white text-center leading-tight">{o.label}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
 
-      {/* ─── Social proof ─── */}
-      <section className="mx-auto mt-28 max-w-5xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Real reactions</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-        </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {REACTIONS.map((r, i) => (
-            <div
-              key={i}
-              className="glass group rounded-xl p-5 transition-all duration-300 hover:-translate-y-1"
-              style={{ animationDelay: `${i * 120}ms` }}
-            >
-              <p className="flex items-start gap-2 text-base leading-relaxed text-white/85">
-                <span className="mt-0.5 text-xl">{r.emoji}</span>
-                <span>{r.text}</span>
-              </p>
-              <p className="mt-3 text-xs font-bold text-white/50">{r.author}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ════════════════════════════════════════
+          DISCOVER — PREMIUM TEMPLATE CARDS
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-6xl px-4">
+          <SectionHeader eyebrow="Discover" title="Explore interactive templates" lead="Each one turns your message into something they will play and remember." />
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {fullTemplates.slice(0, 4).map((t, i) => {
+              const gradient = TEMPLATE_GRADIENTS[t.id] || "from-white/10 to-transparent";
+              return (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  data-card
+                  onClick={(e) => { const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
+                  className="card-glow group relative cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5"
+                >
+                  <div className={`pointer-events-none absolute -inset-x-4 -inset-y-6 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`} />
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] text-xl ring-1 ring-white/10">
+                        {TEMPLATE_ICONS[t.id] || "✨"}
+                      </span>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-extrabold text-white truncate">{t.title}</h4>
+                        <p className="mt-0.5 text-[10px] font-medium text-white/40">{t.length}</p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs leading-relaxed text-white/50 line-clamp-2">{t.description || "An interactive experience to share your message."}</p>
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
+                        className="flex-1 rounded-lg border border-white/15 bg-white/[0.06] py-2 text-[11px] font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white active:scale-95"
+                      >
+                        Preview
+                      </button>
+                      <Link
+                        href={t.id === "our-memories" ? "/our-memories?edit=true" : `/create/${t.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 rounded-lg bg-gradient-to-r from-blush/80 to-violet/80 py-2 text-center text-[11px] font-extrabold text-white shadow transition-all hover:scale-[1.02] active:scale-95"
+                      >
+                        Create
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+      </ScrollReveal>
 
-      {/* ─── Testimonials + Stats ─── */}
-      <div className="mx-auto mt-28 max-w-3xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.18em] text-white/50 uppercase">What people create</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-        </div>
-        <TestimonialCarousel />
-        <div className="mt-6">
-          <h3 className="text-center text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">Trusted by thousands</h3>
-          <div className="mt-5 grid grid-cols-4 gap-3">
+      {/* ════════════════════════════════════════
+          WHY USE IT
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-5xl px-4">
+          <SectionHeader eyebrow="Why use it" lead="Plain texts get lost. Interactive messages get remembered." />
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { value: "50K", suffix: "+", icon: "💬", label: "Messages" },
-              { value: "42", suffix: "K+", icon: "👥", label: "Recipients" },
-              { value: "20", suffix: "+", icon: "🎨", label: "Templates" },
-              { value: "7", suffix: "", icon: "🎭", label: "Moods" },
-            ].map((s) => (
-              <div key={s.label} className="group rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.04] to-transparent px-2 py-4 text-center transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.06] hover:shadow-lg sm:px-3 sm:py-5">
-                <span className="text-lg sm:text-xl block" aria-hidden="true">{s.icon}</span>
-                <p className="mt-1 text-lg font-extrabold tracking-tight text-white sm:text-2xl">
-                  <span>{s.value}</span>{s.suffix}
-                </p>
-                <p className="mt-0.5 text-[9px] font-semibold text-white/50 uppercase tracking-wider sm:text-[10px]">{s.label}</p>
+              { emoji: "🎯", title: "More than text", desc: "A link carries emotion, pacing, and surprise that a plain message cannot." },
+              { emoji: "🔗", title: "Share anywhere", desc: "Works in WhatsApp, Instagram, SMS, email — anywhere you can paste a link." },
+              { emoji: "🎨", title: "50+ templates", desc: "Choose from love, apology, birthday, funny, memory, and mystery experiences." },
+              { emoji: "🔒", title: "Private by default", desc: "Each link is unique and unguessable. You control who sees it." },
+            ].map((item) => (
+              <div key={item.title} className="glass rounded-[1.6rem] p-5">
+                <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
+                <h3 className="mt-3 text-lg font-extrabold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/60">{item.desc}</p>
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </ScrollReveal>
 
-      {/* ─── Ad ─── */}
-      <div className="mt-16 flex justify-center">
+      {/* ════════════════════════════════════════
+          SOCIAL PROOF + STATS (combined)
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-5xl px-4">
+          <SectionHeader eyebrow="Real reactions" lead="See what people are saying about their experiences." />
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {REACTIONS.map((r, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                className="glass group rounded-xl p-5 transition-all duration-300 hover:-translate-y-1"
+              >
+                <p className="flex items-start gap-2 text-base leading-relaxed text-white/85">
+                  <span className="mt-0.5 text-xl">{r.emoji}</span>
+                  <span>{r.text}</span>
+                </p>
+                <p className="mt-3 text-xs font-bold text-white/50">{r.author}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          STATS
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-4xl px-4">
+          <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent p-8">
+            <p className="text-center text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">Trusted by thousands</p>
+            <div className="mt-6 grid grid-cols-4 gap-4">
+              {STATS.map((s) => (
+                <div key={s.label} className="text-center">
+                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.05] ring-1 ring-white/10">
+                    <svg className="h-5 w-5 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      {s.label === "Messages created" ? <><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></> :
+                       s.label === "Happy recipients" ? <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></> :
+                       s.label === "Interactive templates" ? <><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></> :
+                       <><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></>}
+                    </svg>
+                  </div>
+                  <StatNumber value={s.value} suffix={s.suffix} />
+                  <p className="mt-1 text-[9px] font-semibold text-white/50 uppercase tracking-wider sm:text-[10px]">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          TESTIMONIALS
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-3xl px-4">
+          <SectionHeader eyebrow="What people create" />
+          <div className="mt-8">
+            <TestimonialCarousel />
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          RECENT ACTIVITY
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-3xl px-4">
+          <SectionHeader eyebrow="Live activity" lead="Real creations happening right now." />
+          <div className="mt-10 space-y-3">
+            {ACTIVITIES.map((a, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="glass flex items-center gap-3 rounded-xl px-4 py-3"
+              >
+                <span className="text-lg">{a.emoji}</span>
+                <p className="text-sm text-white/70">{a.text}</p>
+                <span className="ml-auto text-[10px] text-white/25">just now</span>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          FAQ
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-3xl px-4">
+          <SectionHeader eyebrow="Questions" lead="Everything you need to know before creating your first message." />
+          <div className="mt-10 space-y-4">
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+                <span>What can I create?</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Love confessions, birthday surprises, apology messages, anniversary notes, proposal questions, good morning texts, good night wishes, friendship appreciation, funny roasts, farewell messages, and more. Each one is interactive and shareable as a link.</p>
+            </details>
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+                <span>Does the recipient need to sign up?</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">No. They just tap the link and the experience opens in their browser. No account, no app, no download.</p>
+            </details>
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+                <span>Can I send it on WhatsApp?</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Copy your unique link and paste it into any WhatsApp chat. The recipient taps it and the experience opens instantly.</p>
+            </details>
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+                <span>Is it really free?</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every template, every generator, every AI tool is completely free. No hidden charges or subscriptions.</p>
+            </details>
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+                <span>Can I edit after sharing?</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every created message includes an edit link. You can update the text, change the template, or customize it even after the recipient has seen it.</p>
+            </details>
+          </div>
+          <div className="mt-8 text-center">
+            <Link href="/faq" className="text-sm font-bold text-white/60 underline underline-offset-4 transition-colors hover:text-white/70">
+              See all FAQs →
+            </Link>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          FINAL CTA
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-3xl px-4">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-10 text-center sm:p-14">
+            <div className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-neon/10 blur-[100px]" />
+            <div className="pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-violet/15 blur-[100px]" />
+            <div className="relative z-10">
+              <h2 className="display-title text-3xl font-extrabold text-white sm:text-4xl">Ready to make them smile?</h2>
+              <p className="mx-auto mt-4 max-w-md text-base text-white/60">
+                Join <span className="font-bold text-white/85">50,000+</span> messages already created. Your words deserve more than a text.
+              </p>
+              <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={handleHeroCreate}
+                  className="premium-button min-w-[220px] text-base"
+                >
+                  Create Your Experience
+                </button>
+                <Link
+                  href="/explore"
+                  className="ghost-button min-w-[160px] text-base"
+                >
+                  Browse All
+                </Link>
+              </div>
+              <p className="mt-4 text-xs text-white/40">Free to try · No sign-up required · Share with one link</p>
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          AD
+          ════════════════════════════════════════ */}
+      <div className="mt-20 flex justify-center">
         <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
           <Script id="ad-rect-config" strategy="lazyOnload">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
           <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" strategy="lazyOnload" />
         </div>
       </div>
 
-      {/* ─── SEO text ─── */}
+      {/* ════════════════════════════════════════
+          SEO TEXT
+          ════════════════════════════════════════ */}
       <section className="mx-auto mt-20 max-w-4xl px-4">
         <div className="glass rounded-[2rem] p-6 sm:p-10">
           <h2 className="display-title text-2xl font-bold text-white sm:text-3xl">What is Craft Your Message?</h2>
@@ -415,7 +695,9 @@ export function HomePageContent() {
         </div>
       </section>
 
-      {/* ─── Escape hatches ─── */}
+      {/* ════════════════════════════════════════
+          ESCAPE HATCHES
+          ════════════════════════════════════════ */}
       <div className="mt-16 flex flex-col items-center gap-3 text-center">
         <button
           type="button"
@@ -433,103 +715,21 @@ export function HomePageContent() {
         </button>
       </div>
 
-      {/* ─── Guided flow ─── */}
       {showGuided && (
         <section className="section-fade mt-12">
           <GuidedFlow />
         </section>
       )}
 
-      {/* ─── Browse flow ─── */}
       {showBrowse && (
         <section className="section-fade mt-12">
           <BrowseFlow />
         </section>
       )}
 
-      {/* ─── Why use it ─── */}
-      <section className="mx-auto mt-28 max-w-5xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Why use it</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-          <p className="mt-4 text-lg text-white/60">Plain texts get lost. Interactive messages get remembered.</p>
-        </div>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl" aria-hidden="true">🎯</span>
-            <h3 className="mt-3 text-lg font-extrabold text-white">More than text</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">A link carries emotion, pacing, and surprise that a plain message cannot.</p>
-          </div>
-          <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl" aria-hidden="true">🔗</span>
-            <h3 className="mt-3 text-lg font-extrabold text-white">Share anywhere</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">Works in WhatsApp, Instagram, SMS, email — anywhere you can paste a link.</p>
-          </div>
-          <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl" aria-hidden="true">🎨</span>
-            <h3 className="mt-3 text-lg font-extrabold text-white">50+ templates</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">Choose from love, apology, birthday, funny, memory, and mystery experiences.</p>
-          </div>
-          <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl" aria-hidden="true">🔒</span>
-            <h3 className="mt-3 text-lg font-extrabold text-white">Private by default</h3>
-            <p className="mt-2 text-sm leading-6 text-white/60">Each link is unique and unguessable. You control who sees it.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Homepage FAQs ─── */}
-      <section className="mx-auto mt-28 max-w-3xl px-4">
-        <div className="text-center">
-          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Questions</h2>
-          <div className="mx-auto mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-          <p className="mt-4 text-lg text-white/60">Everything you need to know before creating your first message.</p>
-        </div>
-        <div className="mt-10 space-y-4">
-          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
-              <span>What can I create?</span>
-              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
-            </summary>
-            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Love confessions, birthday surprises, apology messages, anniversary notes, proposal questions, good morning texts, good night wishes, friendship appreciation, funny roasts, farewell messages, and more. Each one is interactive and shareable as a link.</p>
-          </details>
-          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
-              <span>Does the recipient need to sign up?</span>
-              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
-            </summary>
-            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">No. They just tap the link and the experience opens in their browser. No account, no app, no download.</p>
-          </details>
-          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
-              <span>Can I send it on WhatsApp?</span>
-              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
-            </summary>
-            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Copy your unique link and paste it into any WhatsApp chat. The recipient taps it and the experience opens instantly.</p>
-          </details>
-          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
-              <span>Is it really free?</span>
-              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
-            </summary>
-            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every template, every generator, every AI tool is completely free. No hidden charges or subscriptions.</p>
-          </details>
-          <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-            <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
-              <span>Can I edit after sharing?</span>
-              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
-            </summary>
-            <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every created message includes an edit link. You can update the text, change the template, or customize it even after the recipient has seen it.</p>
-          </details>
-        </div>
-        <div className="mt-8 text-center">
-          <Link href="/faq" className="text-sm font-bold text-white/60 underline underline-offset-4 transition-colors hover:text-white/70">
-            See all FAQs →
-          </Link>
-        </div>
-      </section>
-
-      {/* ─── Explore & Messages bottom links ─── */}
+      {/* ════════════════════════════════════════
+          BOTTOM LINKS
+          ════════════════════════════════════════ */}
       <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/explore"
@@ -547,7 +747,6 @@ export function HomePageContent() {
         </Link>
       </div>
 
-      {/* ─── Secret space ─── */}
       <div className="mt-8 text-center">
         <Link
           href="/chat"
