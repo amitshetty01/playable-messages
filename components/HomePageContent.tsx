@@ -728,24 +728,43 @@ export function HomePageContent() {
       )}
 
       {/* ════════════════════════════════════════
-          BOTTOM LINKS
+          FOOTER NAV LINKS
           ════════════════════════════════════════ */}
-      <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
-        <Link
-          href="/explore"
-          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-          Explore
-        </Link>
-        <Link
-          href="/messages"
-          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
-          Messages
-        </Link>
-      </div>
+      <section className="mx-auto mt-16 max-w-2xl px-4">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 sm:p-8">
+          <p className="text-center text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase">Navigate</p>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Link
+              href="/explore"
+              className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all hover:bg-white/10 hover:-translate-y-0.5"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-white/50 group-hover:text-white/80" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+              <span className="text-xs font-bold text-white/60 group-hover:text-white/85">Explore</span>
+            </Link>
+            <Link
+              href="/templates"
+              className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all hover:bg-white/10 hover:-translate-y-0.5"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-white/50 group-hover:text-white/80" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
+              <span className="text-xs font-bold text-white/60 group-hover:text-white/85">Templates</span>
+            </Link>
+            <Link
+              href="/reminders"
+              className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all hover:bg-white/10 hover:-translate-y-0.5"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-white/50 group-hover:text-white/80" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+              <span className="text-xs font-bold text-white/60 group-hover:text-white/85">Reminders</span>
+            </Link>
+            <Link
+              href="/messages"
+              className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all hover:bg-white/10 hover:-translate-y-0.5"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-white/50 group-hover:text-white/80" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+              <span className="text-xs font-bold text-white/60 group-hover:text-white/85">Messages</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <div className="mt-8 text-center">
         <Link
