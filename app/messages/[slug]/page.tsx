@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CopyButton } from "@/components/CopyButton";
 import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
 import { InlineTemplatePreview } from "@/components/InlineTemplatePreview";
-import { allMessagesCache, getMessageBySlug, getRelatedMessages, categoryDisplay } from "@/lib/messages-data";
+import { allMessagesCache, getMessageBySlug, getRelatedMessages, categoryDisplay, getGeneratorSlugForMessage } from "@/lib/messages-data";
 import type { MessageFaq } from "@/lib/messages-data";
 import { buildMetadata } from "@/lib/seo";
 import { faqSchema, breadcrumbSchema, articleSchema, combinedSchema, webpageSchema } from "@/lib/structured-data";
@@ -30,6 +30,7 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
 
   const related = getRelatedMessages(msg);
   const category = categoryDisplay[msg.categorySlug];
+  const generatorSlug = getGeneratorSlugForMessage(msg);
 
   const breadcrumb = [
     { name: "Home", path: "/" },
@@ -41,6 +42,7 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
     breadcrumbSchema(breadcrumb),
     articleSchema(msg.metaTitle, msg.metaDescription, `/messages/${msg.slug}`),
     webpageSchema(msg.metaTitle, msg.metaDescription, `/messages/${msg.slug}`),
+    ...(msg.faqs.length > 0 ? [faqSchema(msg.faqs)] : []),
   );
 
   return (
@@ -73,7 +75,7 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
             <CopyButton text={msg.content} label="Copy Message" />
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link className="premium-button" href={`/generator/${msg.categorySlug}-generator`}>Generate Your Own</Link>
+            <Link className="premium-button" href={`/generator/${generatorSlug}`}>Generate Your Own</Link>
             <Link className="ghost-button" href="/create">Create Interactive Message</Link>
           </div>
         </section>
@@ -86,7 +88,7 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
           <h2 className="display-title text-2xl font-bold leading-tight sm:text-4xl">AI Generate Your Own {msg.title}</h2>
           <p className="mt-3 text-white/70">{msg.copyPrompt}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link className="premium-button" href={`/generator/${msg.categorySlug}-generator`}>Try AI Generator</Link>
+            <Link className="premium-button" href={`/generator/${generatorSlug}`}>Try AI Generator</Link>
           </div>
         </section>
 

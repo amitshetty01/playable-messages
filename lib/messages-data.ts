@@ -220,9 +220,26 @@ function slugify(text: string): string {
 }
 
 function buildMessageSlug(categorySlug: string, audience: string, title: string): string {
-  const base = `${categorySlug}-message-for-${audience}`;
+  const base = `${title}-for-${audience}-${categorySlug}`;
   return slugify(base);
 }
+
+const generatorSlugByCategory: Record<string, string> = {
+  romantic: "romance-message-generator",
+  birthday: "birthday-wish-generator",
+  anniversary: "anniversary-letter-generator",
+  apology: "apology-generator",
+  goodmorning: "good-morning-generator",
+  goodnight: "good-night-generator",
+  friendship: "friendship-message-generator",
+  loveletter: "love-letter-generator",
+  sorry: "apology-generator",
+  farewell: "farewell-message-generator",
+  proposal: "proposal-message-generator",
+  longdistance: "love-letter-generator",
+  breakup: "apology-generator",
+  thankYou: "thank-you-generator",
+};
 
 function buildMessageMetaTitle(title: string, audience: string): string {
   return title.replace(/{audience}/g, audienceLabel[audience] || audience);
@@ -1311,6 +1328,10 @@ export function getSeasonalBySlug(slug: string): SeasonalItem | undefined {
 
 export function getGeneratorBySlug(slug: string): GeneratorItem | undefined {
   return generators.find((g) => g.slug === slug);
+}
+
+export function getGeneratorSlugForMessage(message: MessageItem): string {
+  return generatorSlugByCategory[message.categorySlug] || "love-letter-generator";
 }
 
 export function getGameSeoBySlug(slug: string): GameSeoItem | undefined {

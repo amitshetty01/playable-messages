@@ -8,19 +8,27 @@ import { SurpriseSite } from "./SurpriseSite";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const { data } = await getExperience(id);
-  const title = data?.creatorName ? `A message for you from ${data.creatorName}` : "You have a surprise message";
+  const title = "You have a surprise message";
+  const description = "A personal surprise message just for you.";
   return {
     title: `${title} | ${siteName}`,
-    description: data?.finalMessage?.slice(0, 120) || "A personal surprise message just for you.",
+    description,
+    alternates: { canonical: absoluteUrl(`/surprise/${id}`) },
     openGraph: {
       title,
-      description: "A personal surprise message just for you.",
+      description,
       url: absoluteUrl(`/surprise/${id}`),
       siteName,
       type: "website",
       images: [{ url: absoluteUrl("/opengraph-image"), width: 1200, height: 630 }],
     },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [absoluteUrl("/opengraph-image")],
+    },
+    robots: { index: false, follow: false },
   };
 }
 

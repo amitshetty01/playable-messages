@@ -1,18 +1,24 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
+import { motion } from "framer-motion";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
 import { TrendingTemplates } from "@/components/TrendingTemplates";
 import { getTemplate, templates } from "@/lib/data";
+import { createDemoExperience } from "@/lib/demo";
 
 const TemplatePreviewOverlay = dynamic(() => import("@/components/TemplatePreviewOverlay").then((m) => m.TemplatePreviewOverlay), { ssr: false });
 const TestimonialCarousel = dynamic(
   () => import("@/components/TestimonialCarousel").then((m) => m.TestimonialCarousel),
+  { ssr: false }
+);
+const ExperiencePlayer = dynamic(
+  () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
   { ssr: false }
 );
 
@@ -58,6 +64,7 @@ export function HomePageContent() {
   const [showGuided, setShowGuided] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
   const [preview, setPreview] = useState<{ id: string; rect: DOMRect } | null>(null);
+  const [demoKey, setDemoKey] = useState(0);
 
   const handlePreview = useCallback((id: string, rect?: DOMRect) => {
     const fallback = { top: 120, left: 0, width: 340, height: 280, x: 0, y: 120, bottom: 400, right: 340 };
@@ -71,12 +78,119 @@ export function HomePageContent() {
 
   const previewTemplate = preview ? getTemplate(preview.id) : null;
 
+  const heroTemplate = useMemo(() => getTemplate("birthday-surprise-journey") ?? null, []);
+  const heroDemoExperience = useMemo(() => {
+    return heroTemplate ? createDemoExperience(heroTemplate) : null;
+  }, [heroTemplate]);
+
+  const handleHeroCreate = useCallback(() => {
+    document.getElementById("quick-create")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  const handleLiveDemo = useCallback(() => {
+    setDemoKey((k) => k + 1);
+    window.open("/demo/phone/birthday-surprise-journey", "_blank");
+  }, []);
+
   return (
     <>
     <div className={`pb-24 ${preview ? "pointer-events-none select-none" : ""}`}>
 
-      {/* ─── Hero ─── */}
-      <section className="section-fade pt-8 sm:pt-16">
+      {/* ─── Premium Hero ─── */}
+      <section className="relative overflow-hidden pt-6 sm:pt-10">
+        <div className="pointer-events-none absolute -left-32 top-12 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[160px]" />
+        <div className="pointer-events-none absolute -right-32 top-24 h-[400px] w-[400px] rounded-full bg-blush/10 blur-[140px]" />
+        <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[600px] bg-gradient-to-r from-violet/5 via-blush/5 to-neon/5 blur-[120px]" />
+
+        <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="z-10 max-w-2xl text-center lg:text-left"
+          >
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-violet/30 bg-violet/10 px-4 py-1.5 text-xs font-bold tracking-widest text-violet">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-violet" />
+              </span>
+              BEYOND GREETING CARDS
+            </div>
+
+            <h1 className="display-title text-[clamp(2.2rem,7vw,4.5rem)] font-extrabold leading-[1.08] tracking-tight text-white">
+              Don't send another text.{' '}
+              <span className="font-display italic text-gradient">Send an experience.</span>
+            </h1>
+
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/55 sm:text-xl">
+              Craft immersive mini-games, 3D memories, and cinematic love letters in 60 seconds. No design skills required.
+            </p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 flex flex-col items-center gap-4 sm:flex-row lg:justify-start"
+            >
+              <button
+                type="button"
+                onClick={handleHeroCreate}
+                className="premium-button min-w-[200px] text-base"
+              >
+                Create an Experience
+              </button>
+              <button
+                type="button"
+                onClick={handleLiveDemo}
+                className="ghost-button min-w-[180px] text-base"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Watch Live Demo
+              </button>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="z-10 shrink-0"
+          >
+            <div className="relative mx-auto w-[280px] sm:w-[320px]">
+              <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-b from-violet/20 via-blush/10 to-neon/10 blur-3xl opacity-60" />
+              <div className="relative overflow-hidden rounded-[2.6rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_80px_rgba(0,0,0,0.5),0_0_40px_rgba(184,165,255,0.08)]">
+                <div className="relative overflow-hidden rounded-[2.4rem] bg-black">
+                  <div className="pointer-events-none absolute inset-0 z-30 rounded-[2.4rem] bg-gradient-to-br from-white/[0.06] via-transparent to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-[2.4rem]">
+                    <div className="absolute -left-1/2 top-0 h-full w-1/3 skew-x-[20deg] bg-gradient-to-r from-transparent via-white/[0.07] to-transparent" />
+                  </div>
+                  <div className="absolute left-1/2 top-0 z-20 h-[4px] w-20 -translate-x-1/2 rounded-b-full bg-zinc-900" />
+                  <div className="absolute right-4 top-3 z-20 h-[6px] w-[6px] rounded-full bg-zinc-900 shadow-inner">
+                    <div className="h-full w-full rounded-full bg-gradient-to-br from-zinc-600 to-zinc-900" />
+                  </div>
+                  <div className="relative aspect-[9/19] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
+                    {heroTemplate && heroDemoExperience && (
+                      <ExperiencePlayer
+                        key={demoKey}
+                        template={heroTemplate}
+                        experience={heroDemoExperience}
+                        mode="demo"
+                      />
+                    )}
+                  </div>
+                  <div className="absolute bottom-2 left-1/2 z-20 h-[4px] w-28 -translate-x-1/2 rounded-full bg-zinc-900" />
+                </div>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-[10px] font-bold tracking-widest text-white/25 uppercase">Blow Out the Candles · Live Demo</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Quick Create ─── */}
+      <section id="quick-create" className="section-fade mt-20 sm:mt-28 scroll-mt-24">
         <QuickFlow />
       </section>
 
@@ -100,7 +214,7 @@ export function HomePageContent() {
               <div key={item.step} className="relative flex flex-col items-center text-center">
                 {/* Step circle */}
                 <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10 transition-all duration-500 hover:ring-blush/30 hover:bg-white/[0.08]">
-                  <span className="text-3xl transition-transform duration-300 hover:scale-110">{item.icon}</span>
+                  <span className="text-3xl transition-transform duration-300 hover:scale-110" aria-hidden="true">{item.icon}</span>
                   {/* Step number */}
                   <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blush to-violet text-[10px] font-extrabold text-white shadow-lg">
                     {item.step}
@@ -113,7 +227,7 @@ export function HomePageContent() {
                   </div>
                 )}
                 <h3 className="mt-4 text-base font-extrabold text-white">{item.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-white/50 max-w-[200px]">{item.desc}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-white/60 max-w-[200px]">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -134,7 +248,7 @@ export function HomePageContent() {
               href={`/mood/${o.slug}`}
               className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5"
             >
-              <span className="text-xl transition-transform duration-300 group-hover:scale-125">{o.icon}</span>
+              <span className="text-xl transition-transform duration-300 group-hover:scale-125" aria-hidden="true">{o.icon}</span>
               <span className="text-[10px] font-extrabold text-white/70 transition-colors group-hover:text-white text-center leading-tight">{o.label}</span>
             </Link>
           ))}
@@ -143,12 +257,10 @@ export function HomePageContent() {
 
       {/* ─── Trending Today tabs ─── */}
       <section className="mx-auto mt-28 max-w-6xl px-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Discover</h2>
-            <div className="mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
-          </div>
-          </div>
+        <div>
+          <h2 className="text-xs font-bold tracking-[0.15em] text-white/40 uppercase">Discover</h2>
+          <div className="mt-2 h-[2px] w-12 rounded-full bg-gradient-to-r from-blush/40 via-violet/40 to-neon/40" />
+        </div>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {fullTemplates.slice(0, 4).map((t) => (
             <div
@@ -173,7 +285,7 @@ export function HomePageContent() {
                 </span>
                 <div className="min-w-0">
                   <h4 className="text-sm font-extrabold text-white truncate">{t.title}</h4>
-                  <p className="text-[10px] text-white/40">{t.length}</p>
+                  <p className="text-[10px] text-white/50">{t.length}</p>
                 </div>
               </div>
               <div className="mt-3 flex gap-2">
@@ -235,7 +347,7 @@ export function HomePageContent() {
                 <span className="mt-0.5 text-xl">{r.emoji}</span>
                 <span>{r.text}</span>
               </p>
-              <p className="mt-3 text-xs font-bold text-white/35">{r.author}</p>
+              <p className="mt-3 text-xs font-bold text-white/50">{r.author}</p>
             </div>
           ))}
         </div>
@@ -258,11 +370,11 @@ export function HomePageContent() {
               { value: "7", suffix: "", icon: "🎭", label: "Moods" },
             ].map((s) => (
               <div key={s.label} className="group rounded-xl border border-white/[0.06] bg-gradient-to-b from-white/[0.04] to-transparent px-2 py-4 text-center transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.06] hover:shadow-lg sm:px-3 sm:py-5">
-                <span className="text-lg sm:text-xl block">{s.icon}</span>
+                <span className="text-lg sm:text-xl block" aria-hidden="true">{s.icon}</span>
                 <p className="mt-1 text-lg font-extrabold tracking-tight text-white sm:text-2xl">
                   <span>{s.value}</span>{s.suffix}
                 </p>
-                <p className="mt-0.5 text-[9px] font-semibold text-white/30 uppercase tracking-wider sm:text-[10px]">{s.label}</p>
+                <p className="mt-0.5 text-[9px] font-semibold text-white/50 uppercase tracking-wider sm:text-[10px]">{s.label}</p>
               </div>
             ))}
           </div>
@@ -294,9 +406,9 @@ export function HomePageContent() {
               { icon: "💝", title: "Emotional", desc: "The format makes your words hit harder and feel deeper." },
             ].map((item) => (
               <div key={item.title} className="flex flex-col items-center rounded-xl bg-white/[0.04] p-4 text-center ring-1 ring-white/10">
-                <span className="text-3xl">{item.icon}</span>
+                <span className="text-3xl" aria-hidden="true">{item.icon}</span>
                 <h3 className="mt-3 text-sm font-extrabold text-white">{item.title}</h3>
-                <p className="mt-1 text-xs text-white/50">{item.desc}</p>
+                <p className="mt-1 text-xs text-white/60">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -308,14 +420,14 @@ export function HomePageContent() {
         <button
           type="button"
           onClick={() => { setShowGuided(!showGuided); if (!showGuided) setShowBrowse(false); }}
-          className="text-sm text-white/40 underline underline-offset-4 transition-colors hover:text-white/70"
+          className="text-sm text-white/55 underline underline-offset-4 transition-colors hover:text-white/70"
         >
           {showGuided ? "− Close guided mode" : "Not sure what to say? Let us guide you"}
         </button>
         <button
           type="button"
           onClick={() => { setShowBrowse(!showBrowse); if (!showBrowse) setShowGuided(false); }}
-          className="text-sm text-white/40 underline underline-offset-4 transition-colors hover:text-white/70"
+          className="text-sm text-white/55 underline underline-offset-4 transition-colors hover:text-white/70"
         >
           {showBrowse ? "− Close" : "See what's coming soon →"}
         </button>
@@ -344,22 +456,22 @@ export function HomePageContent() {
         </div>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl">🎯</span>
+            <span className="text-2xl" aria-hidden="true">🎯</span>
             <h3 className="mt-3 text-lg font-extrabold text-white">More than text</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">A link carries emotion, pacing, and surprise that a plain message cannot.</p>
           </div>
           <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl">🔗</span>
+            <span className="text-2xl" aria-hidden="true">🔗</span>
             <h3 className="mt-3 text-lg font-extrabold text-white">Share anywhere</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">Works in WhatsApp, Instagram, SMS, email — anywhere you can paste a link.</p>
           </div>
           <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl">🎨</span>
+            <span className="text-2xl" aria-hidden="true">🎨</span>
             <h3 className="mt-3 text-lg font-extrabold text-white">50+ templates</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">Choose from love, apology, birthday, funny, memory, and mystery experiences.</p>
           </div>
           <div className="glass rounded-[1.6rem] p-5">
-            <span className="text-2xl">🔒</span>
+            <span className="text-2xl" aria-hidden="true">🔒</span>
             <h3 className="mt-3 text-lg font-extrabold text-white">Private by default</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">Each link is unique and unguessable. You control who sees it.</p>
           </div>
@@ -377,41 +489,41 @@ export function HomePageContent() {
           <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
             <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
               <span>What can I create?</span>
-              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
             </summary>
             <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Love confessions, birthday surprises, apology messages, anniversary notes, proposal questions, good morning texts, good night wishes, friendship appreciation, funny roasts, farewell messages, and more. Each one is interactive and shareable as a link.</p>
           </details>
           <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
             <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
               <span>Does the recipient need to sign up?</span>
-              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
             </summary>
             <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">No. They just tap the link and the experience opens in their browser. No account, no app, no download.</p>
           </details>
           <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
             <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
               <span>Can I send it on WhatsApp?</span>
-              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
             </summary>
             <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Copy your unique link and paste it into any WhatsApp chat. The recipient taps it and the experience opens instantly.</p>
           </details>
           <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
             <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
               <span>Is it really free?</span>
-              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
             </summary>
             <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every template, every generator, every AI tool is completely free. No hidden charges or subscriptions.</p>
           </details>
           <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
             <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
               <span>Can I edit after sharing?</span>
-              <span className="shrink-0 text-white/30 transition-transform duration-200 group-open:rotate-45">+</span>
+              <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
             </summary>
             <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every created message includes an edit link. You can update the text, change the template, or customize it even after the recipient has seen it.</p>
           </details>
         </div>
         <div className="mt-8 text-center">
-          <Link href="/faq" className="text-sm font-bold text-white/50 underline underline-offset-4 transition-colors hover:text-white/70">
+          <Link href="/faq" className="text-sm font-bold text-white/60 underline underline-offset-4 transition-colors hover:text-white/70">
             See all FAQs →
           </Link>
         </div>
@@ -439,19 +551,11 @@ export function HomePageContent() {
       <div className="mt-8 text-center">
         <Link
           href="/chat"
-          className="group inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[0.65rem] font-bold text-white/35 transition-all hover:bg-white/5 hover:text-white/60"
+          className="group inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[0.65rem] font-bold text-white/50 transition-all hover:bg-white/5 hover:text-white/60"
         >
           <span className="transition-transform duration-300 group-hover:scale-110">🔒</span>
           <span>Secret space</span>
         </Link>
-      </div>
-
-      {/* ─── Ad ─── */}
-      <div className="mt-12 flex justify-center">
-        <div className="relative w-full max-w-[728px] overflow-hidden" style={{ height: 90 }}>
-          <Script id="ad-rect-config-2" strategy="lazyOnload">{`atOptions={"key":"4325688d299d71bc93ad520c92ef88c0","format":"iframe","height":90,"width":728,"params":{}}`}</Script>
-          <Script src="https://www.highperformanceformat.com/4325688d299d71bc93ad520c92ef88c0/invoke.js" strategy="lazyOnload" />
-        </div>
       </div>
 
     </div>

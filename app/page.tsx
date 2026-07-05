@@ -35,15 +35,7 @@ export default function Page() {
               "@type": "WebSite",
               name: siteName,
               url: absoluteUrl("/"),
-              description: defaultDescription,
-              potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                  "@type": "EntryPoint",
-                  urlTemplate: `${absoluteUrl("/templates")}?q={search_term_string}`
-                },
-                "query-input": "required name=search_term_string"
-              }
+              description: defaultDescription
             },
             {
               "@context": "https://schema.org",

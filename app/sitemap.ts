@@ -6,8 +6,10 @@ import { absoluteUrl } from "@/lib/utils";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const staticPaths = ["/", "/about", "/templates", "/faq", "/privacy", "/terms", "/report", "/contact", "/create", "/my-experiences", "/chat", "/our-memories", "/explore", "/messages", "/collections", "/generator", "/games", "/seasonal", "/images", "/reminders", "/whatsapp-preview"];
-  const templatePaths = templates.map((template) => `/templates/${getTemplateSeoSlug(template)}`);
+  const staticPaths = ["/", "/about", "/templates", "/faq", "/privacy", "/terms", "/report", "/contact", "/create", "/our-memories", "/explore", "/messages", "/collections", "/generator", "/games", "/seasonal", "/images"];
+  const templatePaths = templates
+    .filter((template) => template.id !== "sorry-maze")
+    .map((template) => `/templates/${getTemplateSeoSlug(template)}`);
   const useCasePaths = useCasePages.map((page) => `/use-cases/${page.slug}`);
   const moodPaths = moods.map((mood) => `/mood/${mood.slug}`);
   const categoryPaths = categories.map((cat) => `/category/${cat.slug}`);
@@ -38,7 +40,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...indexPaths.map((path) => ({ path, priority: 0.8 })),
   ];
 
-  return allPaths.map(({ path, priority }) => ({
+  const seen = new Set<string>();
+  return allPaths.filter(({ path }) => {
+    if (seen.has(path)) return false;
+    seen.add(path);
+    return true;
+  }).map(({ path, priority }) => ({
     url: absoluteUrl(path),
     lastModified: now,
     changeFrequency: path === "/" ? "weekly" as const : "monthly" as const,
