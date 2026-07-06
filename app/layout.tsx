@@ -71,7 +71,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`dark ${fraunces.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body>
-        <meta charSet="utf-8" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <Script id="theme-init" strategy="beforeInteractive">
           {`(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()`}

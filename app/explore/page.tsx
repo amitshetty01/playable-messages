@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { templates, categories, moods } from "@/lib/data";
+import { templates, categories, getTemplateSeoSlug, moods } from "@/lib/data";
 import { gameSeoPages, generators, collections } from "@/lib/messages-data";
 import { buildMetadata } from "@/lib/seo";
 
@@ -35,7 +35,7 @@ export default function ExplorePage() {
           {featured.map((template) => (
             <Link
               key={template.id}
-              href={`/templates/${template.slug}`}
+              href={`/templates/${getTemplateSeoSlug(template)}`}
               className="glass group rounded-[2rem] p-5 transition hover:bg-white/15 sm:p-8"
             >
               <p className="text-xs font-bold tracking-[0.08em] text-white/50">{template.tone}</p>
@@ -141,7 +141,7 @@ export default function ExplorePage() {
           {newTemplates.map((template) => (
             <Link
               key={template.id}
-              href={`/templates/${template.slug}`}
+              href={`/templates/${getTemplateSeoSlug(template)}`}
               className="glass group rounded-[2rem] p-5 transition hover:bg-white/15 sm:p-8"
             >
               <p className="text-xs font-bold tracking-[0.08em] text-white/50">{template.tone}</p>

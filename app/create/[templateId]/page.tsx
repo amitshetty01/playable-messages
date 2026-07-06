@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreateForm } from "@/components/CreateForm";
-import { getTemplate, getTemplateSeoSlug, templates } from "@/lib/data";
+import { getTemplate, templates } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo";
 
 export function generateStaticParams() {
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ templateI
   return buildMetadata({
     title: `Create ${template.title}`,
     description: `Customize ${template.title} with your own words, tone, theme, steps, and final reveal.`,
-    path: `/create/${getTemplateSeoSlug(template)}`
+    path: `/create/${templateId}`
   });
 }
 

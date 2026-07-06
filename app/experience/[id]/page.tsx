@@ -4,7 +4,7 @@ import { ExperiencePlayer } from "@/components/ExperiencePlayer";
 import { getTemplate } from "@/lib/data";
 import { getExperience } from "@/lib/experiences";
 import { SCENE_ENGINE_TEMPLATES } from "@/lib/scene-registry";
-import { buildMetadata, siteName } from "@/lib/seo";
+import { buildMetadata, siteName, defaultOgImage } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const title = data?.finalMessage ? `${data.finalMessage.slice(0, 60)}...` : "Interactive Message";
   const ogImage = data?.templateId
     ? `/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(`A ${data.templateId.replace(/-/g, " ")} interactive message created on ${siteName}`)}&type=message`
-    : undefined;
+    : defaultOgImage;
 
   return {
     title: `${title} | ${siteName}`,
@@ -25,13 +25,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       url: absoluteUrl(`/experience/${id}`),
       siteName,
       type: "website",
-      images: ogImage ? [{ url: absoluteUrl(ogImage), width: 1200, height: 630 }] : undefined,
+      images: [{ url: absoluteUrl(ogImage), width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: "Open this interactive message experience.",
-      images: ogImage ? [absoluteUrl(ogImage)] : undefined,
+      images: [absoluteUrl(ogImage)],
     },
     robots: { index: false, follow: false },
   };
