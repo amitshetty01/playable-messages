@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useAudio } from "@/lib/audio-engine";
 import type { LockType } from "@/lib/types";
 
 type LockGateProps = {
@@ -13,6 +14,7 @@ type LockGateProps = {
 };
 
 export function LockGate({ lockType, lockValue, receiverName, creatorName, togetherSince, onUnlock }: LockGateProps) {
+  const { play } = useAudio();
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [puzzleSolved, setPuzzleSolved] = useState(false);
@@ -20,31 +22,36 @@ export function LockGate({ lockType, lockValue, receiverName, creatorName, toget
 
   if (!lockType) return null;
 
+  const handleUnlock = useCallback(() => {
+    play("success");
+    onUnlock();
+  }, [play, onUnlock]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (lockType === "password") {
       if (answer.toLowerCase() === lockValue?.toLowerCase()) {
-        onUnlock();
+        handleUnlock();
       } else {
         setError("Wrong password. Try again.");
       }
     } else if (lockType === "nickname") {
       if (answer.toLowerCase() === lockValue?.toLowerCase()) {
-        onUnlock();
+        handleUnlock();
       } else {
         setError("That's not the right nickname.");
       }
     } else if (lockType === "date") {
       if (answer === lockValue) {
-        onUnlock();
+        handleUnlock();
       } else {
         setError("That date doesn't match.");
       }
     } else if (lockType === "puzzle") {
       if (puzzleSolved) {
-        onUnlock();
+        handleUnlock();
       } else {
         setError("Solve the puzzle first.");
       }

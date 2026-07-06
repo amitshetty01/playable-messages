@@ -11,6 +11,8 @@ import { SoundToggleWrapper } from "@/components/SoundToggleWrapper";
 import { SoundWelcome } from "@/components/SoundWelcome";
 import { CookieBanner } from "@/components/CookieBanner";
 import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
+import { AudioProvider } from "@/lib/audio-engine";
+import { AmbientGlow } from "@/components/AmbientGlow";
 import { defaultDescription, defaultOgImage, siteName } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -76,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {`(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()`}
         </Script>
         <ThemeProvider>
+        <AudioProvider>
         <LanguageProvider>
         <Script id="consent-gate" strategy="beforeInteractive">
           {`window.__consent=localStorage.getItem("cookie-consent-v1")==="1"`}
@@ -90,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Analytics />
+        <AmbientGlow />
         <Header />
         <ResponsiveBannerAd />
         <main id="content" className="mx-auto min-h-[calc(100svh-220px)] w-full max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -100,6 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SoundToggleWrapper />
         <CookieBanner />
         </LanguageProvider>
+        </AudioProvider>
         </ThemeProvider>
       </body>
     </html>

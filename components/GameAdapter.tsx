@@ -49,6 +49,7 @@ export function GameAdapter({
           experience={experience}
           mode={mode}
           shareUrl={shareUrl}
+          variant={template.id === "roast-wheel" ? "wheel" : "slots"}
         />
       )}
     </GamePlayer>

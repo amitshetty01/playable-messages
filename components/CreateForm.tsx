@@ -8,6 +8,7 @@ import { defaultCustomMessages, defaultFinalMessage, getTemplateCategory } from 
 import { saveExperience } from "@/lib/my-experiences";
 import { compressImage } from "@/lib/compressImage";
 import { Spinner } from "@/components/Spinner";
+import { useAudio } from "@/lib/audio-engine";
 import { getTemplateConfig } from "@/lib/template-configs";
 import type { ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
 import { RELATIONSHIP_TAGS, ANON_TONES } from "@/lib/types";
@@ -28,15 +29,53 @@ function computeExpiresAt(option: string): string | undefined {
   return new Date(Date.now() + ms).toISOString();
 }
 
+// FP3: Auto-fill suggestions keyed by category slug, then tone
+const FINAL_MESSAGE_SUGGESTIONS: Record<string, Partial<Record<Tone, string>>> = {
+  "love-crush": {
+    Romantic: "I've been wanting to tell you this for a while... You're the most amazing person I've ever met, and my world feels brighter when you're in it.",
+    Funny: "So here's the thing — I'm pretty great, and you're pretty great, so statistically we should be together. Just saying.",
+    Emotional: "I know I don't say it enough, but you matter to me more than I usually know how to express. Thank you for being you.",
+    Savage: "You're not just my type. You're my exact type. Don't let it get to your head. (Okay, maybe a little.)",
+    Mystery: "Some messages aren't meant to be read. This one is. Figure it out.",
+    Birthday: "Happy birthday to the only person who makes getting older look this good. Cheers to you!",
+    Friendship: "You're the kind of friend everyone deserves but very few find. I'm lucky to have you in my corner.",
+  },
+  "apology-fight-repair": {
+    Romantic: "I know I messed up, and I hate that I hurt you. You deserve better, and I'm going to spend the time proving that I can be it.",
+    Funny: "I'm sorry... that you're not as awesome as me. But seriously, I messed up and I'm really sorry.",
+    Emotional: "There are no words big enough to say how sorry I am. But I'll spend as long as it takes showing you.",
+    Savage: "I was wrong. You were right. There, I said it. Now can we go back to being us?",
+    Sorry: "I messed up. I know that. But what I feel for you is bigger than any mistake I could make. I'm sorry.",
+    Friendship: "I was an idiot and I took you for granted. Best friends don't do that. I'm sorry — can we fix this?",
+  },
+  "funny-roast": {
+    Funny: "I was going to roast you, but clearly nature already did its job. Just kidding... mostly. 😏",
+    Savage: "You're like a software update — I know I need you, but I'm going to put you off as long as possible. Just kidding, you're actually cool.",
+    Friendship: "If being dumb is a crime, you'd be serving a life sentence. But hey, I love you anyway. 🔥",
+  },
+  "birthday-special-days": {
+    Birthday: "Another year older, another year wiser... or at least older. Happy birthday to someone who makes life a little more interesting!",
+    Romantic: "Every birthday of yours is a reminder of how lucky I am to share this journey with you. Here's to many more.",
+    Funny: "Happy birthday! You don't look a day over fabulous. (Because that's timeless.)",
+    Friendship: "Another trip around the sun and you're still my favorite person to annoy. Happy birthday!",
+  },
+  "friendship-best-friend": {
+    Friendship: "You're not just a friend — you're family I got to choose. And I'd choose you every single time.",
+    Funny: "Thanks for being the kind of friend who I can text at 2 AM about nothing. And for not judging my questionable life choices. Mostly.",
+    Emotional: "Life is beautiful because people like you exist in it. Thank you for being mine.",
+  },
+};
+
 export function CreateForm({ templates, initialTemplate, existingExperience }: { templates: Template[]; initialTemplate: Template; existingExperience?: ExperienceRecord }) {
   const isEdit = Boolean(existingExperience);
+  const { play: playAudio } = useAudio();
   const getDefaultCategory = (t: Template) => getTemplateCategory(t).slug;
   const isAnonTone = ANON_TONES.includes(existingExperience?.tone ?? initialTemplate.tone);
   const initialFormState = {
     templateId: existingExperience?.templateId ?? initialTemplate.id,
     category: existingExperience?.category ?? getDefaultCategory(initialTemplate),
     creatorName: existingExperience?.creatorName ?? "Someone",
-    receiverName: existingExperience?.receiverName ?? "You",
+    receiverName: existingExperience?.receiverName ?? "",
     relationshipTag: (existingExperience?.relationshipTag ?? "") as RelationshipTag,
     showCreatorName: existingExperience?.showCreatorName ?? !isAnonTone,
     tone: existingExperience?.tone ?? initialTemplate.tone as Tone,
@@ -44,7 +83,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     landingText: existingExperience?.customMessages.landingText ?? initialTemplate.hook,
     buttonText: existingExperience?.customMessages.buttonText ?? "Begin",
     steps: (existingExperience?.customMessages.steps ?? defaultCustomMessages.steps).join("\n"),
-    finalMessage: existingExperience?.finalMessage ?? defaultFinalMessage,
+    finalMessage: existingExperience?.finalMessage ?? "",
     ctaMessage: existingExperience?.customMessages.ctaMessage ?? defaultCustomMessages.ctaMessage,
     sceneTitles: (existingExperience?.customMessages.sceneTitles ?? []).join("\n"),
     expiryOption: "",
@@ -65,6 +104,9 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [draftToast, setDraftToast] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showStepCustomization, setShowStepCustomization] = useState(false);
+  const [showAdvancedTone, setShowAdvancedTone] = useState(false);
   const [templateData, setTemplateData] = useState<Record<string, any>>(() => {
     if (!existingExperience) return {};
     const td: Record<string, any> = {};
@@ -75,6 +117,32 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     return td;
   });
   const draftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const finalMessageDirty = useRef(false);
+
+  // FP3: Auto-fill finalMessage on template/tone change (if user hasn't manually typed)
+  useEffect(() => {
+    if (isEdit || finalMessageDirty.current) return;
+    const catSlug = getDefaultCategory(template);
+    const suggestions = FINAL_MESSAGE_SUGGESTIONS[catSlug];
+    if (!suggestions) return;
+    const matched = suggestions[form.tone];
+    if (matched && !form.finalMessage) {
+      setForm((prev) => ({ ...prev, finalMessage: matched }));
+    }
+  }, [form.templateId, form.tone]);
+
+  useEffect(() => {
+    if (!isEdit) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("strikeBack") === "true") {
+      const replyTo = params.get("replyTo");
+      const striker = params.get("from") || "Someone";
+      setForm((prev) => ({
+        ...prev,
+        finalMessage: `Oh, you thought you could roast me and get away with it? Nice try, ${striker}. Time to return the favor. 🔥`,
+      }));
+    }
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -139,7 +207,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     templateId: template.id,
     category: form.category,
     creatorName: form.creatorName,
-    receiverName: form.receiverName,
+    receiverName: form.receiverName || "You",
     relationshipTag: form.relationshipTag,
     showCreatorName: form.showCreatorName,
     tone: form.tone,
@@ -181,6 +249,27 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     }
   }, []);
 
+  // FP7: Web Share API on success, fallback to URL display
+  async function shareOrFallback(shareUrl: string, createdIdVal: string) {
+    const shareData = { title: "I made something for you", text: form.finalMessage, url: shareUrl };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // User cancelled or share failed — show fallback
+      }
+    }
+    // Also try WhatsApp deep link
+    try {
+      const waText = encodeURIComponent(`${form.finalMessage}\n\n${shareUrl}`);
+      window.open(`https://wa.me/?text=${waText}`, "_blank");
+      return;
+    } catch {}
+    // Fallback: show the URL
+    setCreatedId(createdIdVal);
+  }
+
   async function submit() {
     setIsSubmitting(true);
     setError("");
@@ -188,18 +277,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     const errors: Record<string, string> = {};
     if (template.status !== "full") { setError("This template is not available yet."); setIsSubmitting(false); return; }
     if (!form.finalMessage.trim()) errors.finalMessage = "Your message can't be empty.";
-    if (!form.receiverName.trim()) errors.receiverName = "Who's receiving this?";
     if (!form.creatorName.trim()) errors.creatorName = "Who's sending this?";
-    const stepCount = form.steps.split("\n").filter(Boolean).length;
-    if (!stepCount) errors.steps = "Add at least one step message.";
-    for (const field of templateConfig.editableFields) {
-      if (field.required) {
-        const val = templateData[field.key];
-        if (!val || (typeof val === "string" && !val.trim()) || (Array.isArray(val) && val.length === 0)) {
-          errors[field.key] = `${field.label} is required.`;
-        }
-      }
-    }
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setIsSubmitting(false);
@@ -220,8 +298,10 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
       }
       clearDraft();
       const targetId = json.id;
-      saveExperience({ id: targetId, templateTitle: template.title, receiverName: form.receiverName, createdAt: new Date().toISOString(), creatorName: form.creatorName });
-      setCreatedId(targetId);
+      const shareUrl = `${window.location.origin}/experience/${targetId}`;
+      saveExperience({ id: targetId, templateTitle: template.title, receiverName: form.receiverName || "You", createdAt: new Date().toISOString(), creatorName: form.creatorName });
+      // FP7: Try Web Share or WhatsApp, fallback to showing URL
+      await shareOrFallback(shareUrl, targetId);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Something went wrong while generating the link.");
     } finally {
@@ -233,6 +313,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
   }
 
+  // FP7: Fallback success screen (when Web Share API fails)
   if (createdId) {
     const shareUrl = `${window.location.origin}/experience/${createdId}`;
     return (
@@ -282,15 +363,19 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     <div className="mx-auto max-w-3xl">
       <section className="glass min-w-0 rounded-[2rem] p-5 sm:p-8">
         <p className="text-xs font-bold tracking-[0.08em] text-white/50">Customization</p>
-        <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">{isEdit ? "Edit your version." : "Create your own version."}</h1>
+        <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">
+          {isEdit ? "Edit your version." : "Create your own version."}
+        </h1>
         <p className="mt-4 max-w-2xl text-white/70">{isEdit ? "Update and save changes." : "Customize the words, pick a template, then generate a shareable link."}</p>
 
         <div className="mt-8 space-y-8">
-              <Field label="Pick a template" full htmlFor="template-select">
-              <select id="template-select" value={form.templateId} onChange={(event) => {
+          <Field label="Pick a template" full htmlFor="template-select">
+            <select id="template-select" value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;
+              finalMessageDirty.current = false;
               setForm((prev) => ({
                 ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin",
+                finalMessage: "",
                 customPassword: "", passwordQuestion: "Only one person has the permission to go inside.", passwordAnswer: "", togetherSince: "",
               }));
               setImages([]);
@@ -308,9 +393,10 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                 <input id="creator-name" value={form.creatorName} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.creatorName; return next; }); setForm((prev) => ({ ...prev, creatorName: event.target.value })); }} maxLength={80} className={`input ${fieldErrors.creatorName ? "border-rose-400/50" : ""}`} placeholder="Your name" />
                 {fieldErrors.creatorName && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.creatorName}</p>}
               </Field>
-              <Field label="Their name (who's receiving?)">
-                <input value={form.receiverName} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.receiverName; return next; }); setForm((prev) => ({ ...prev, receiverName: event.target.value })); }} maxLength={80} className={`input ${fieldErrors.receiverName ? "border-rose-400/50" : ""}`} placeholder="Their name" />
-                {fieldErrors.receiverName && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.receiverName}</p>}
+              {/* FP5: Optional receiverName with smart placeholder */}
+              <Field label="Their name (optional)">
+                <input value={form.receiverName} onChange={(event) => { setForm((prev) => ({ ...prev, receiverName: event.target.value })); }} maxLength={80} className="input" placeholder="e.g. Sarah (Leave blank for 'You')" />
+                <p className="mt-1 text-xs text-white/40">If blank, we&apos;ll use &ldquo;You&rdquo; in the message.</p>
               </Field>
             </div>
             <div className="mt-4">
@@ -337,17 +423,108 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
 
           <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">💬 Message</p>
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-5">
+              {/* FP3: Auto-filled finalMessage */}
               <Field label="What's your real message?" full>
-                <textarea value={form.finalMessage} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} maxLength={520} className={`input min-h-28 py-3 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
-                {fieldErrors.finalMessage && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.finalMessage}</p>}
+                <textarea value={form.finalMessage} onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }} maxLength={520} className={`input min-h-28 py-3 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
+                <div className="mt-1 flex items-center justify-between">
+                  {fieldErrors.finalMessage && <p className="text-xs font-bold text-rose-300">{fieldErrors.finalMessage}</p>}
+                  <span className="ml-auto text-xs text-white/30">{form.finalMessage.length}/520</span>
+                </div>
               </Field>
-              <Field label="Build-up steps (one per line)" full>
-                <textarea value={form.steps} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.steps; return next; }); setForm((prev) => ({ ...prev, steps: event.target.value })); }} className={`input min-h-44 py-3 ${fieldErrors.steps ? "border-rose-400/50" : ""}`} placeholder="You mean a lot to me...&#10;I don't say it enough...&#10;So here's something special..." />
-                {fieldErrors.steps && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.steps}</p>}
-              </Field>
+
+              {/* FP8: WhatsApp-style live preview */}
+              {form.finalMessage.trim() && (
+                <div className="animate-section-fade rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                  <p className="mb-2 text-[10px] font-bold tracking-[0.08em] text-white/30">PREVIEW</p>
+                  <div className="mx-auto max-w-[280px] rounded-2xl bg-[#005c4b] p-3">
+                    <p className="text-sm leading-relaxed text-white">{form.finalMessage}</p>
+                    <p className="mt-1.5 text-right text-[10px] text-white/40">Just now</p>
+                  </div>
+                </div>
+              )}
+
+              {/* FP6: Collapsed steps behind accordion */}
+              <details className="group" open={showStepCustomization} onToggle={(e) => setShowStepCustomization((e.target as HTMLDetailsElement).open)}>
+                <summary className="cursor-pointer text-xs font-bold tracking-[0.08em] text-white/40 hover:text-white/60 transition-colors">
+                  Customize Steps ▾
+                </summary>
+                <div className="mt-3 animate-section-fade space-y-4">
+                  <Field label="Build-up steps (one per line)" full>
+                    <textarea value={form.steps} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.steps; return next; }); setForm((prev) => ({ ...prev, steps: event.target.value })); }} className={`input min-h-36 py-3 ${fieldErrors.steps ? "border-rose-400/50" : ""}`} placeholder="You mean a lot to me...&#10;I don't say it enough...&#10;So here's something special..." />
+                    {fieldErrors.steps && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.steps}</p>}
+                  </Field>
+                  <Field label="Scene titles (one per line, optional)" full>
+                    <textarea value={form.sceneTitles} onChange={(event) => setForm((prev) => ({ ...prev, sceneTitles: event.target.value }))} className="input min-h-24 py-3" placeholder="Step 1 title&#10;Step 2 title&#10;Step 3 title" />
+                  </Field>
+                </div>
+              </details>
             </div>
           </div>
+
+          {/* FP4: Infer tone/theme from template, hide behind accordion */}
+          <details className="group" open={showAdvancedTone} onToggle={(e) => setShowAdvancedTone((e.target as HTMLDetailsElement).open)}>
+            <summary className="cursor-pointer text-xs font-bold tracking-[0.08em] text-white/40 hover:text-white/60 transition-colors">
+              Advanced Options ▾
+            </summary>
+            <div className="mt-3 animate-section-fade space-y-5">
+              <div>
+                <p className="mb-2 text-xs font-bold text-white/40">Tone</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "Romantic" as Tone, emoji: "💖", gradient: "from-pink-400 to-rose-600" },
+                    { value: "Funny" as Tone, emoji: "😂", gradient: "from-yellow-400 to-orange-500" },
+                    { value: "Sorry" as Tone, emoji: "🥺", gradient: "from-blue-400 to-indigo-600" },
+                    { value: "Savage" as Tone, emoji: "🔥", gradient: "from-red-500 to-rose-700" },
+                    { value: "Emotional" as Tone, emoji: "💗", gradient: "from-purple-400 to-pink-600" },
+                    { value: "Mystery" as Tone, emoji: "🔮", gradient: "from-violet-500 to-purple-800" },
+                    { value: "Birthday" as Tone, emoji: "🎂", gradient: "from-amber-400 to-yellow-600" },
+                    { value: "Friendship" as Tone, emoji: "🤝", gradient: "from-teal-400 to-emerald-600" },
+                  ].map((toneOpt) => (
+                    <button
+                      key={toneOpt.value}
+                      type="button"
+                      onClick={() => { finalMessageDirty.current = false; setForm((prev) => ({ ...prev, tone: toneOpt.value, finalMessage: "" })); }}
+                      className={`relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${toneOpt.gradient} text-sm transition-all duration-200 ${
+                        form.tone === toneOpt.value
+                          ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                          : "opacity-60 hover:opacity-100 hover:scale-105"
+                      }`}
+                      title={toneOpt.value}
+                    >
+                      {toneOpt.emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-bold text-white/40">Theme</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: "Dark Romantic" as ThemeName, gradient: "from-[#2d1b3d] to-[#1a0a2e]" },
+                    { value: "Soft Pastel" as ThemeName, gradient: "from-[#fce4ec] to-[#f3e5f5]" },
+                    { value: "Minimal Black" as ThemeName, gradient: "from-[#1a1a1a] to-[#0d0d0d]" },
+                    { value: "Cute Pink" as ThemeName, gradient: "from-[#ffb6c1] to-[#ff69b4]" },
+                    { value: "Neon Glitch" as ThemeName, gradient: "from-[#00ffcc] to-[#ff00ff]" },
+                    { value: "Cinematic Purple" as ThemeName, gradient: "from-[#4a0e4e] to-[#1a0033]" },
+                    { value: "Clean White" as ThemeName, gradient: "from-[#f8f9fa] to-[#e9ecef]" },
+                  ].map((themeOpt) => (
+                    <button
+                      key={themeOpt.value}
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, theme: themeOpt.value }))}
+                      className={`relative h-8 w-8 rounded-full bg-gradient-to-br ${themeOpt.gradient} transition-all duration-200 ${
+                        form.theme === themeOpt.value
+                          ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110"
+                          : "opacity-50 hover:opacity-100 hover:scale-105"
+                      }`}
+                      title={themeOpt.value}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </details>
 
           <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">🔘 Buttons &amp; Labels</p>
@@ -366,7 +543,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         </div>
 
         {templateConfig.editableFields.length > 0 && (
-          <div>
+          <div className="mt-8">
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">✨ Template Settings</p>
             <DynamicFieldEditor
               fields={templateConfig.editableFields}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { SceneBackground } from "@/components/scenes/SceneBackground";
 import { SceneProp } from "@/components/scenes/SceneProp";
@@ -12,6 +13,7 @@ import { useSceneAnimation, AnimatedText } from "@/lib/useSceneAnimation";
 import { playSound, playToneSound } from "@/lib/flowSounds";
 import { initAudio } from "@/lib/sounds";
 import { haptic, hapticTone } from "@/lib/haptic";
+import { useAudio } from "@/lib/audio-engine";
 import type { SceneStep, SceneContext, SceneFlow } from "@/lib/scene-types";
 import type { ThemeName, Tone } from "@/lib/types";
 
@@ -20,9 +22,31 @@ type Props = {
   context: SceneContext;
   theme: ThemeName;
   mode: "demo" | "generated" | "preview";
+  isLateNight?: boolean;
 };
 
 const REACTION_EMOJIS = ["💖", "✨", "🔥", "💫", "🎉", "💗", "⭐", "🌸"];
+
+function FloatingParticles() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <span
+          key={i}
+          className="absolute rounded-full bg-white/10"
+          style={{
+            width: `${2 + (i % 3) * 2}px`,
+            height: `${2 + (i % 3) * 2}px`,
+            left: `${(i * 8.3 + 3.7) % 100}%`,
+            bottom: `${(i * 7.1 + 1.9) % 40}%`,
+            animation: `float-particle ${4 + (i % 5) * 2}s ease-in-out ${i * 0.6}s infinite`,
+            opacity: 0.15 + (i % 4) * 0.1,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function EggBanner({ message }: { message: string | null }) {
   if (!message) return null;
@@ -34,22 +58,43 @@ function EggBanner({ message }: { message: string | null }) {
 }
 
 function SceneProgress({ current, total }: { current: number; total: number }) {
+  const pct = ((current + 1) / total) * 100;
   return (
-    <div className="fixed bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3">
-      <div className="flex gap-1.5">
-        {Array.from({ length: total }).map((_, i) => (
-          <div
-            key={i}
-            className="h-1 rounded-full transition-all duration-700"
+    <div className="fixed bottom-0 left-0 right-0 z-20 h-1.5 bg-white/[0.06]">
+      <div
+        className="relative h-full w-full overflow-hidden"
+        aria-label={`${Math.round(pct)}% complete`}
+      >
+        {/* Liquid wave blob */}
+        <svg
+          className="absolute inset-0 h-full w-full"
+          preserveAspectRatio="none"
+          viewBox="0 0 100 4"
+        >
+          <defs>
+            <linearGradient id="liquid-wave" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+              <stop offset="50%" stopColor="rgba(255,255,255,0.7)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0.4)" />
+            </linearGradient>
+          </defs>
+          <rect
+            x="0" y="0"
+            width={pct}
+            height="4"
+            fill="url(#liquid-wave)"
             style={{
-              width: i === current ? "24px" : "4px",
-              background: i <= current
-                ? "rgba(255,255,255,0.6)"
-                : "rgba(255,255,255,0.15)",
-              boxShadow: i === current ? "0 0 8px rgba(255,255,255,0.2)" : "none",
+              filter: "blur(1.5px)",
+              transition: "width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              maskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 4'%3E%3Cpath d='M0 3 Q12.5 0 25 3 T50 3 T75 3 T100 3 V4 H0 Z' fill='white'/%3E%3C/svg%3E")`,
+              WebkitMaskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 4'%3E%3Cpath d='M0 3 Q12.5 0 25 3 T50 3 T75 3 T100 3 V4 H0 Z' fill='white'/%3E%3C/svg%3E")`,
+              WebkitMaskRepeat: "repeat-x",
+              maskRepeat: "repeat-x",
+              WebkitMaskSize: "200px 100%",
+              maskSize: "200px 100%",
             }}
           />
-        ))}
+        </svg>
       </div>
     </div>
   );
@@ -933,7 +978,7 @@ function EmojiBurst({ active }: { active: boolean }) {
 
 
 
-export function SceneEngine({ flow, context, theme, mode }: Props) {
+export function SceneEngine({ flow, context, theme, mode, isLateNight = false }: Props) {
   const [step, setStep] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showFullscreenCelebration, setShowFullscreenCelebration] = useState(false);
@@ -943,7 +988,6 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   const [suspense, setSuspense] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const loveAudioRef = useRef<HTMLAudioElement | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const crossfadeRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fadeAudioRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [audioReady, setAudioReady] = useState(false);
@@ -953,6 +997,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   const [showCTA, setShowCTA] = useState(false);
 
   const { customMessages, finalMessage, onComplete, onTrack, tone } = context;
+  const { play } = useAudio();
 
   useEffect(() => {
     const attemptPlay = () => {
@@ -1060,22 +1105,29 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
     hapticTone("tap", tone);
     if (cur.interaction?.action === "complete") {
       playToneSound("ding", tone);
+      play("whoosh");
       setSuspense(true);
       onTrack("completed");
+      // Idea 3: Heavy rumble during 1.2s suspense
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(400);
+      }
       setTimeout(() => {
         setSuspense(false);
+        play("confetti");
         setShowConfetti(true);
-        setShowFullscreenCelebration(true);
-        if (containerRef.current) {
-          containerRef.current.requestFullscreen?.().catch(() => {});
+        play("success");
+        setShowFinalScreen(true);
+        // Idea 3: Success pattern — two quick medium pulses
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate([0, 80, 60, 80]);
         }
-        setTimeout(() => {
-          if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-          setShowFullscreenCelebration(false);
-          setShowFinalScreen(true);
-        }, 600);
       }, 1200);
       return;
+    }
+    // Idea 3: Light micro-tap on step advance
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(15);
     }
     playToneSound("whoosh", tone);
     setStep((s) => Math.min(s + 1, flow.scenes.length));
@@ -1111,13 +1163,29 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
       <audio ref={loveAudioRef} preload="auto" src="/audio/love-confession-bg.mp3" />
       <ConfettiEffect active={showConfetti} />
       <EggBanner message={eggMessage} />
-      <div className={`relative flex w-full flex-col ${mode === "preview" ? "min-h-full" : "min-h-[100dvh] overflow-hidden"}`}>
+      {/* Cinematic letterbox bars */}
+      <div className={`fixed left-0 right-0 top-0 bg-black z-50 pointer-events-none transition-all duration-700 ease-out ${suspense ? "h-[15vh]" : "h-0"}`} />
+      <div className={`fixed left-0 right-0 bottom-0 bg-black z-50 pointer-events-none transition-all duration-700 ease-out ${suspense ? "h-[15vh]" : "h-0"}`} />
+
+      <div className={`relative flex w-full flex-col ${mode === "preview" ? "min-h-full" : "min-h-[100dvh] overflow-hidden"}`} style={isLateNight ? { filter: "brightness(0.8) saturate(0.9)", transition: "filter 0.6s ease" } : undefined}>
         <SceneBackground scene={current!} />
-        <div
-          ref={containerRef}
-          key={transitionKey}
-          className="animate-scene-enter relative z-10 flex w-full flex-1 flex-col"
+        {mode === "generated" && <FloatingParticles />}
+
+        <motion.div
+          className="relative z-10 flex w-full flex-1 flex-col"
+          animate={suspense ? { scale: [1, 1.01, 1] } : { scale: 1 }}
+          transition={suspense ? { duration: isLateNight ? 2.1 : 1.5, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+          style={suspense ? { boxShadow: "0 0 80px rgba(246, 177, 201, 0.4)" } as React.CSSProperties : undefined}
         >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={transitionKey}
+              className="flex w-full flex-1 flex-col"
+              initial={{ x: 60, opacity: 0, filter: "blur(4px)" }}
+              animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
+              exit={{ x: -60, opacity: 0, filter: "blur(4px)" }}
+              transition={isLateNight ? { type: "spring", stiffness: 215, damping: 42, mass: 1.4 } : { type: "spring", stiffness: 300, damping: 30 }}
+            >
 
         {showFinalScreen ? (
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8">
@@ -1225,7 +1293,9 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
           </div>
         )}
 
-        </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       </div>
 
       {/* Fullscreen celebration overlay */}

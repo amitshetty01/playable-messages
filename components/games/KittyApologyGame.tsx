@@ -23,6 +23,7 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
   const [expression, setExpression] = useState<Expression>("shy");
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number; delay: number; size: number; duration: number; drift: number; emoji: string }[]>([]);
   const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; delay: number; size: number; duration: number; drift: number }[]>([]);
+  const [awaitingTap, setAwaitingTap] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -128,7 +129,7 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
         setExpression("shy");
         { const t = setTimeout(() => { setShowText(true); setTextContent("I… brought you something…"); }, 400);
           triggerHearts();
-          const t2 = setTimeout(() => { setPhase("zoom-in"); setSubPhase(0); setShowText(false); }, 3200);
+          const t2 = setTimeout(() => { setShowText(false); setAwaitingTap(true); }, 3200);
           return () => { clearTimeout(t); clearTimeout(t2); }; }
       case "zoom-in":
         { const t = setTimeout(() => { setPhase("read"); setSubPhase(0); setExpression("reading"); }, 2400); return () => clearTimeout(t); }
@@ -167,6 +168,17 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
   const eyeScaleY = expression === "hopeful" ? 1.1 : expression === "guilty" ? 0.65 : expression === "sad" ? 0.75 : expression === "reading" ? 0.9 : 1;
   const mouthType = expression === "shy" ? "w" : expression === "guilty" ? "pout" : expression === "surprised" ? "o" : expression === "reading" ? "line" : expression === "sad" ? "pout" : expression === "hopeful" ? "smile" : "w";
   const blushOp = expression === "shy" || expression === "guilty" || expression === "sad" ? 0.9 : 0.4;
+
+  const handleTapToRead = useCallback(() => {
+    setAwaitingTap(false);
+    setPhase("zoom-in");
+    setSubPhase(0);
+  }, []);
+
+  const handleSkip = useCallback(() => {
+    setAwaitingTap(false);
+    onComplete();
+  }, [onComplete]);
 
   const handleDoneReading = useCallback(() => {
     setLetterVisible(false);
@@ -484,6 +496,21 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
         </div>
       )}
 
+      {/* ─── Tap to read prompt ─── */}
+      {awaitingTap && (
+        <button
+          onClick={handleTapToRead}
+          className="relative z-30 mt-4 animate-pulse rounded-2xl px-6 py-3 text-base font-extrabold tracking-wide text-white transition-all hover:scale-105 active:scale-95"
+          style={{
+            background: "linear-gradient(135deg, #E0877A, #C86A60)",
+            boxShadow: "0 0 30px rgba(200,100,80,0.5), 0 4px 16px rgba(200,100,80,0.3)",
+            animation: "tapPulse 1.8s ease-in-out infinite",
+          }}
+        >
+          Tap to read 💌
+        </button>
+      )}
+
       {/* ─── Sorry text ─── */}
       {(phase === "sorry" || phase === "hopeful") && (
         <div className="relative z-20 mt-2 sm:mt-3" style={{ animation: "fiu 0.5s cubic-bezier(0.22, 1, 0.36, 1) both" }}>
@@ -517,8 +544,13 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
         </div>
       </div>
 
-      {/* ─── Top close ─── */}
-      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 transition-all duration-500" style={{ opacity: controlsVisible ? 1 : 0 }}>
+      {/* ─── Top-right: close + skip ─── */}
+      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 z-40 flex gap-2 transition-all duration-500" style={{ opacity: controlsVisible || awaitingTap ? 1 : 0 }}>
+        {awaitingTap && (
+          <button onClick={handleSkip} className="flex items-center gap-1 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-bold text-white/70 transition-all hover:bg-white/15 hover:text-white" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)" }}>
+            Skip →
+          </button>
+        )}
         <button onClick={() => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); window.location.href = "/"; }} className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full text-white/60 transition-all hover:bg-white/15 hover:text-white" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)" }}>
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -538,6 +570,7 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
         @keyframes kso{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:0.85}}
         @keyframes lp{from{transform:scale(0.3) translateY(60px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
         @keyframes fiu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes tapPulse{0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(200,100,80,0.3)}50%{transform:scale(1.06);box-shadow:0 0 40px rgba(200,100,80,0.6)}}
         @keyframes hf{0%{opacity:0;transform:translate(0,0) scale(0.15)}12%{opacity:1;transform:translate(calc(var(--tx)*0.25),-12px) scale(1)}65%{opacity:1;transform:translate(calc(var(--tx)*0.75),-65px) scale(1.08)}100%{opacity:0;transform:translate(var(--tx),-130px) scale(0.45)}}
         @keyframes sf{0%{opacity:0;transform:translate(0,0) scale(0.1)}15%{opacity:0.9;transform:translate(calc(var(--tx)*0.3),-10px) scale(1)}70%{opacity:0.7;transform:translate(calc(var(--tx)*0.8),-55px) scale(0.9)}100%{opacity:0;transform:translate(var(--tx),-110px) scale(0.3)}}
       `}</style>

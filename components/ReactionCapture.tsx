@@ -7,12 +7,19 @@ type ReactionCaptureProps = {
   onReply?: () => void;
 };
 
-const EMOJIS = ["❤️", "😂", "😢", "🔥", "🥺", "💀", "✨", "😭", "🥰", "😍", "💔", "🤣"];
+const BIG_EMOJIS = [
+  { emoji: "❤️", label: "Love" },
+  { emoji: "😂", label: "Funny" },
+  { emoji: "🔥", label: "Fire" },
+  { emoji: "🥺", label: "Aww" },
+  { emoji: "💀", label: "Dead" },
+];
 
 export function ReactionCapture({ experienceId, onReply }: ReactionCaptureProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showReply, setShowReply] = useState(false);
   const [reply, setReply] = useState("");
 
   const handleReact = async (emoji: string) => {
@@ -32,11 +39,20 @@ export function ReactionCapture({ experienceId, onReply }: ReactionCaptureProps)
   if (sent) {
     return (
       <div className="glass rounded-[2rem] p-6 text-center">
-        <p className="text-3xl mb-2">{selected}</p>
+        <p className="text-4xl mb-2">{selected}</p>
         <p className="text-white/70 font-bold">Reaction sent!</p>
-        {onReply && (
-          <div className="mt-4 space-y-3">
-            <p className="text-sm text-white/50">Send a reply back?</p>
+        {onReply && !showReply && (
+          <button
+            type="button"
+            onClick={() => setShowReply(true)}
+            className="mt-4 text-xs font-bold text-white/40 hover:text-white/60 transition-colors underline underline-offset-4"
+          >
+            Send a message back
+          </button>
+        )}
+        {onReply && showReply && (
+          <div className="mt-4 animate-section-fade space-y-3">
+            <p className="text-sm text-white/50">Type a reply back?</p>
             <div className="flex gap-2 justify-center">
               <input
                 value={reply}
@@ -55,41 +71,57 @@ export function ReactionCapture({ experienceId, onReply }: ReactionCaptureProps)
 
   return (
     <div className="glass rounded-[2rem] p-6">
-      <p className="text-center text-sm font-bold text-white/60 mb-3">React to this message</p>
-      <div className="flex flex-wrap justify-center gap-2">
-        {EMOJIS.map((emoji) => (
+      <p className="text-center text-sm font-bold text-white/60 mb-4">React to this message</p>
+      <div className="flex justify-center gap-3">
+        {BIG_EMOJIS.map((item) => (
           <button
-            key={emoji}
+            key={item.emoji}
             type="button"
-            onClick={() => handleReact(emoji)}
+            onClick={() => handleReact(item.emoji)}
             disabled={sending}
-            className={`rounded-xl px-2 py-1 text-xl transition hover:scale-125 ${
-              selected === emoji ? "scale-125" : "opacity-60 hover:opacity-100"
+            className={`flex flex-col items-center gap-1 rounded-2xl border px-4 py-3 text-2xl transition-all duration-200 hover:scale-110 ${
+              selected === item.emoji
+                ? "border-white/40 bg-white/15 scale-110 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                : "border-white/10 bg-white/[0.04] opacity-70 hover:opacity-100 hover:border-white/25"
             }`}
-            aria-label={`React with ${emoji}`}
+            aria-label={`React with ${item.label}`}
           >
-            {emoji}
+            <span>{item.emoji}</span>
+            <span className="text-[10px] font-bold text-white/40">{item.label}</span>
           </button>
         ))}
       </div>
-      <div className="mt-4">
-        <textarea
-          value={reply}
-          onChange={(e) => setReply(e.target.value)}
-          className="input w-full"
-          placeholder="Or write a short reply..."
-          rows={2}
-          maxLength={200}
-        />
-        <button
-          type="button"
-          onClick={() => reply.trim() && handleReact(reply.trim())}
-          className="premium-button mt-2 text-sm w-full"
-          disabled={!reply.trim()}
-        >
-          Send reply
-        </button>
-      </div>
+      {onReply && !showReply && (
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => setShowReply(true)}
+            className="text-xs font-bold text-white/30 hover:text-white/50 transition-colors underline underline-offset-4"
+          >
+            Write a reply instead
+          </button>
+        </div>
+      )}
+      {onReply && showReply && (
+        <div className="mt-4 animate-section-fade space-y-3">
+          <textarea
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            className="input w-full"
+            placeholder="Write a short reply..."
+            rows={2}
+            maxLength={200}
+          />
+          <button
+            type="button"
+            onClick={() => reply.trim() && handleReact(reply.trim())}
+            className="premium-button text-sm w-full"
+            disabled={!reply.trim()}
+          >
+            Send reply
+          </button>
+        </div>
+      )}
     </div>
   );
 }

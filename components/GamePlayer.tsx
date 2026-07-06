@@ -45,23 +45,17 @@ export function GamePlayer({
     nextPhase("message");
   }, [experience.tone, nextPhase]);
 
-  /* Auto-advance message phase */
+  /* Dynamic reading time for message phase */
   useEffect(() => {
     if (phase !== "message") return;
-    const t = setTimeout(() => nextPhase("attribution"), 2600);
+    const readTime = Math.max(2200, experience.finalMessage.split(" ").length * 180);
+    const t = setTimeout(() => nextPhase("attribution"), readTime);
     return () => clearTimeout(t);
-  }, [phase, nextPhase]);
+  }, [phase, nextPhase, experience.finalMessage]);
 
-  /* Auto-advance attribution phase */
+  /* After reaction is picked in attribution, advance to closing */
   useEffect(() => {
-    if (phase !== "attribution") return;
-    const t = setTimeout(() => nextPhase("reaction"), 2400);
-    return () => clearTimeout(t);
-  }, [phase, nextPhase]);
-
-  /* After reaction is picked, advance to closing */
-  useEffect(() => {
-    if (phase !== "reaction" || !reaction) return;
+    if (phase !== "attribution" || !reaction) return;
     const t = setTimeout(() => nextPhase("closing"), 1400);
     return () => clearTimeout(t);
   }, [phase, reaction, nextPhase]);
@@ -113,22 +107,15 @@ export function GamePlayer({
           <p className="animate-reveal-up text-base text-white/60 sm:text-lg" style={{ animationDelay: "0.25s" }}>
             {showSender ? `— from ${experience.creatorName.trim()}` : config.anonFallback}
           </p>
-        </div>
-      )}
-
-      {phase === "reaction" && (
-        <div className={`flex flex-col items-center gap-8 px-6 text-center transition-all duration-600 ${fadeIn ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}>
-          <p className="text-lg font-bold text-white/80 sm:text-xl">
-            How did that make you feel?
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          {/* Inline reactions — message stays visible */}
+          <div className="mt-6 flex flex-wrap justify-center gap-4">
             {config.reactionEmojis.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => sendReaction(emoji)}
                 disabled={!!reaction}
-                className={`relative grid h-16 w-16 place-items-center rounded-2xl text-3xl transition-all duration-200 sm:h-20 sm:w-20 sm:text-4xl ${
+                className={`relative grid h-14 w-14 place-items-center rounded-2xl text-2xl transition-all duration-200 sm:h-16 sm:w-16 sm:text-3xl ${
                   reaction === emoji
                     ? "scale-125 bg-white/15 shadow-lg shadow-white/10"
                     : reaction
@@ -159,7 +146,11 @@ export function GamePlayer({
             💌
           </div>
           <h2 className="animate-reveal-up display-title text-3xl font-bold sm:text-5xl">
-            Delivered
+            {experience.tone === "Emotional" || experience.tone === "Sorry"
+              ? "Sent with heart"
+              : experience.tone === "Funny" || experience.tone === "Savage"
+                ? "Mission accomplished"
+                : "Sent with love"}
           </h2>
           <p className="animate-reveal-up text-sm font-bold tracking-[0.15em] text-white/40" style={{ animationDelay: "0.2s" }}>
             CRAFT YOUR MESSAGE

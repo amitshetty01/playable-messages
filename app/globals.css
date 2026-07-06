@@ -21,6 +21,7 @@ body {
   color: #fff8f1;
   background: #15101f;
   font-family: var(--font-body), system-ui, sans-serif;
+  line-height: 1.625;
 }
 
 body::before {
@@ -110,7 +111,10 @@ select:focus-visible {
   position: relative;
   border: 1px solid rgba(255,255,255,.12);
   background: linear-gradient(145deg, rgba(255,255,255,.1), rgba(255,255,255,.06));
-  box-shadow: 0 22px 70px rgba(38, 22, 55, .28), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow:
+    0 22px 70px rgba(38, 22, 55, .28),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 0 0 1px rgba(255,255,255,.04);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -121,7 +125,7 @@ select:focus-visible {
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02), transparent);
+  background: linear-gradient(170deg, rgba(255,255,255,.15) 0%, rgba(255,255,255,.04) 30%, rgba(255,255,255,.01) 60%, transparent 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -157,13 +161,17 @@ select:focus-visible {
 }
 .premium-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 20px 40px rgba(255, 220, 230, 0.2), 0 16px 40px rgba(184, 165, 255, 0.2);
+  box-shadow:
+    0 20px 40px rgba(255, 220, 230, 0.2),
+    0 16px 40px rgba(184, 165, 255, 0.2),
+    0 0 40px rgba(246, 177, 201, 0.12),
+    0 0 60px rgba(184, 165, 255, 0.08);
 }
 .premium-button:hover::after {
   opacity: 1;
 }
 .premium-button:active {
-  transform: translateY(0) scale(.98);
+  transform: translateY(0) scale(0.97);
 }
 
 .ghost-button {
@@ -194,21 +202,35 @@ select:focus-visible {
 }
 .ghost-button:hover {
   transform: translateY(-1px);
-  border-color: rgba(255,255,255,.3);
-  background: linear-gradient(135deg, rgba(48,35,64,.96), rgba(80,58,103,.9));
-  box-shadow: 0 16px 36px rgba(12, 8, 18, .25);
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 16px 36px rgba(12, 8, 18, .25), 0 0 30px rgba(184, 165, 255, 0.08);
+  color: #fff;
 }
 .ghost-button:hover::after {
   opacity: 1;
 }
 .ghost-button:active {
-  transform: translateY(0) scale(.98);
+  transform: translateY(0) scale(0.97);
+}
+
+/* ─── Luminous shadow glows ─── */
+.shadow-glow-neon {
+  box-shadow: 0 0 30px rgba(151, 218, 223, 0.15), 0 0 60px rgba(151, 218, 223, 0.08);
+}
+.shadow-glow-blush {
+  box-shadow: 0 0 30px rgba(246, 177, 201, 0.15), 0 0 60px rgba(246, 177, 201, 0.08);
+}
+.shadow-glow-violet {
+  box-shadow: 0 0 30px rgba(184, 165, 255, 0.15), 0 0 60px rgba(184, 165, 255, 0.08);
 }
 
 /* ─── Typography ─── */
 .display-title {
   font-family: var(--font-display), Georgia, serif;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
   overflow-wrap: anywhere;
 }
 
@@ -228,7 +250,8 @@ select:focus-visible {
 .input:focus {
   border-color: rgba(246,177,201,.45);
   background: rgba(255,255,255,.1);
-  box-shadow: 0 0 0 4px rgba(246,177,201,.1);
+  box-shadow: 0 0 0 4px rgba(246,177,201,.1), 0 0 20px rgba(184,165,255,0.06);
+  transition: border-color 250ms ease, background 250ms ease, box-shadow 250ms ease;
 }
 
 /* ─── Section entrance animation ─── */
@@ -982,18 +1005,32 @@ html.light .text-white-static {
   content: "";
   position: absolute;
   inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  animation: skeleton-shimmer 1.6s infinite;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255,255,255,0.1) 45%,
+    rgba(255,255,255,0.15) 50%,
+    rgba(255,255,255,0.1) 55%,
+    transparent 70%
+  );
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
 }
 @keyframes skeleton-shimmer {
-  100% { transform: translateX(100%); }
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
 }
 html.light .skeleton {
   background: rgba(0,0,0,0.04);
 }
 html.light .skeleton::after {
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent);
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(0,0,0,0.06) 45%,
+    rgba(0,0,0,0.09) 50%,
+    rgba(0,0,0,0.06) 55%,
+    transparent 70%
+  );
 }
 
 /* ─── Premium loading spinner ring ─── */
@@ -1062,7 +1099,7 @@ html.light .skeleton::after {
 }
 .card-sheen:hover {
   transform: translateY(-4px);
-  box-shadow: 0 32px 80px rgba(38, 22, 55, 0.4);
+  box-shadow: 0 32px 80px rgba(38, 22, 55, 0.4), 0 0 40px rgba(184, 165, 255, 0.08);
 }
 .card-sheen:hover::after {
   opacity: 1;
@@ -1074,6 +1111,14 @@ html.light .skeleton::after {
 }
 .tap:active {
   transform: scale(0.96);
+}
+
+/* ─── Tap feedback on premium/ghost buttons ─── */
+.premium-button:active,
+.ghost-button:active,
+.tap:active {
+  transform: scale(0.97);
+  transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── Premium badge ─── */
@@ -1101,6 +1146,15 @@ html.light .skeleton::after {
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Hide scrollbar but keep scrolling ─── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* ─── Premium gradient border card ─── */
@@ -1134,4 +1188,79 @@ html.light .skeleton::after {
   .card-glow:hover {
     transform: none;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Framer Motion Standards
+   ═══════════════════════════════════════════════════════════
+   Section Entries:  y: 20, opacity: 0 → y: 0, opacity: 1
+   Physics:          type: "spring", stiffness: 300, damping: 30
+   Grid Stagger:     staggerChildren: 0.05, cascade from top
+   layoutId:         Use on card images for seamless morph to create page
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Spacing Scale & Z-Index Hierarchy
+   ═══════════════════════════════════════════════════════════
+   Section separators:  py-24 lg:py-32
+   Card grids:          gap-6
+   Inner padding:       p-5 sm:p-8
+   Base grid:           8px
+
+   Z-Index Scale:
+     Base        =   0
+     Cards       =  10
+     Sticky Nav  =  40
+     Modals      =  50
+     Toasts      = 100
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── How It Works micro-animations ─── */
+.animate-card-flip {
+  animation: card-flip 2s ease-in-out infinite;
+  transform-style: preserve-3d;
+  perspective: 200px;
+}
+@keyframes card-flip {
+  0%, 100% { transform: rotateY(0deg) scale(1); }
+  25% { transform: rotateY(180deg) scale(1.05); }
+  50% { transform: rotateY(180deg) scale(1); }
+  75% { transform: rotateY(360deg) scale(1.05); }
+}
+@keyframes card-flip-emoji {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  25% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.animate-cursor-type {
+  animation: cursor-type 1.2s steps(4) infinite;
+}
+@keyframes cursor-type {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-plane-glide {
+  animation: plane-glide 2.5s ease-in-out infinite;
+}
+@keyframes plane-glide {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(8px, -8px) rotate(-10deg); }
+  50% { transform: translate(0, -12px) rotate(0deg); }
+  75% { transform: translate(-8px, -8px) rotate(10deg); }
+}
+
+/* ─── Lock shake for coming-soon cards ─── */
+.animate-lock-shake {
+  animation: lock-shake 2s ease-in-out infinite;
+}
+@keyframes lock-shake {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(-8deg); }
+  20% { transform: rotate(8deg); }
+  30% { transform: rotate(-6deg); }
+  40% { transform: rotate(6deg); }
+  50% { transform: rotate(0deg); }
 }

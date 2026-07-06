@@ -6,9 +6,14 @@ import { getSceneFlow, buildSceneContext } from "@/lib/scene-registry";
 import { SceneErrorBoundary } from "@/components/SceneErrorBoundary";
 import { FullscreenExperience } from "@/components/FullscreenExperience";
 import { LockGate } from "@/components/LockGate";
-import { LoadingScreen } from "@/components/LoadingScreen";
 import { ReactionCapture } from "@/components/ReactionCapture";
 import type { AnalyticsEventType, ExperienceRecord, Template } from "@/lib/types";
+
+function calcLateNight(): boolean {
+  if (typeof window === "undefined") return false;
+  const hour = new Date().getHours();
+  return hour >= 23 || hour < 6;
+}
 
 const SceneEngine = dynamic(() => import("@/components/SceneEngine").then((m) => ({ default: m.SceneEngine })), { ssr: false });
 const StaticFrequencyGame = dynamic(() => import("@/components/games/StaticFrequencyGame").then((m) => ({ default: m.StaticFrequencyGame })), { ssr: false });
@@ -97,10 +102,10 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
 };
 
 export function ExperiencePlayer({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) {
-  const [loading, setLoading] = useState(true);
   const [unlocked, setUnlocked] = useState(!experience.lockType);
   const [showReaction, setShowReaction] = useState(false);
   const [ended, setEnded] = useState(false);
+  const [isLateNight] = useState(calcLateNight);
 
   useEffect(() => {
     if (mode === "generated") {
@@ -108,18 +113,6 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
       void track(experience.id, "template_used", template.id);
     }
   }, [experience.id, mode, template.id]);
-
-  useEffect(() => {
-    if (experience.scheduledAt && mode === "generated") {
-      const scheduledTime = new Date(experience.scheduledAt).getTime();
-      if (scheduledTime > Date.now()) {
-        setLoading(false);
-        return;
-      }
-    }
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, [experience.scheduledAt, mode]);
 
   const sceneFlow = getSceneFlow(template.id, experience);
 
@@ -130,16 +123,6 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
 
   function handleTrack(action: string) {
     void track(experience.id, "selected_mood_choice", template.id, action);
-  }
-
-  if (loading && mode === "generated") {
-    return (
-      <LoadingScreen
-        name={experience.receiverName || experience.creatorName}
-        message={experience.creatorName ? "Creating something for" : "Preparing"}
-        duration={1500}
-      />
-    );
   }
 
   if (experience.scheduledAt && mode === "generated") {
@@ -187,10 +170,10 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
   const content = sceneFlow ? (
     <SceneErrorBoundary>
       {mode === "demo" ? (
-        <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} />
+        <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} isLateNight={isLateNight} />
       ) : (
         <FullscreenExperience templateId={template.id}>
-          <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} />
+          <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} isLateNight={isLateNight} />
         </FullscreenExperience>
       )}
     </SceneErrorBoundary>

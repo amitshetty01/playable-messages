@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { playToneSound } from "@/lib/flowSounds";
 import type { Tone } from "@/lib/types";
 
 export function RatingRoastGame({
   onComplete,
   tone,
+  variant,
 }: {
   onComplete: () => void;
   tone: Tone;
+  variant?: "slots" | "wheel";
 }) {
+  const isWheel = variant === "wheel";
   const [screen, setScreen] = useState<"rateme" | "rateu" | "done">("rateme");
   const [value, setValue] = useState(5);
   const [displayValue, setDisplayValue] = useState(5);
@@ -64,21 +67,42 @@ export function RatingRoastGame({
             >
               {displayValue}
             </div>
-            <div className="mt-2 flex justify-between px-1 text-[10px] text-white/30">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <span key={n}>{n}</span>
-              ))}
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={value}
-              onChange={(e) => handleRateMe(Number(e.target.value))}
-              className="mt-3 w-full h-2 appearance-none rounded-full bg-white/15 accent-amber-400 cursor-pointer
-                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6
-                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow-lg"
-            />
+            {isWheel ? (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => handleRateMe(n)}
+                    className={`grid h-10 w-10 place-items-center rounded-full text-sm font-extrabold transition-all duration-200 ${
+                      displayValue === n
+                        ? "scale-110 bg-amber-400 text-black shadow-[0_0_16px_rgba(251,191,36,0.4)]"
+                        : "bg-white/10 text-white/70 hover:bg-white/20 hover:scale-105"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="mt-2 flex justify-between px-1 text-[10px] text-white/30">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                    <span key={n}>{n}</span>
+                  ))}
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={value}
+                  onChange={(e) => handleRateMe(Number(e.target.value))}
+                  className="mt-3 w-full h-2 appearance-none rounded-full bg-white/15 accent-amber-400 cursor-pointer
+                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6
+                    [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow-lg"
+                />
+              </>
+            )}
             <p className="mt-3 text-xs text-white/40">
               {attempts > 5
                 ? isSavage
@@ -120,11 +144,24 @@ export function RatingRoastGame({
             <div className="text-7xl font-black tabular-nums tracking-tighter text-amber-400">
               0
             </div>
-            <div className="mt-2 flex justify-between px-1 text-[10px] text-white/30">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                <span key={n}>{n}</span>
-              ))}
-            </div>
+            {isWheel ? (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <div
+                    key={n}
+                    className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-sm font-extrabold text-white/30"
+                  >
+                    {n}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-2 flex justify-between px-1 text-[10px] text-white/30">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <span key={n}>{n}</span>
+                ))}
+              </div>
+            )}
             <input
               type="range"
               min={0}

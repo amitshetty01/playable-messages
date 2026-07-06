@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { TemplateCard } from "@/components/TemplateCard";
-import { SearchableGrid } from "@/components/SearchableGrid";
-import { AdsterraAd } from "@/components/AdsterraAd";
 import { templates } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo";
+import { TemplatesGrid } from "@/components/TemplatesGrid";
+import { AdsterraAd } from "@/components/AdsterraAd";
 
 export const metadata: Metadata = buildMetadata({
   title: "Interactive Message Templates",
@@ -24,13 +23,7 @@ export default function TemplatesPage() {
         <p className="mt-5 max-w-3xl text-white/70">Pick a template, customize your message, and share a link. Each one is a mini interactive experience.</p>
       </section>
 
-      <SearchableGrid placeholder="Search templates...">
-        {liveTemplates.map((template) => (
-          <div key={template.id} data-search={`${template.title} ${template.hook} ${template.description} ${template.bestFor}`}>
-            <TemplateCard template={template} />
-          </div>
-        ))}
-      </SearchableGrid>
+      <TemplatesGrid templates={liveTemplates} />
 
       {comingSoon.length > 0 && (
         <details className="group">

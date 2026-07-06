@@ -32,6 +32,9 @@ const config: Config = {
         soft: "0 18px 54px rgba(184,165,255,0.18)",
         scene: "0 32px 120px rgba(0,0,0,0.4)",
         inner: "inset 0 1px 0 rgba(255,255,255,0.08)",
+        "glow-violet": "0 0 40px rgba(184, 165, 255, 0.15)",
+        "glow-blush": "0 0 40px rgba(246, 177, 201, 0.15)",
+        "glow-neon": "0 0 40px rgba(151, 218, 223, 0.15)",
       },
       backgroundImage: {
         aurora: "radial-gradient(circle at 12% 8%, rgba(246,177,201,.22), transparent 34rem), radial-gradient(circle at 86% 12%, rgba(151,218,223,.16), transparent 32rem), linear-gradient(135deg,#15101f 0%,#22182f 55%,#171323 100%)"

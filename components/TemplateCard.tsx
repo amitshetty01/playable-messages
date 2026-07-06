@@ -9,6 +9,27 @@ type ThumbVisual = {
   pattern: "dots" | "grid" | "waves" | "stars" | "diamonds";
 };
 
+const MECHANICS: Record<string, { icon: string; label: string }> = {
+  "the-final-button": { icon: "🎯", label: "Dodge" },
+  "memory-maze": { icon: "🧩", label: "Match" },
+  "birthday-surprise-journey": { icon: "🎈", label: "Explore" },
+  "love-chase": { icon: "🏃", label: "Chase" },
+  "kitty-apology": { icon: "🐱", label: "Pet" },
+  "come-closer": { icon: "👻", label: "Reveal" },
+  "birthday-journey": { icon: "🕯️", label: "Blow" },
+  "escape-me": { icon: "🔐", label: "Escape" },
+  "sorry-maze": { icon: "🧭", label: "Navigate" },
+  "our-memories": { icon: "📖", label: "Browse" },
+  "type-or-else": { icon: "💣", label: "Type" },
+  "the-last-deleted-message": { icon: "📩", label: "Tap" },
+  "the-risk-button": { icon: "🎲", label: "Risk" },
+  "dont-smile-challenge": { icon: "😐", label: "Stare" },
+  "scratch-card": { icon: "💳", label: "Scratch" },
+  "roast-to-respect": { icon: "🔥", label: "Climb" },
+  "secret-letter": { icon: "✉️", label: "Unfold" },
+  "surprise-room": { icon: "🚪", label: "Open" },
+};
+
 const thumbVisuals: Record<string, ThumbVisual> = {
   "the-final-button": {
     gradient: "from-pink-600 via-rose-500 to-fuchsia-700",
@@ -93,9 +114,21 @@ export function TemplateCard({ template }: { template: Template }) {
   };
 
   return (
-    <article className={`card-glow glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] ${isLocked ? "opacity-50" : ""}`}>
+    <article
+      data-glow-color={template.categorySlugs.includes("love-crush") ? "blush" : template.categorySlugs.includes("apology-fight-repair") ? "violet" : template.categorySlugs.includes("funny-roast") ? "rose" : template.categorySlugs.includes("birthday-special-days") ? "amber" : template.categorySlugs.includes("friendship-best-friend") ? "neon" : "violet"}
+      className={`card-sheen glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] ${isLocked ? "opacity-50" : ""}`}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty("--mx", `${((e.clientX - rect.left) / rect.width) * 100}%`);
+        e.currentTarget.style.setProperty("--my", `${((e.clientY - rect.top) / rect.height) * 100}%`);
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.setProperty("--mx", "50%");
+        e.currentTarget.style.setProperty("--my", "50%");
+      }}
+    >
       {/* Thumbnail */}
-      <div className={`relative h-32 w-full bg-gradient-to-br ${v.gradient} flex items-center justify-center overflow-hidden`}>
+      <div className={`relative h-44 w-full bg-gradient-to-br ${v.gradient} flex items-center justify-center overflow-hidden`}>
         {/* Pattern overlay */}
         <div className="absolute inset-0 opacity-40" style={{ backgroundImage: patternSvgs[v.pattern], backgroundSize: v.pattern === "waves" ? "40px 20px" : v.pattern === "grid" ? "24px 24px" : "20px 20px" }} />
 
@@ -107,7 +140,7 @@ export function TemplateCard({ template }: { template: Template }) {
 
         {/* Floating decorative elements */}
         {v.floaters.map((f, i) => (
-          <span key={i} className={`absolute select-none ${f.style}`}>{f.emoji}</span>
+          <span key={i} className={`absolute select-none transition-all duration-500 group-hover:scale-125 group-hover:-translate-y-1 ${f.style}`} style={{ transitionDelay: `${i * 60}ms` }}>{f.emoji}</span>
         ))}
 
         {/* Main emoji with glow */}
@@ -118,6 +151,16 @@ export function TemplateCard({ template }: { template: Template }) {
 
         {/* Hover shine overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Mechanic badge - micro-interactive hover hint */}
+        {MECHANICS[template.id] && (
+          <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 group-hover:translate-x-0">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white/90 backdrop-blur-sm ring-1 ring-white/15">
+              <span className="text-xs">{MECHANICS[template.id].icon}</span>
+              <span>{MECHANICS[template.id].label}</span>
+            </span>
+          </div>
+        )}
 
         {/* Badges */}
         <div className="absolute bottom-2 left-3 flex flex-wrap gap-1.5 z-10">
@@ -139,14 +182,15 @@ export function TemplateCard({ template }: { template: Template }) {
           <Link className="transition duration-200 hover:text-blush" href={`/templates/${getTemplateSeoSlug(template)}`}>{template.title}</Link>
         )}
       </h3>
-      <p className="mt-2 text-sm leading-6 text-white/65">{template.description}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/50">Best for: {template.bestFor}</span>
         {template.categorySlugs.length > 0 ? <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/50">{categoryNames}</span> : null}
       </div>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         {isLocked ? (
-          <span className="flex-1 cursor-not-allowed rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-2.5 text-center text-sm font-bold text-white/30">Coming Soon</span>
+          <div className="flex w-full items-center justify-center py-4">
+            <span className="inline-block text-4xl animate-lock-shake select-none">🔒</span>
+          </div>
         ) : (
           <>
             <Link className="ghost-button flex-1 text-sm" href={template.id === "our-memories" ? "/our-memories" : `/demo/${template.id}`}>

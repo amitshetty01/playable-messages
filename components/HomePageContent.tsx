@@ -4,11 +4,12 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useSpring, useMotionValue } from "framer-motion";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
 import { TrendingTemplates } from "@/components/TrendingTemplates";
+import { ConfettiEffect } from "@/components/scenes/ConfettiEffect";
 import { getTemplate, templates } from "@/lib/data";
 import { createDemoExperience } from "@/lib/demo";
 
@@ -52,11 +53,31 @@ const ACTIVITIES = [
 ];
 
 const HOW_IT_WORKS = [
-  { step: "1", icon: "✍️", title: "Write your message", desc: "Type what you want to say — love, sorry, funny, or just because." },
-  { step: "2", icon: "🎨", title: "Choose a template", desc: "Pick from 50+ interactive experiences that match your mood." },
-  { step: "3", icon: "🎵", title: "Customize it", desc: "Add names, photos, music, and text to make it truly yours." },
-  { step: "4", icon: "🔗", title: "Share your link", desc: "Send it anywhere — WhatsApp, Instagram, SMS, or email." },
-  { step: "5", icon: "🎬", title: "Watch them experience it", desc: "They open the link and play through your message live." },
+  {
+    word: "Pick",
+    anim: (
+      <div className="relative flex items-center justify-center">
+        <div className="h-14 w-10 rounded-xl border-2 border-white/25 bg-gradient-to-br from-white/[0.08] to-white/[0.02] animate-card-flip" />
+        <span className="absolute text-lg" style={{ animation: "card-flip-emoji 2s ease-in-out infinite" }}>🎴</span>
+      </div>
+    ),
+  },
+  {
+    word: "Write",
+    anim: (
+      <div className="relative flex items-center justify-center">
+        <span className="text-2xl animate-cursor-type" style={{ fontFamily: "monospace" }}>|</span>
+      </div>
+    ),
+  },
+  {
+    word: "Send",
+    anim: (
+      <div className="relative flex items-center justify-center">
+        <span className="text-2xl animate-plane-glide">✈️</span>
+      </div>
+    ),
+  },
 ];
 
 const STATS = [
@@ -179,7 +200,13 @@ export function HomePageContent() {
     return heroTemplate ? createDemoExperience(heroTemplate) : null;
   }, [heroTemplate]);
 
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [teaserScratched, setTeaserScratched] = useState(false);
+  const teaserCanvasRef = useRef<HTMLCanvasElement>(null);
+
   const handleHeroCreate = useCallback(() => {
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 2000);
     document.getElementById("quick-create")?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
@@ -188,16 +215,164 @@ export function HomePageContent() {
     window.open("/demo/phone/birthday-surprise-journey", "_blank");
   }, []);
 
+  function TeaserScratch() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [scratched, setScratched] = useState(false);
+    const isDrawing = useRef(false);
+
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const w = 180; const h = 50;
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, "#c8d0d8"); grad.addColorStop(1, "#a0b0c0");
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+      ctx.font = "bold 11px sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("✨ SCRATCH HERE ✨", w / 2, h / 2);
+    }, []);
+
+    function getPos(e: React.PointerEvent<HTMLCanvasElement>) {
+      const rect = canvasRef.current!.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function scratch(x: number, y: number) {
+      const canvas = canvasRef.current; if (!canvas) return;
+      const ctx = canvas.getContext("2d"); if (!ctx) return;
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function checkRevealed() {
+      const canvas = canvasRef.current; if (!canvas) return;
+      const ctx = canvas.getContext("2d"); if (!ctx) return;
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data; let cleared = 0; let total = 0;
+      for (let y = 0; y < canvas.height; y += 4) {
+        for (let x = 0; x < canvas.width; x += 4) {
+          if (pixels[(y * canvas.width + x) * 4 + 3] === 0) cleared++;
+          total++;
+        }
+      }
+      if (cleared / total > 0.35) { setScratched(true); setTeaserScratched(true); }
+    }
+
+    function handleDown(e: React.PointerEvent<HTMLCanvasElement>) {
+      if (scratched) return; isDrawing.current = true;
+      const pos = getPos(e); scratch(pos.x, pos.y); checkRevealed();
+    }
+    function handleMove(e: React.PointerEvent<HTMLCanvasElement>) {
+      if (!isDrawing.current || scratched) return;
+      const pos = getPos(e); scratch(pos.x, pos.y); checkRevealed();
+    }
+    function handleUp() { isDrawing.current = false; }
+
+    return (
+      <div className="relative inline-block overflow-hidden rounded-lg border border-white/15">
+        <div className="flex items-center justify-center bg-white/5 px-4 py-2">
+          <p className="text-xs font-bold text-white/70">{scratched ? "🎉 Make their heart skip a beat!" : "???"}</p>
+        </div>
+        {!scratched && (
+          <canvas
+            ref={canvasRef}
+            onPointerDown={handleDown}
+            onPointerMove={handleMove}
+            onPointerUp={handleUp}
+            onPointerLeave={handleUp}
+            className="absolute inset-0 h-full w-full touch-none cursor-crosshair"
+          />
+        )}
+      </div>
+    );
+  }
+
+  function CursorFollower() {
+    const cx = useMotionValue(-100);
+    const cy = useMotionValue(-100);
+    const springX = useSpring(cx, { stiffness: 200, damping: 30 });
+    const springY = useSpring(cy, { stiffness: 200, damping: 30 });
+
+    useEffect(() => {
+      function move(e: PointerEvent) { cx.set(e.clientX); cy.set(e.clientY); }
+      window.addEventListener("pointermove", move);
+      return () => window.removeEventListener("pointermove", move);
+    }, [cx, cy]);
+
+    return (
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[999] h-6 w-6 rounded-full border border-blush/40 bg-blush/10 backdrop-blur-sm"
+        style={{ x: springX, y: springY, translateX: "-50%", translateY: "-50%" }}
+      />
+    );
+  }
+
+  function LiveToast() {
+    const [toast, setToast] = useState({ emoji: "❤️", text: "Sarah from London just sent a Birthday Surprise 🎂" });
+    const toasts = [
+      { emoji: "❤️", text: "Sarah from London just sent a Birthday Surprise 🎂" },
+      { emoji: "😂", text: "Someone in New York just played the Love Maze ♥" },
+      { emoji: "🎂", text: "Priya from Mumbai created a Blow Out the Candles 🎉" },
+      { emoji: "💔", text: "Alex used Kitty Apology to patch things up 🐱" },
+      { emoji: "🧩", text: "Escape Me was solved in 28 seconds by someone 🔓" },
+      { emoji: "💜", text: "A Heart Vault was unlocked by someone special 💕" },
+    ];
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setToast(toasts[Math.floor(Math.random() * toasts.length)]);
+      }, 15000);
+      return () => clearInterval(interval);
+    }, []);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20, x: -20 }}
+        animate={{ opacity: 1, y: 0, x: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="fixed bottom-6 left-4 z-50 hidden max-w-[260px] rounded-2xl border border-white/10 bg-ink/80 px-4 py-3 backdrop-blur-xl shadow-xl sm:block"
+      >
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 text-sm shrink-0">{toast.emoji}</span>
+          <div className="min-w-0">
+            <p className="text-xs leading-relaxed text-white/70">{toast.text}</p>
+            <p className="mt-0.5 text-[9px] font-bold text-white/30 tracking-wider uppercase">just now</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <>
+    <ConfettiEffect active={showConfetti} duration={2000} />
+    <CursorFollower />
+    <LiveToast />
     <div className={`pb-24 ${preview ? "pointer-events-none select-none" : ""}`}>
 
       {/* ════════════════════════════════════════
           HERO
           ════════════════════════════════════════ */}
       <section className="relative overflow-hidden pt-6 sm:pt-10">
-        <div className="pointer-events-none absolute -left-32 top-12 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[160px] float-orb" />
-        <div className="pointer-events-none absolute -right-32 top-24 h-[400px] w-[400px] rounded-full bg-blush/10 blur-[140px] float-orb" style={{ animationDelay: "-4s" }} />
+        <motion.div
+          animate={{ x: [0, 30, 0, -20, 0], scale: [1, 1.05, 0.98, 1.02, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -left-40 top-12 h-[600px] w-[600px] rounded-full bg-violet-600/15 blur-[160px]"
+        />
+        <motion.div
+          animate={{ x: [0, -25, 0, 35, 0], y: [0, 20, -10, 0, 0], scale: [1, 0.95, 1.05, 1, 1] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute -right-40 top-20 h-[500px] w-[500px] rounded-full bg-blush/15 blur-[150px]"
+        />
+        <motion.div
+          animate={{ x: [0, 15, -10, 0], y: [0, -15, 10, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="pointer-events-none absolute bottom-0 left-1/4 h-[350px] w-[700px] rounded-full bg-neon/10 blur-[140px]"
+        />
         <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[600px] bg-gradient-to-r from-violet/5 via-blush/5 to-neon/5 blur-[120px]" />
 
         <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between">
@@ -212,17 +387,17 @@ export function HomePageContent() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-violet" />
               </span>
-              BEYOND GREETING CARDS
+              BETTER THAN A GREETING CARD
             </div>
 
             <h1 className="display-title text-[clamp(2.2rem,7vw,4.5rem)] font-extrabold leading-[1.08] tracking-tight text-white">
-              Turn your message into an{' '}
-              <span className="font-display italic text-gradient">interactive experience</span>{' '}
-              they will replay.
+              Make{' '}
+              <span className="bg-gradient-to-r from-neon via-blush to-violet bg-clip-text text-transparent">their heart</span>{' '}
+              skip a beat.
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/55 sm:text-xl">
-              Craft immersive mini-games, 3D memories, and cinematic love letters in 60 seconds. No design skills required.
+              Turn your words into a playful mini-game they will never forget. Better than a greeting card. Better than a text.
             </p>
 
             <motion.div
@@ -248,9 +423,13 @@ export function HomePageContent() {
               </button>
             </motion.div>
 
-            <p className="mt-4 text-xs font-medium text-white/40">
-              Free to try · No sign-up required · Mobile-first
+            <p className="mt-3 text-xs font-bold text-white/40">
+              No sign-up required. Takes 30 seconds.
             </p>
+
+            <div className="mt-4 flex justify-center lg:justify-start">
+              <TeaserScratch />
+            </div>
           </motion.div>
 
           <motion.div
@@ -312,37 +491,46 @@ export function HomePageContent() {
       </ScrollReveal>
 
       {/* ════════════════════════════════════════
-          HOW IT WORKS
+          HOW IT WORKS (3-step timeline)
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-24 sm:mt-32 max-w-4xl px-4">
+          <SectionHeader eyebrow="How it works" title="See it in motion." />
+          <div className="relative mt-10">
+            <div className="flex flex-col gap-8 sm:flex-row sm:justify-center sm:gap-12">
+              {HOW_IT_WORKS.map((item, i) => (
+                <div key={item.word} className="flex flex-col items-center gap-4">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
+                    {item.anim}
+                  </div>
+                  <span className="text-xs font-extrabold tracking-widest text-white/50 uppercase">{item.word}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ════════════════════════════════════════
+          NOT JUST FOR LOVERS
           ════════════════════════════════════════ */}
       <ScrollReveal>
         <section className="mx-auto mt-24 sm:mt-32 max-w-5xl px-4">
-          <SectionHeader eyebrow="How it works" title="Five simple steps to create an unforgettable message." />
-          <div className="relative mt-14">
-            <div className="absolute left-1/2 top-12 hidden h-[calc(100%-6rem)] w-px -translate-x-1/2 bg-gradient-to-b from-blush/20 via-violet/20 to-neon/20 lg:block" />
-            <div className="grid gap-8 lg:grid-cols-5 lg:gap-4">
-              {HOW_IT_WORKS.map((item, i) => (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative flex flex-col items-center text-center"
-                >
-                  <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10 transition-all duration-500 hover:ring-blush/30 hover:bg-white/[0.08]">
-                    <span className="text-3xl transition-transform duration-300 hover:scale-110" aria-hidden="true">{item.icon}</span>
-                    <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blush to-violet text-[10px] font-extrabold text-white shadow-lg">
-                      {item.step}
-                    </div>
-                  </div>
-                  {i < HOW_IT_WORKS.length - 1 && (
-                    <div className="hidden lg:block absolute -right-3 top-8 text-white/15">
-                      <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor"><path d="M8 0L6.59 1.41 12.17 7H0v2h12.17l-5.58 5.59L8 16l8-8z"/></svg>
-                    </div>
-                  )}
-                  <h3 className="mt-4 text-base font-extrabold text-white">{item.title}</h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-white/60 max-w-[200px]">{item.desc}</p>
-                </motion.div>
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-white/[0.03] via-white/[0.01] to-transparent p-8 sm:p-12 ring-1 ring-white/[0.06]">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-amber-400/5 blur-[120px]" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-rose-400/5 blur-[100px]" />
+            <SectionHeader eyebrow="For every moment" title="Not just for lovers" lead="Friends, family, birthdays, apologies — every relationship deserves something special." center={false} />
+            <div className="mt-10 grid gap-5 sm:grid-cols-3">
+              {[
+                { icon: "🤝", title: "Best Friends", desc: "Inside jokes, memories, and friendship appreciation. Perfect for your ride-or-die.", accent: "from-sky-400/20 to-cyan-400/10", border: "border-sky-400/20" },
+                { icon: "🎂", title: "Birthdays", desc: "Make their day unforgettable with a candle-blowing, confetti-popping surprise.", accent: "from-amber-400/20 to-orange-400/10", border: "border-amber-400/20" },
+                { icon: "💔", title: "Apologies", desc: "Say sorry in a way that shows you truly care. Rebuild bridges creatively.", accent: "from-rose-400/20 to-pink-400/10", border: "border-rose-400/20" },
+              ].map((item) => (
+                <div key={item.title} className={`group relative overflow-hidden rounded-2xl border ${item.border} bg-gradient-to-br ${item.accent} p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl`}>
+                  <span className="text-3xl" aria-hidden="true">{item.icon}</span>
+                  <h3 className="mt-3 text-lg font-extrabold text-white">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/60">{item.desc}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -403,14 +591,16 @@ export function HomePageContent() {
       </ScrollReveal>
 
       {/* ════════════════════════════════════════
-          DISCOVER — PREMIUM TEMPLATE CARDS
+          DISCOVER — PREMIUM TEMPLATE CARDS (Bento + Mobile Swipe)
           ════════════════════════════════════════ */}
       <ScrollReveal>
         <section className="mx-auto mt-24 sm:mt-32 max-w-6xl px-4">
           <SectionHeader eyebrow="Discover" title="Explore interactive templates" lead="Each one turns your message into something they will play and remember." />
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {fullTemplates.slice(0, 4).map((t, i) => {
+          {/* Desktop: grid with glassmorphism depth stacking */}
+          <div className="mt-10 hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+            {fullTemplates.slice(0, 6).map((t, i) => {
               const gradient = TEMPLATE_GRADIENTS[t.id] || "from-white/10 to-transparent";
+              const isLarge = i === 0 || i === 3;
               return (
                 <motion.div
                   key={t.id}
@@ -420,11 +610,16 @@ export function HomePageContent() {
                   transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   data-card
                   onClick={(e) => { const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
-                  className="card-glow group relative cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5"
+                  className={`card-glow group relative cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(184,165,255,0.12)] ${isLarge ? "lg:row-span-2" : ""} ${i === 2 ? "-ml-4 mt-4 z-10" : ""} ${i === 3 ? "ml-4 -mt-2 z-20" : ""}`}
+                  style={i === 2 ? { marginTop: "-1.5rem" } : i === 3 ? { marginBottom: "-1.5rem" } : {}}
                 >
                   <div className={`pointer-events-none absolute -inset-x-4 -inset-y-6 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`} />
                   <div className="relative z-10">
-                    <div className="flex items-center gap-3">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className="flex items-center gap-3"
+                    >
                       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] text-xl ring-1 ring-white/10">
                         {TEMPLATE_ICONS[t.id] || "✨"}
                       </span>
@@ -432,7 +627,7 @@ export function HomePageContent() {
                         <h4 className="text-sm font-extrabold text-white truncate">{t.title}</h4>
                         <p className="mt-0.5 text-[10px] font-medium text-white/40">{t.length}</p>
                       </div>
-                    </div>
+                    </motion.div>
                     <p className="mt-3 text-xs leading-relaxed text-white/50 line-clamp-2">{t.description || "An interactive experience to share your message."}</p>
                     <div className="mt-4 flex gap-2">
                       <button
@@ -454,6 +649,57 @@ export function HomePageContent() {
                 </motion.div>
               );
             })}
+          </div>
+          {/* Mobile: horizontal snap-scroll carousel */}
+          <div className="mt-10 -mx-4 overflow-x-auto snap-x snap-mandatory scrollbar-none sm:hidden">
+            <div className="flex gap-4 px-4 pb-4">
+              {fullTemplates.slice(0, 6).map((t, i) => {
+                const gradient = TEMPLATE_GRADIENTS[t.id] || "from-white/10 to-transparent";
+                return (
+                  <div
+                    key={t.id}
+                    data-card
+                    onClick={(e) => { const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
+                    className="card-glow group relative w-[260px] shrink-0 snap-center cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5 transition-all duration-500"
+                  >
+                    <div className={`pointer-events-none absolute -inset-x-4 -inset-y-6 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`} />
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] text-xl ring-1 ring-white/10">
+                          {TEMPLATE_ICONS[t.id] || "✨"}
+                        </span>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-extrabold text-white truncate">{t.title}</h4>
+                          <p className="mt-0.5 text-[10px] font-medium text-white/40">{t.length}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-xs leading-relaxed text-white/50 line-clamp-2">{t.description || "An interactive experience to share your message."}</p>
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); const card = e.currentTarget.closest("[data-card]"); const rect = card?.getBoundingClientRect(); if (rect) handlePreview(t.id, rect); }}
+                          className="flex-1 rounded-lg border border-white/15 bg-white/[0.06] py-2 text-[11px] font-bold text-white/60 transition-all hover:bg-white/10 hover:text-white active:scale-95"
+                        >
+                          Preview
+                        </button>
+                        <Link
+                          href={t.id === "our-memories" ? "/our-memories?edit=true" : `/create/${t.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 rounded-lg bg-gradient-to-r from-blush/80 to-violet/80 py-2 text-center text-[11px] font-extrabold text-white shadow transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          Create
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex justify-center gap-1.5">
+              {fullTemplates.slice(0, 6).map((_, i) => (
+                <span key={i} className="h-1.5 w-1.5 rounded-full bg-white/20" />
+              ))}
+            </div>
           </div>
         </section>
       </ScrollReveal>
@@ -776,6 +1022,23 @@ export function HomePageContent() {
         </Link>
       </div>
 
+    </div>
+
+    {/* Sticky Mobile CTA */}
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-ink/80 backdrop-blur-xl px-4 py-3 md:hidden">
+      <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+        <div className="min-w-0">
+          <p className="text-xs font-extrabold text-white truncate">Make their heart skip a beat</p>
+          <p className="text-[10px] text-white/40">No sign-up. Takes 30s.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => document.getElementById("quick-create")?.scrollIntoView({ behavior: "smooth" })}
+          className="shrink-0 rounded-full bg-gradient-to-r from-blush to-violet px-5 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-violet/20 active:scale-95 transition-transform"
+        >
+          Create Free
+        </button>
+      </div>
     </div>
 
     {preview && previewTemplate && (
