@@ -946,6 +946,8 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const loveAudioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const crossfadeRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fadeAudioRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [audioReady, setAudioReady] = useState(false);
   const [loveReady, setLoveReady] = useState(false);
   const [loveActive, setLoveActive] = useState(false);
@@ -990,21 +992,23 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
       loveAudioRef.current.volume = 0;
       loveAudioRef.current.currentTime = 0;
       loveAudioRef.current.play().catch(() => {});
-      const crossfade = setInterval(() => {
-        if (!audioRef.current || !loveAudioRef.current) { clearInterval(crossfade); return; }
+      crossfadeRef.current = setInterval(() => {
+        if (!audioRef.current || !loveAudioRef.current) { if (crossfadeRef.current) clearInterval(crossfadeRef.current); crossfadeRef.current = null; return; }
         const curVol = audioRef.current.volume;
         const loveVol = loveAudioRef.current.volume;
         if (curVol <= 0.01 && loveVol >= 0.29) {
           audioRef.current.volume = 0;
           audioRef.current.pause();
           loveAudioRef.current.volume = 0.3;
-          clearInterval(crossfade);
+          if (crossfadeRef.current) clearInterval(crossfadeRef.current);
+          crossfadeRef.current = null;
           return;
         }
         audioRef.current.volume = Math.max(0, curVol - 0.015);
         loveAudioRef.current.volume = Math.min(0.3, loveVol + 0.015);
       }, 50);
     }
+    return () => { if (crossfadeRef.current) { clearInterval(crossfadeRef.current); crossfadeRef.current = null; } };
   }, [loveActive, loveReady, step, loveSceneIndex]);
 
   useEffect(() => {
@@ -1017,7 +1021,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
 
   useEffect(() => {
     if (showFinalScreen || showFullscreenCelebration) {
-      const fade = setInterval(() => {
+      fadeAudioRef.current = setInterval(() => {
         let anyActive = false;
         if (audioRef.current && audioRef.current.volume > 0.01) {
           audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.01);
@@ -1027,9 +1031,10 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
           loveAudioRef.current.volume = Math.max(0, loveAudioRef.current.volume - 0.01);
           anyActive = true;
         } else if (loveAudioRef.current) { loveAudioRef.current.pause(); }
-        if (!anyActive) clearInterval(fade);
+        if (!anyActive && fadeAudioRef.current) { clearInterval(fadeAudioRef.current); fadeAudioRef.current = null; }
       }, 50);
     }
+    return () => { if (fadeAudioRef.current) { clearInterval(fadeAudioRef.current); fadeAudioRef.current = null; } };
   }, [showFinalScreen, showFullscreenCelebration]);
   const totalScenes = flow.scenes.length;
   const templateId = flow.templateId;

@@ -14,14 +14,16 @@ const TONE_HAPTIC: Record<Tone, { tap: number[]; ding: number[]; whoosh: number[
 };
 
 export function haptic(pattern: "tap" | "success" | "error" | "emphasis") {
-  if (typeof navigator === "undefined" || !navigator.vibrate) return;
+  if (typeof navigator === "undefined") return;
   const patterns: Record<string, number[]> = {
     tap: [10],
     success: [20, 50, 20],
     error: [40, 80, 40],
     emphasis: [10, 30, 10, 30, 10]
   };
-  navigator.vibrate(patterns[pattern] ?? [10]);
+  if (navigator.vibrate) {
+    navigator.vibrate(patterns[pattern] ?? [10]);
+  }
 }
 
 export function hapticTone(action: "tap" | "ding" | "whoosh", tone: Tone) {

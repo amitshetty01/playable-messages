@@ -254,7 +254,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             </button>
           </div>
           <div className="mt-6 flex justify-center gap-3">
-            <button type="button" className="ghost-button" onClick={() => window.open(shareUrl, "_blank")}>Preview it</button>
+            <button type="button" className="ghost-button" onClick={() => window.open(shareUrl, "_blank", "noopener,noreferrer")}>Preview it</button>
             <button type="button" className="premium-button" onClick={() => setCreatedId(null)}>Create another</button>
           </div>
         </div>
@@ -286,8 +286,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         <p className="mt-4 max-w-2xl text-white/70">{isEdit ? "Update and save changes." : "Customize the words, pick a template, then generate a shareable link."}</p>
 
         <div className="mt-8 space-y-8">
-          <Field label="Pick a template" full>
-              <select value={form.templateId} onChange={(event) => {
+              <Field label="Pick a template" full htmlFor="template-select">
+              <select id="template-select" value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;
               setForm((prev) => ({
                 ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin",
@@ -304,8 +304,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">👤 People</p>
             <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Your name (who's sending this?)">
-                <input value={form.creatorName} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.creatorName; return next; }); setForm((prev) => ({ ...prev, creatorName: event.target.value })); }} maxLength={80} className={`input ${fieldErrors.creatorName ? "border-rose-400/50" : ""}`} placeholder="Your name" />
+              <Field label="Your name (who's sending this?)" htmlFor="creator-name">
+                <input id="creator-name" value={form.creatorName} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.creatorName; return next; }); setForm((prev) => ({ ...prev, creatorName: event.target.value })); }} maxLength={80} className={`input ${fieldErrors.creatorName ? "border-rose-400/50" : ""}`} placeholder="Your name" />
                 {fieldErrors.creatorName && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.creatorName}</p>}
               </Field>
               <Field label="Their name (who's receiving?)">
@@ -394,6 +394,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <button className="ghost-button" type="button" onClick={() => setShowPreview(true)}>Preview</button>
+          <button className="ghost-button" type="button" onClick={undo} disabled={!canUndo} aria-label="Undo">↩ Undo</button>
+          <button className="ghost-button" type="button" onClick={redo} disabled={!canRedo} aria-label="Redo">↪ Redo</button>
           <button className="premium-button" type="button" disabled={isSubmitting} onClick={submit}>{isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> Saving...</span> : isEdit ? "Save changes" : "Generate link"}</button>
         </div>
       </section>
@@ -401,6 +403,6 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   );
 }
 
-function Field({ label, children, full = false }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return <label className={full ? "grid min-w-0 gap-2 md:col-span-2" : "grid min-w-0 gap-2"}><span className="text-sm font-bold text-white/90">{label}</span>{children}</label>;
+function Field({ label, children, full = false, htmlFor }: { label: string; children: React.ReactNode; full?: boolean; htmlFor?: string }) {
+  return <label htmlFor={htmlFor} className={full ? "grid min-w-0 gap-2 md:col-span-2" : "grid min-w-0 gap-2"}><span className="text-sm font-bold text-white/90">{label}</span>{children}</label>;
 }

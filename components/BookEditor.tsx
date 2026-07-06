@@ -108,7 +108,14 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
           updatedAt: new Date(),
         };
 
-        updateScene(newScene);
+        setCurrentBook(prev => ({
+          ...prev,
+          chapters: prev.chapters.map(c =>
+            c.id === activeChapterId
+              ? { ...c, scenes: [...c.scenes, newScene], wordCount: c.wordCount + newScene.wordCount }
+              : c
+          ),
+        }));
       }
     } finally {
       setAiLoading(false);
@@ -160,17 +167,17 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-ink">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg overflow-y-auto border-r border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900">{currentBook.title}</h2>
-          <p className="text-sm text-gray-500 mt-1">{currentBook.currentWordCount} words</p>
+      <div className="w-64 bg-white/5 overflow-y-auto border-r border-white/10">
+        <div className="p-6 border-b border-white/10">
+          <h2 className="text-lg font-bold text-white">{currentBook.title}</h2>
+          <p className="text-sm text-white/50 mt-1">{currentBook.currentWordCount} words</p>
         </div>
 
         {/* Chapters */}
         <div className="p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Chapters</h3>
+          <h3 className="text-sm font-semibold text-white/60 mb-3">Chapters</h3>
           {currentBook.chapters.map(chapter => (
             <button
               key={chapter.id}
@@ -180,8 +187,8 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
               }}
               className={`w-full text-left px-3 py-2 rounded mb-2 text-sm transition ${
                 activeChapterId === chapter.id
-                  ? 'bg-blue-100 text-blue-900 font-medium'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-white/15 text-white font-medium'
+                  : 'text-white/50 hover:bg-white/10'
               }`}
             >
               {chapter.order}. {chapter.title}
@@ -190,10 +197,10 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
         </div>
 
         {/* Characters */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={() => setShowCharacterPanel(!showCharacterPanel)}
-            className="w-full text-left text-sm font-semibold text-gray-700 hover:text-gray-900 py-2"
+            className="w-full text-left text-sm font-semibold text-white/60 hover:text-white/80 py-2"
           >
             {showCharacterPanel ? '▼' : '▶'} Characters ({currentBook.characters.length})
           </button>
@@ -202,10 +209,10 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
               {currentBook.characters.map(char => (
                 <div
                   key={char.id}
-                  className="p-2 bg-gray-50 rounded text-xs border border-gray-200"
+                  className="p-2 bg-white/5 rounded text-xs border border-white/10"
                 >
-                  <p className="font-medium text-gray-900">{char.name}</p>
-                  <p className="text-gray-600">{char.role}</p>
+                  <p className="font-medium text-white/80">{char.name}</p>
+                  <p className="text-white/50">{char.role}</p>
                 </div>
               ))}
             </div>
@@ -216,7 +223,7 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
       {/* Main Editor */}
       <div className="flex-1 flex flex-col">
         {/* Toolbar */}
-        <div className="bg-white border-b border-gray-200 p-4 flex gap-2">
+        <div className="bg-white/5 border-b border-white/10 p-4 flex gap-2">
           <button
             onClick={generateChapter}
             disabled={aiLoading}
@@ -240,7 +247,7 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
           </button>
           <button
             onClick={addScene}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium"
+            className="px-4 py-2 bg-white/10 text-white rounded hover:bg-white/20 text-sm font-medium"
           >
             + Scene
           </button>
@@ -277,20 +284,20 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
         {/* Editor Area */}
         <div className="flex-1 flex gap-4 p-6 overflow-hidden">
           {/* Scene Editor */}
-          <div className="flex-1 flex flex-col bg-white rounded-lg shadow overflow-hidden">
+          <div className="flex-1 flex flex-col bg-white/5 rounded-lg shadow overflow-hidden">
             {activeScene ? (
               <>
-                <div className="border-b border-gray-200 p-4">
+                <div className="border-b border-white/10 p-4">
                   <input
                     type="text"
                     value={activeScene.title}
                     onChange={e =>
                       updateScene({ ...activeScene, title: e.target.value })
                     }
-                    className="text-2xl font-bold w-full outline-none"
+                    className="text-2xl font-bold w-full outline-none bg-transparent text-white"
                     placeholder="Scene Title"
                   />
-                  <div className="flex gap-4 mt-3 text-sm text-gray-600">
+                  <div className="flex gap-4 mt-3 text-sm text-white/50">
                     <span>📍 {activeScene.setting}</span>
                     <span>🎭 {activeScene.pov}</span>
                     <span>⚡ {activeScene.pacing}</span>
@@ -306,16 +313,16 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
                       wordCount: e.target.value.split(/\s+/).length,
                     })
                   }
-                  className="flex-1 p-4 outline-none resize-none font-mono text-sm"
+                  className="flex-1 p-4 outline-none resize-none font-mono text-sm bg-transparent text-white"
                   placeholder="Start writing your scene..."
                 />
 
-                <div className="border-t border-gray-200 p-4 bg-gray-50 text-sm text-gray-600">
+                <div className="border-t border-white/10 p-4 bg-white/5 text-sm text-white/50">
                   <span>{activeScene.wordCount} words</span>
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-white/40">
                 <p>Select a scene to edit</p>
               </div>
             )}
@@ -324,25 +331,25 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
           {/* Right Panel - Scenes List & AI Suggestions */}
           <div className="w-80 flex flex-col gap-4 overflow-y-auto">
             {/* Scenes in Chapter */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="bg-gray-100 p-3 border-b border-gray-200">
-                <h3 className="font-semibold text-sm text-gray-900">
+            <div className="bg-white/5 rounded-lg shadow overflow-hidden">
+              <div className="bg-white/10 p-3 border-b border-white/10">
+                <h3 className="font-semibold text-sm text-white/80">
                   Scenes ({activeChapter?.scenes.length || 0})
                 </h3>
               </div>
-              <div className="divide-y max-h-64 overflow-y-auto">
+              <div className="divide-y divide-white/5 max-h-64 overflow-y-auto">
                 {activeChapter?.scenes.map(scene => (
                   <button
                     key={scene.id}
                     onClick={() => setActiveSceneId(scene.id)}
                     className={`w-full text-left px-3 py-2 text-sm transition ${
                       activeSceneId === scene.id
-                        ? 'bg-blue-50 border-l-2 border-blue-600'
-                        : 'hover:bg-gray-50'
+                        ? 'bg-white/10 border-l-2 border-blue-400'
+                        : 'hover:bg-white/5'
                     }`}
                   >
-                    <p className="font-medium text-gray-900">{scene.title}</p>
-                    <p className="text-xs text-gray-500 mt-1">{scene.wordCount} words</p>
+                    <p className="font-medium text-white/80">{scene.title}</p>
+                    <p className="text-xs text-white/40 mt-1">{scene.wordCount} words</p>
                   </button>
                 ))}
               </div>
@@ -350,44 +357,44 @@ export const BookEditor: React.FC<BookEditorProps> = ({ book, onSave, onPublish 
 
             {/* AI Suggestions */}
             {aiResponse && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-sm text-blue-900 mb-2">AI Suggestions</h3>
+              <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-4">
+                <h3 className="font-semibold text-sm text-blue-300 mb-2">AI Suggestions</h3>
                 {aiResponse.success ? (
-                  <div className="text-xs text-blue-800 space-y-2">
+                  <div className="text-xs text-blue-200 space-y-2">
                     {aiResponse.data?.suggestions?.map((s, i) => (
                       <p key={i}>• {s}</p>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-red-600">{aiResponse.error}</p>
+                  <p className="text-xs text-red-400">{aiResponse.error}</p>
                 )}
               </div>
             )}
 
             {/* Stats */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <h3 className="font-semibold text-sm text-gray-900 mb-3">Book Stats</h3>
-              <div className="space-y-2 text-sm text-gray-600">
+            <div className="bg-white/5 rounded-lg shadow p-4">
+              <h3 className="font-semibold text-sm text-white/80 mb-3">Book Stats</h3>
+              <div className="space-y-2 text-sm text-white/60">
                 <div className="flex justify-between">
                   <span>Total Words:</span>
-                  <span className="font-medium">{currentBook.currentWordCount}</span>
+                  <span className="font-medium text-white">{currentBook.currentWordCount}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Target:</span>
-                  <span className="font-medium">{currentBook.targetWordCount}</span>
+                  <span className="font-medium text-white">{currentBook.targetWordCount}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Progress:</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-white">
                     {Math.round(
                       (currentBook.currentWordCount / currentBook.targetWordCount) * 100
                     )}%
                   </span>
                 </div>
               </div>
-              <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+              <div className="mt-3 w-full bg-white/10 rounded-full h-2">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  className="bg-blue-500 h-2 rounded-full transition-all"
                   style={{
                     width: `${Math.min(
                       (currentBook.currentWordCount / currentBook.targetWordCount) * 100,

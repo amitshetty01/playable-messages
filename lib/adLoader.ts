@@ -5,23 +5,6 @@ function isCrawler(): boolean {
   return BOT_PATTERN.test(navigator.userAgent);
 }
 
-const BLOCKED_HOSTS = [
-  "realizationnewestfangs.com",
-  "kettledroopingcontinuation.com",
-  "protrafficinspector.com",
-];
-
-function installMainPageGuard() {
-  const origOpen = window.open.bind(window);
-  window.open = (url, ...rest) => {
-    const s = url?.toString() ?? "";
-    if (BLOCKED_HOSTS.some((h) => s.includes(h))) return null;
-    return origOpen(url, ...rest);
-  };
-}
-
-if (typeof window !== "undefined") installMainPageGuard();
-
 let queue: Promise<void> = Promise.resolve();
 
 export function enqueueBannerAd(key: string, src: string, height: number, width: number, container: HTMLElement) {

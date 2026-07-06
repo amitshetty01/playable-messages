@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useAutoSave<T>(
   key: string,
@@ -9,11 +9,13 @@ export function useAutoSave<T>(
   debounceMs: number = 1000
 ) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [syncedVersion, setSyncedVersion] = useState(0);
 
   const save = useCallback(() => {
     if (!enabled) return;
     try {
       localStorage.setItem(key, JSON.stringify(data));
+      setSyncedVersion((v) => v + 1);
     } catch {}
   }, [key, data, enabled]);
 
@@ -25,6 +27,14 @@ export function useAutoSave<T>(
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [save, debounceMs, enabled]);
+
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === key) setSyncedVersion((v) => v + 1);
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, [key]);
 
   const loadSaved = useCallback((): T | null => {
     try {
@@ -38,5 +48,5 @@ export function useAutoSave<T>(
     try { localStorage.removeItem(key); } catch {}
   }, [key]);
 
-  return { save, loadSaved, clearSaved };
+  return { save, loadSaved, clearSaved, syncedVersion };
 }

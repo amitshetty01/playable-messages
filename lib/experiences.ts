@@ -1,9 +1,9 @@
-import { promises as fs } from "fs";
-import path from "path";
-import os from "os";
+import bcrypt from "bcryptjs";
 import { getSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { emptyAnalytics, generateExperienceId, normalizeExperiencePayload } from "@/lib/validation";
 import type { AnalyticsPayload, ExperienceAnalytics, ExperienceRecord, LockType } from "@/lib/types";
+
+const SALT_ROUNDS = 10;
 
 type ExperienceRow = {
   id: string;
@@ -34,26 +34,6 @@ type ExperienceRow = {
   is_reply?: boolean | null;
   reply_to_id?: string | null;
 };
-
-const STORE_PATH = path.join(os.tmpdir(), "craftyourmessage-store.json");
-
-async function readLocalStore(): Promise<Map<string, ExperienceRow>> {
-  try {
-    const raw = await fs.readFile(STORE_PATH, "utf-8");
-    const entries = JSON.parse(raw) as [string, ExperienceRow][];
-    return new Map(entries);
-  } catch {
-    return new Map();
-  }
-}
-
-async function writeLocalStore(map: Map<string, ExperienceRow>) {
-  try {
-    await fs.writeFile(STORE_PATH, JSON.stringify([...map.entries()]), "utf-8");
-  } catch {
-    /* temp dir write failure is non-critical */
-  }
-}
 
 function toRecord(row: ExperienceRow): ExperienceRecord {
   return {
@@ -91,39 +71,18 @@ export async function createExperience(body: Record<string, unknown>) {
   const input = normalizeExperiencePayload(body);
   const id = generateExperienceId();
 
+  const hashPassword = async (pw: string | undefined): Promise<string | null> => {
+    if (!pw) return null;
+    try { return await bcrypt.hash(pw, SALT_ROUNDS); } catch { return null; }
+  };
+
+  const [hashedPassword, hashedAnswer] = await Promise.all([
+    hashPassword(input.customPassword),
+    hashPassword(input.passwordAnswer),
+  ]);
+
   if (!isSupabaseConfigured()) {
-    const row: ExperienceRow = {
-      id,
-      template_id: input.templateId,
-      category: input.category,
-      creator_name: input.creatorName,
-      receiver_name: input.receiverName,
-      relationship_tag: input.relationshipTag,
-      show_creator_name: input.showCreatorName,
-      tone: input.tone,
-      theme: input.theme,
-      custom_messages: input.customMessages,
-      final_message: input.finalMessage,
-      created_at: new Date().toISOString(),
-      expires_at: input.expiresAt ?? null,
-      analytics: emptyAnalytics(input.templateId),
-      custom_password: input.customPassword ?? null,
-      password_question: input.passwordQuestion ?? null,
-      password_answer: input.passwordAnswer ?? null,
-      together_since: input.togetherSince ?? null,
-      images: input.images,
-      scheduled_at: input.scheduledAt ?? null,
-      lock_type: input.lockType ?? null,
-      lock_value: input.lockValue ?? null,
-      gift_song_url: input.giftSongUrl ?? null,
-      gift_song_title: input.giftSongTitle ?? null,
-      is_reply: input.isReply ?? null,
-      reply_to_id: input.replyToId ?? null,
-    };
-    const store = await readLocalStore();
-    store.set(id, row);
-    await writeLocalStore(store);
-    return { data: toRecord(row), error: null };
+    return { data: null, error: "Database not configured. Add Supabase environment variables." };
   }
 
   const supabase = getSupabaseServerClient();
@@ -142,9 +101,9 @@ export async function createExperience(body: Record<string, unknown>) {
     analytics: emptyAnalytics(input.templateId),
     images: input.images,
   };
-  if (input.customPassword) row.custom_password = input.customPassword;
+  if (hashedPassword) row.custom_password = hashedPassword;
   if (input.passwordQuestion) row.password_question = input.passwordQuestion;
-  if (input.passwordAnswer) row.password_answer = input.passwordAnswer;
+  if (hashedAnswer) row.password_answer = hashedAnswer;
   if (input.togetherSince) row.together_since = input.togetherSince;
   if (input.expiresAt) row.expires_at = input.expiresAt;
   if (input.scheduledAt) row.scheduled_at = input.scheduledAt;
@@ -162,15 +121,7 @@ export async function createExperience(body: Record<string, unknown>) {
 
 export async function getExperience(id: string) {
   if (!isSupabaseConfigured()) {
-    const store = await readLocalStore();
-    const row = store.get(id);
-    if (!row) return { data: null, error: "Experience not found. It may have expired or been removed." };
-    if (row.expires_at && new Date(row.expires_at).getTime() <= Date.now()) {
-      store.delete(id);
-      await writeLocalStore(store);
-      return { data: null, error: "This link has expired." };
-    }
-    return { data: toRecord(row), error: null };
+    return { data: null, error: "Database not configured. Add Supabase environment variables." };
   }
 
   const supabase = getSupabaseServerClient();
@@ -190,38 +141,7 @@ export async function updateExperience(body: Record<string, unknown>) {
   if (!id) return { data: null, error: "Missing experience ID." };
 
   if (!isSupabaseConfigured()) {
-    const store = await readLocalStore();
-    const existing = store.get(id);
-    if (!existing) return { data: null, error: "Experience not found." };
-    const updated: ExperienceRow = {
-      ...existing,
-      template_id: input.templateId,
-      category: input.category,
-      creator_name: input.creatorName,
-      receiver_name: input.receiverName,
-      relationship_tag: input.relationshipTag,
-      show_creator_name: input.showCreatorName,
-      tone: input.tone,
-      theme: input.theme,
-      custom_messages: input.customMessages,
-      final_message: input.finalMessage,
-      expires_at: input.expiresAt ?? existing.expires_at,
-      custom_password: input.customPassword ?? existing.custom_password,
-      password_question: input.passwordQuestion ?? existing.password_question,
-      password_answer: input.passwordAnswer ?? existing.password_answer,
-      together_since: input.togetherSince ?? existing.together_since,
-      images: input.images ?? existing.images,
-      scheduled_at: input.scheduledAt ?? existing.scheduled_at,
-      lock_type: input.lockType ?? existing.lock_type,
-      lock_value: input.lockValue ?? existing.lock_value,
-      gift_song_url: input.giftSongUrl ?? existing.gift_song_url,
-      gift_song_title: input.giftSongTitle ?? existing.gift_song_title,
-      is_reply: input.isReply ?? existing.is_reply,
-      reply_to_id: input.replyToId ?? existing.reply_to_id,
-    };
-    store.set(id, updated);
-    await writeLocalStore(store);
-    return { data: toRecord(updated), error: null };
+    return { data: null, error: "Database not configured. Add Supabase environment variables." };
   }
 
   const supabase = getSupabaseServerClient();
@@ -291,13 +211,7 @@ export async function trackExperienceEvent(id: string, payload: AnalyticsPayload
 
 export async function setExperienceReaction(id: string, reaction: string) {
   if (!isSupabaseConfigured()) {
-    const store = await readLocalStore();
-    const existing = store.get(id);
-    if (!existing) return { ok: false, error: "Experience not found." };
-    existing.reaction = reaction.slice(0, 10);
-    store.set(id, existing);
-    await writeLocalStore(store);
-    return { ok: true, error: null };
+    return { ok: false, error: "Database not configured." };
   }
 
   const supabase = getSupabaseServerClient();

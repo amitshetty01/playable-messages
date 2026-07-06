@@ -71,18 +71,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`dark ${fraunces.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body>
+        <meta charSet="utf-8" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <Script id="theme-init" strategy="beforeInteractive">
           {`(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()`}
         </Script>
         <ThemeProvider>
         <LanguageProvider>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-CKB6NM2LXG" strategy="lazyOnload" />
+        <Script id="consent-gate" strategy="beforeInteractive">
+          {`window.__consent=localStorage.getItem("cookie-consent-v1")==="1"`}
+        </Script>
         <Script id="google-analytics" strategy="lazyOnload">
-          {`window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-CKB6NM2LXG');`}
+          {`if(window.__consent){!function(){var e=document.createElement("script");e.src="https://www.googletagmanager.com/gtag/js?id=G-CKB6NM2LXG",e.async=!0,document.head.appendChild(e);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date()),gtag("config","G-CKB6NM2LXG")}()}`}
         </Script>
         <Script id="sw-unregister" strategy="afterInteractive">
           {`if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(r){r.unregister()})})}`}

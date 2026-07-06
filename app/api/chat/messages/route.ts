@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMessages, createMessage, deleteMessage, editMessage, toggleReaction } from "@/lib/chat-store";
+import { validateOrigin, validateBody } from "@/lib/api-guard";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,24 +13,28 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const origin = validateOrigin(request);
+  if (origin.error) return origin.error;
+
   const body = await request.json();
+  const fieldError = validateBody(body, ["roomId", "sessionId", "nickname"]);
+  if (fieldError) return NextResponse.json({ error: fieldError }, { status: 400 });
+
   const { roomId, sessionId, nickname, messageType, content, fileUrl, fileName, fileSize } = body;
-
-  if (!roomId || !sessionId || !nickname) {
-    return NextResponse.json({ error: "roomId, sessionId, and nickname are required" }, { status: 400 });
-  }
-
   const result = await createMessage({ roomId, sessionId, nickname, messageType, content, fileUrl, fileName, fileSize });
   if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
   return NextResponse.json({ message: result.message });
 }
 
 export async function PATCH(request: Request) {
+  const origin = validateOrigin(request);
+  if (origin.error) return origin.error;
+
   const body = await request.json();
+  const fieldError = validateBody(body, ["messageId", "sessionId"]);
+  if (fieldError) return NextResponse.json({ error: fieldError }, { status: 400 });
+
   const { messageId, sessionId, action, content, emoji } = body;
-  if (!messageId || !sessionId) {
-    return NextResponse.json({ error: "messageId and sessionId are required" }, { status: 400 });
-  }
 
   if (action === "edit") {
     if (!content) return NextResponse.json({ error: "content is required for edit" }, { status: 400 });
@@ -48,7 +53,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // Default: delete
   const result = await deleteMessage(messageId, sessionId);
   if (result.error) {
     const status = result.error === "You can only delete your own messages" ? 403 : 404;

@@ -1,31 +1,6 @@
-import { promises as fs } from "fs";
-import path from "path";
-import os from "os";
 import { getSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase";
 
-const STORE_PATH = path.join(os.tmpdir(), "chat-store.json");
 
-type RoomRow = { id: string; code: string; created_at: string };
-type MessageRow = {
-  id: number; room_id: string; session_id: string; nickname: string;
-  message_type: string; content: string | null; file_url: string | null;
-  file_name: string | null; file_size: number | null; deleted: boolean;
-  created_at: string; edited_at?: string | null; reactions?: Record<string, string[]>;
-};
-type StoreData = { rooms: RoomRow[]; messages: Record<string, MessageRow[]>; nextId: number };
-
-async function readStore(): Promise<StoreData> {
-  try {
-    const raw = await fs.readFile(STORE_PATH, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return { rooms: [], messages: {}, nextId: 1 };
-  }
-}
-
-async function writeStore(data: StoreData) {
-  try { await fs.writeFile(STORE_PATH, JSON.stringify(data), "utf-8"); } catch { /* non-critical */ }
-}
 
 const ADJECTIVES = [
   "swift", "calm", "bold", "quiet", "bright", "dark", "cool", "warm",
@@ -52,66 +27,52 @@ function generateId() {
 // ─── Room operations ───
 
 export async function createRoom() {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    let code = generateCode();
-    for (let i = 0; i < 10; i++) {
-      const { data: existing } = await supabase.from("chat_rooms").select("id").eq("code", code).maybeSingle();
-      if (!existing) break;
-      code = generateCode();
-    }
-    const id = generateId();
-    const { data, error } = await supabase.from("chat_rooms").insert({ id, code }).select("*").single();
-    if (error) return { error: error.message };
-    return { roomId: data.id, code: data.code, createdAt: data.created_at };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured. Add Supabase environment variables." };
   }
 
-  // Local fallback
-  const store = await readStore();
+  const supabase = getSupabaseServerClient();
   let code = generateCode();
-  while (store.rooms.find((r) => r.code === code)) code = generateCode();
+  for (let i = 0; i < 10; i++) {
+    const { data: existing } = await supabase.from("chat_rooms").select("id").eq("code", code).maybeSingle();
+    if (!existing) break;
+    code = generateCode();
+  }
   const id = generateId();
-  const room: RoomRow = { id, code, created_at: new Date().toISOString() };
-  store.rooms.push(room);
-  store.messages[id] = [];
-  await writeStore(store);
-  return { roomId: id, code, createdAt: room.created_at };
+  const { data, error } = await supabase.from("chat_rooms").insert({ id, code }).select("*").single();
+  if (error) return { error: error.message };
+  return { roomId: data.id, code: data.code, createdAt: data.created_at };
 }
 
 export async function verifyRoom(code: string) {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    const { data, error } = await supabase.from("chat_rooms").select("id, code, created_at").eq("code", code).maybeSingle();
-    if (error) return { error: error.message };
-    if (!data) return { error: "Room not found" };
-    return { roomId: data.id, code: data.code, createdAt: data.created_at };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured. Add Supabase environment variables." };
   }
 
-  const store = await readStore();
-  const room = store.rooms.find((r) => r.code === code);
-  if (!room) return { error: "Room not found" };
-  return { roomId: room.id, code: room.code, createdAt: room.created_at };
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase.from("chat_rooms").select("id, code, created_at").eq("code", code).maybeSingle();
+  if (error) return { error: error.message };
+  if (!data) return { error: "Room not found" };
+  return { roomId: data.id, code: data.code, createdAt: data.created_at };
 }
 
 // ─── Message operations ───
 
 export async function getMessages(roomId: string) {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("room_id", roomId)
-      .eq("deleted", false)
-      .order("created_at", { ascending: true })
-      .limit(500);
-    if (error) return { error: error.message };
-    return { messages: data };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured." };
   }
 
-  const store = await readStore();
-  const msgs = (store.messages[roomId] || []).filter((m) => !m.deleted);
-  return { messages: msgs };
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("room_id", roomId)
+    .eq("deleted", false)
+    .order("created_at", { ascending: true })
+    .limit(500);
+  if (error) return { error: error.message };
+  return { messages: data };
 }
 
 export async function createMessage(params: {
@@ -119,115 +80,66 @@ export async function createMessage(params: {
   messageType?: string; content?: string | null;
   fileUrl?: string | null; fileName?: string | null; fileSize?: number | null;
 }) {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    const { data, error } = await supabase.from("chat_messages").insert({
-      room_id: params.roomId, session_id: params.sessionId,
-      nickname: params.nickname.trim().slice(0, 50),
-      message_type: params.messageType || "text",
-      content: params.content?.trim().slice(0, 2000) || null,
-      file_url: params.fileUrl || null, file_name: params.fileName?.slice(0, 255) || null,
-      file_size: params.fileSize || null,
-    }).select("*").single();
-    if (error) return { error: error.message };
-    return { message: data };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured." };
   }
 
-  const store = await readStore();
-  const msg: MessageRow = {
-    id: store.nextId++, room_id: params.roomId, session_id: params.sessionId,
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase.from("chat_messages").insert({
+    room_id: params.roomId, session_id: params.sessionId,
     nickname: params.nickname.trim().slice(0, 50),
     message_type: params.messageType || "text",
     content: params.content?.trim().slice(0, 2000) || null,
     file_url: params.fileUrl || null, file_name: params.fileName?.slice(0, 255) || null,
-    file_size: params.fileSize || null, deleted: false,
-    created_at: new Date().toISOString(),
-  };
-  if (!store.messages[params.roomId]) store.messages[params.roomId] = [];
-  store.messages[params.roomId].push(msg);
-  await writeStore(store);
-  return { message: msg };
+    file_size: params.fileSize || null,
+  }).select("*").single();
+  if (error) return { error: error.message };
+  return { message: data };
 }
 
 export async function deleteMessage(messageId: number, sessionId: string) {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    const { data: msg } = await supabase.from("chat_messages").select("session_id").eq("id", messageId).single();
-    if (!msg) return { error: "Message not found" };
-    if (msg.session_id !== sessionId) return { error: "You can only delete your own messages" };
-    const { error } = await supabase.from("chat_messages").update({ deleted: true }).eq("id", messageId);
-    if (error) return { error: error.message };
-    return { ok: true };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured." };
   }
 
-  const store = await readStore();
-  for (const roomMsgs of Object.values(store.messages)) {
-    const m = roomMsgs.find((msg) => msg.id === messageId);
-    if (m) {
-      if (m.session_id !== sessionId) return { error: "You can only delete your own messages" };
-      m.deleted = true;
-      await writeStore(store);
-      return { ok: true };
-    }
-  }
-  return { error: "Message not found" };
+  const supabase = getSupabaseServerClient();
+  const { data: msg } = await supabase.from("chat_messages").select("session_id").eq("id", messageId).single();
+  if (!msg) return { error: "Message not found" };
+  if (msg.session_id !== sessionId) return { error: "You can only delete your own messages" };
+  const { error } = await supabase.from("chat_messages").update({ deleted: true }).eq("id", messageId);
+  if (error) return { error: error.message };
+  return { ok: true };
 }
 
 export async function editMessage(messageId: number, sessionId: string, content: string) {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    const { data: msg } = await supabase.from("chat_messages").select("session_id").eq("id", messageId).single();
-    if (!msg) return { error: "Message not found" };
-    if (msg.session_id !== sessionId) return { error: "You can only edit your own messages" };
-    const { error } = await supabase.from("chat_messages").update({ content: content.trim().slice(0, 2000), edited_at: new Date().toISOString() }).eq("id", messageId);
-    if (error) return { error: error.message };
-    return { ok: true };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured." };
   }
 
-  const store = await readStore();
-  for (const roomMsgs of Object.values(store.messages)) {
-    const m = roomMsgs.find((msg) => msg.id === messageId);
-    if (m) {
-      if (m.session_id !== sessionId) return { error: "You can only edit your own messages" };
-      m.content = content.trim().slice(0, 2000);
-      m.edited_at = new Date().toISOString();
-      await writeStore(store);
-      return { ok: true };
-    }
-  }
-  return { error: "Message not found" };
+  const supabase = getSupabaseServerClient();
+  const { data: msg } = await supabase.from("chat_messages").select("session_id").eq("id", messageId).single();
+  if (!msg) return { error: "Message not found" };
+  if (msg.session_id !== sessionId) return { error: "You can only edit your own messages" };
+  const { error } = await supabase.from("chat_messages").update({ content: content.trim().slice(0, 2000), edited_at: new Date().toISOString() }).eq("id", messageId);
+  if (error) return { error: error.message };
+  return { ok: true };
 }
 
 export async function toggleReaction(messageId: number, sessionId: string, emoji: string) {
-  if (isSupabaseConfigured()) {
-    const supabase = getSupabaseServerClient();
-    const { data: msg } = await supabase.from("chat_messages").select("reactions").eq("id", messageId).single();
-    if (!msg) return { error: "Message not found" };
-    const reactions: Record<string, string[]> = msg.reactions || {};
-    const users = reactions[emoji] || [];
-    const idx = users.indexOf(sessionId);
-    if (idx >= 0) users.splice(idx, 1);
-    else users.push(sessionId);
-    reactions[emoji] = users;
-    const { error } = await supabase.from("chat_messages").update({ reactions }).eq("id", messageId);
-    if (error) return { error: error.message };
-    return { ok: true };
+  if (!isSupabaseConfigured()) {
+    return { error: "Database not configured." };
   }
 
-  const store = await readStore();
-  for (const roomMsgs of Object.values(store.messages)) {
-    const m = roomMsgs.find((msg) => msg.id === messageId);
-    if (m) {
-      const reactions = m.reactions || {};
-      const users = reactions[emoji] || [];
-      const idx = users.indexOf(sessionId);
-      if (idx >= 0) users.splice(idx, 1);
-      else users.push(sessionId);
-      reactions[emoji] = users;
-      m.reactions = reactions;
-      await writeStore(store);
-      return { ok: true };
-    }
-  }
-  return { error: "Message not found" };
+  const supabase = getSupabaseServerClient();
+  const { data: msg } = await supabase.from("chat_messages").select("reactions").eq("id", messageId).single();
+  if (!msg) return { error: "Message not found" };
+  const reactions: Record<string, string[]> = msg.reactions || {};
+  const users = reactions[emoji] || [];
+  const idx = users.indexOf(sessionId);
+  if (idx >= 0) users.splice(idx, 1);
+  else users.push(sessionId);
+  reactions[emoji] = users;
+  const { error } = await supabase.from("chat_messages").update({ reactions }).eq("id", messageId);
+  if (error) return { error: error.message };
+  return { ok: true };
 }

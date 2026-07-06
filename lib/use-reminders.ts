@@ -15,15 +15,16 @@ export type Reminder = {
 const STORAGE_KEY = "reminders";
 
 export function useReminders() {
-  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) return JSON.parse(stored) as Reminder[];
+      } catch { /* ignore */ }
+    }
+    return [];
+  });
   const [upcoming, setUpcoming] = useState<Reminder[]>([]);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setReminders(JSON.parse(stored));
-    } catch {}
-  }, []);
 
   useEffect(() => {
     const now = new Date();

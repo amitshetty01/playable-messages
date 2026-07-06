@@ -7,8 +7,10 @@ export function SoundWelcome() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("craft-message-sound-welcome");
-    if (stored === "seen") return;
+    const seen = localStorage.getItem("craft-message-sound-welcome");
+    if (seen === "seen") return;
+    const soundPref = localStorage.getItem("craft-message-sound");
+    if (soundPref === "off") return;
     initSoundPref();
     setShow(true);
     localStorage.setItem("craft-message-sound-welcome", "seen");

@@ -6,7 +6,7 @@ import { getTemplate, getTemplateSeoSlug, templates } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo";
 
 export function generateStaticParams() {
-  return templates.map((template) => ({ templateId: template.id }));
+  return templates.filter((t) => t.status === "full").map((template) => ({ templateId: template.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ templateId: string }> }): Promise<Metadata> {

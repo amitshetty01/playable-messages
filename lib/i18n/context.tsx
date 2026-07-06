@@ -24,15 +24,15 @@ export function useTranslation() {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState("en");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("lang");
-    if (saved && languages.some((l) => l.code === saved)) setLangState(saved);
-  }, []);
+  const [lang, setLangState] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("lang");
+        if (saved && languages.some((l) => l.code === saved)) return saved;
+      } catch { /* localStorage unavailable */ }
+    }
+    return "en";
+  });
 
   const setLang = useCallback((code: string) => {
     setLangState(code);
@@ -51,7 +51,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const dir = languages.find((l) => l.code === lang)?.dir || "ltr";
 
   return (
-    <LangContext.Provider value={{ lang: mounted ? lang : "en", setLang, t, dir, supportedLanguages: languages }}>
+    <LangContext.Provider value={{ lang, setLang, t, dir, supportedLanguages: languages }}>
       {children}
     </LangContext.Provider>
   );

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateExperience, getExperience } from "@/lib/experiences";
+import { validateOrigin } from "@/lib/api-guard";
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const origin = validateOrigin(request);
+  if (origin.error) return origin.error;
+
   const { id } = await params;
 
   const existing = await getExperience(id);

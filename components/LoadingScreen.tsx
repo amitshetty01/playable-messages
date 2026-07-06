@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type LoadingScreenProps = {
   name?: string;
@@ -12,6 +12,7 @@ type LoadingScreenProps = {
 export function LoadingScreen({ name = "", message = "Creating something", onComplete, duration = 2000 }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [dots, setDots] = useState("");
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,16 +23,18 @@ export function LoadingScreen({ name = "", message = "Creating something", onCom
 
   useEffect(() => {
     const start = Date.now();
-    const interval = setInterval(() => {
+    function tick() {
       const elapsed = Date.now() - start;
       const pct = Math.min((elapsed / duration) * 100, 100);
       setProgress(pct);
       if (pct >= 100) {
-        clearInterval(interval);
         onComplete?.();
+      } else {
+        rafRef.current = requestAnimationFrame(tick);
       }
-    }, 50);
-    return () => clearInterval(interval);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [duration, onComplete]);
 
   return (
