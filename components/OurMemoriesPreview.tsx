@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const PINK = "#d4899e";
 const CREAM = "#faf5f0";
@@ -40,91 +41,118 @@ const DEMO = {
   closingQuote: "Some people search their whole lives for what we found. I stopped searching the day I found you.",
 };
 
-export function OurMemoriesPreview() {
-  const [section, setSection] = useState(0);
-  const totalSections = 6;
+function Tape({ className }: { className?: string }) {
+  return (
+    <div
+      className={`absolute top-[-6px] h-5 w-10 opacity-60 ${className || ""}`}
+      style={{ background: "rgba(255,255,255,0.5)", transform: "rotate(-5deg)" }}
+    />
+  );
+}
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const idx = Math.round(el.scrollTop / el.clientHeight);
-    setSection(Math.min(idx, totalSections - 1));
-  };
+function ParallaxSection({
+  children,
+  offset,
+  className,
+}: {
+  children: React.ReactNode;
+  offset: any;
+  className?: string;
+}) {
+  return (
+    <motion.section
+      style={{ y: offset }}
+      className={`flex min-h-full flex-col items-center justify-center px-6 py-10 text-center ${className || ""}`}
+    >
+      {children}
+    </motion.section>
+  );
+}
+
+export function OurMemoriesPreview() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ container: containerRef });
+  const imgParallax = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const textParallax = useTransform(scrollYProgress, [0, 1], [0, -200]);
 
   return (
     <div className="flex h-full w-full flex-col" style={{ background: CREAM, color: BROWN }}>
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto overscroll-contain" onScroll={handleScroll}>
-        {/* ─── Hero ─── */}
-        <section className="relative flex min-h-full flex-col items-center justify-center px-6 py-10 text-center">
-          <div className="mb-4 h-40 w-40 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white/30">
+      <div ref={containerRef} className="flex-1 overflow-y-auto overscroll-contain">
+        {/* Hero */}
+        <ParallaxSection offset={textParallax}>
+          <motion.div className="mb-4 h-52 w-52 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white/30" style={{ y: imgParallax }}>
             <img src={DEMO.heroImage} alt="" className="h-full w-full object-cover" />
-          </div>
-          <h1 className="text-xl font-black leading-tight" style={{ fontFamily: "'Caveat', cursive", color: BROWN }}>{DEMO.heroHeading}</h1>
-          <p className="mt-3 max-w-xs text-xs leading-relaxed" style={{ color: MUTED }}>{DEMO.heroSubtitle}</p>
-          <div className="mt-6 flex items-center gap-1">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill={PINK}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span className="text-xs font-bold tracking-wider" style={{ color: MUTED }}>SCROLL DOWN</span>
-          </div>
-        </section>
+          </motion.div>
+          <h1 className="text-2xl font-black leading-tight sm:text-3xl" style={{ fontFamily: "'Caveat', cursive", color: BROWN }}>{DEMO.heroHeading}</h1>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed sm:text-base" style={{ color: MUTED }}>{DEMO.heroSubtitle}</p>
+        </ParallaxSection>
 
-        {/* ─── Intro ─── */}
-        <section className="flex min-h-full flex-col items-center justify-center px-8 py-10 text-center">
-          <p className="text-sm leading-relaxed italic" style={{ color: BROWN }}>{DEMO.introText}</p>
+        {/* Intro */}
+        <ParallaxSection offset={textParallax} className="px-8">
+          <p className="text-lg leading-relaxed italic sm:text-xl" style={{ color: BROWN }}>{DEMO.introText}</p>
           <div className="mt-4 h-px w-16" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-        </section>
+        </ParallaxSection>
 
-        {/* ─── Photos ─── */}
-        <section className="flex min-h-full flex-col items-center justify-center gap-3 px-6 py-8">
-          <div className="grid grid-cols-3 gap-2">
+        {/* Photos */}
+        <ParallaxSection offset={imgParallax} className="gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {DEMO.pics.map((src, i) => (
-              <div key={i} className="overflow-hidden rounded-xl shadow-md" style={{ aspectRatio: "3/4" }}>
+              <div
+                key={i}
+                className="relative overflow-hidden rounded-xl shadow-md"
+                style={{ aspectRatio: "3/4", transform: `rotate(${i === 0 ? -2 : i === 2 ? 2 : 0}deg)`, boxShadow: "2px 4px 12px rgba(0,0,0,0.15)" }}
+              >
+                <Tape className="left-1/2 -translate-x-1/2 z-10" />
                 <img src={src} alt="" className="h-full w-full object-cover" />
               </div>
             ))}
           </div>
-          <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: MUTED }}>Our moments</p>
-        </section>
+          <p className="text-sm font-bold tracking-widest uppercase sm:text-base" style={{ color: MUTED }}>Our moments</p>
+        </ParallaxSection>
 
-        {/* ─── Memories ─── */}
-        <section className="flex min-h-full flex-col items-center justify-center gap-4 px-6 py-8">
+        {/* Memories */}
+        <ParallaxSection offset={textParallax} className="gap-4">
           {DEMO.memories.map((m, i) => (
-            <div key={i} className="w-full rounded-xl p-4 text-center shadow-sm" style={{ background: "#fff", borderLeft: `3px solid ${PINK}` }}>
-              <p className="text-xs font-bold" style={{ color: BROWN }}>{m.title}</p>
-              <p className="mt-1 text-[11px] leading-relaxed" style={{ color: MUTED }}>{m.caption}</p>
-              <p className="mt-2 text-[10px] italic" style={{ color: PINK }}>{m.note}</p>
+            <div
+              key={i}
+              className="w-full rounded-xl p-5 text-center shadow-md"
+              style={{
+                background: "#fff",
+                borderLeft: `3px solid ${PINK}`,
+                transform: `rotate(${i === 0 ? 1 : i === 1 ? -1.5 : 0.5}deg)`,
+                boxShadow: "2px 4px 10px rgba(0,0,0,0.15)",
+              }}
+            >
+              <Tape className="left-1/2 -translate-x-1/2" />
+              <p className="text-base font-bold sm:text-lg" style={{ color: BROWN }}>{m.title}</p>
+              <p className="mt-1 text-sm leading-relaxed sm:text-base" style={{ color: MUTED }}>{m.caption}</p>
+              <p className="mt-2 text-sm italic sm:text-base" style={{ color: PINK }}>{m.note}</p>
             </div>
           ))}
-        </section>
+        </ParallaxSection>
 
-        {/* ─── Promises ─── */}
-        <section className="flex min-h-full flex-col items-center justify-center gap-3 px-6 py-8 text-center">
-          <p className="text-xs font-black tracking-wider uppercase" style={{ color: GOLD }}>I Promise</p>
+        {/* Promises */}
+        <ParallaxSection offset={textParallax} className="gap-3">
+          <p className="text-lg font-black tracking-wider uppercase sm:text-xl" style={{ color: GOLD }}>I Promise</p>
           {DEMO.promises.map((p, i) => (
             <div key={i} className="flex items-start gap-2">
               <span style={{ color: PINK }}>❤️</span>
-              <p className="text-xs leading-relaxed" style={{ color: BROWN }}>{p}</p>
+              <p className="text-sm leading-relaxed sm:text-base" style={{ color: BROWN }}>{p}</p>
             </div>
           ))}
-        </section>
+        </ParallaxSection>
 
-        {/* ─── Final ─── */}
-        <section className="flex min-h-full flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-          <div className="mb-2 h-32 w-32 overflow-hidden rounded-full shadow-lg ring-2 ring-white/30">
+        {/* Final */}
+        <ParallaxSection offset={textParallax} className="gap-4">
+          <motion.div className="mb-2 h-40 w-40 overflow-hidden rounded-full shadow-lg ring-2 ring-white/30" style={{ y: imgParallax }}>
             <img src={DEMO.endingImage} alt="" className="h-full w-full object-contain" />
-          </div>
+          </motion.div>
           {DEMO.finalLines.map((line, i) => (
-            <p key={i} className="text-sm leading-relaxed italic" style={{ color: BROWN }}>{line}</p>
+            <p key={i} className="text-lg leading-relaxed italic sm:text-xl" style={{ color: BROWN }}>{line}</p>
           ))}
-          <p className="mt-2 text-xs" style={{ color: MUTED }}>{DEMO.closingQuote}</p>
-          <p className="mt-2 text-sm font-bold" style={{ color: PINK, fontFamily: "'Caveat', cursive" }}>— From someone who loves you</p>
-        </section>
-      </div>
-
-      {/* Section dots */}
-      <div className="flex justify-center gap-1.5 py-2" style={{ background: CREAM }}>
-        {Array.from({ length: totalSections }).map((_, i) => (
-          <div key={i} className="h-1.5 rounded-full transition-all duration-300" style={{ width: i === section ? 20 : 6, background: i === section ? PINK : `${MUTED}44` }} />
-        ))}
+          <p className="mt-2 text-sm sm:text-base" style={{ color: MUTED }}>{DEMO.closingQuote}</p>
+          <p className="mt-2 text-xl font-bold sm:text-2xl" style={{ color: PINK, fontFamily: "'Caveat', cursive" }}>— From someone who loves you</p>
+        </ParallaxSection>
       </div>
     </div>
   );

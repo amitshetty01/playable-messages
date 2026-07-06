@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { initAudio } from "@/lib/sounds";
+import { haptic } from "@/lib/haptic";
 
 type Phase =
   | "peek" | "enter" | "wave" | "stumble" | "present"
@@ -106,54 +107,41 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
     setSparkles(prev => [...prev, ...s]); setTimeout(() => setSparkles([]), 3800);
   }, []);
 
-  // ─── Phase progression ───
+  const PHASE_CHAIN: Record<string, string> = {
+    peek: "enter", enter: "wave", wave: "stumble", stumble: "present",
+    present: "zoom-in", "zoom-in": "read", read: "letter-show",
+    "letter-show": "waiting", waiting: "minimize", minimize: "bow",
+    bow: "sorry", sorry: "hopeful", hopeful: "complete",
+  };
+
   useEffect(() => {
-    switch (phase) {
-      case "peek":
-        setExpression("shy");
-        { const t1 = setTimeout(() => setSubPhase(1), 900);
-          const t2 = setTimeout(() => setSubPhase(2), 1800);
-          const t3 = setTimeout(() => { setPhase("enter"); setSubPhase(0); setShowText(true); setTextContent("Um… hi…"); }, 3200);
-          return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); }; }
-      case "enter":
-        { const t = setTimeout(() => { setPhase("wave"); setSubPhase(0); }, 2400); return () => clearTimeout(t); }
-      case "wave":
-        setExpression("guilty");
-        { const t = setTimeout(() => { setShowText(true); setTextContent("Please don't be mad…"); }, 300);
-          const t2 = setTimeout(() => { setPhase("stumble"); setSubPhase(0); setShowText(false); }, 3000);
-          return () => { clearTimeout(t); clearTimeout(t2); }; }
-      case "stumble":
-        setExpression("surprised");
-        { const t = setTimeout(() => { setPhase("present"); setSubPhase(0); }, 2800); return () => clearTimeout(t); }
-      case "present":
-        setExpression("shy");
-        { const t = setTimeout(() => { setShowText(true); setTextContent("I… brought you something…"); }, 400);
-          triggerHearts();
-          const t2 = setTimeout(() => { setShowText(false); setAwaitingTap(true); }, 3200);
-          return () => { clearTimeout(t); clearTimeout(t2); }; }
-      case "zoom-in":
-        { const t = setTimeout(() => { setPhase("read"); setSubPhase(0); setExpression("reading"); }, 2400); return () => clearTimeout(t); }
-      case "read":
-        { const t = setTimeout(() => { setPhase("letter-show"); setLetterVisible(true); }, 3000); return () => clearTimeout(t); }
-      case "waiting": triggerHearts(); break;
-      case "minimize":
-        setExpression("surprised");
-        {           const t = setTimeout(() => { setExpression("sad"); setPhase("bow"); setSubPhase(0); triggerHearts(); triggerSparkles(); }, 1400); return () => clearTimeout(t); }
-      case "bow":
-        { const t = setTimeout(() => { setShowText(true); setTextContent("Sorry…"); }, 600);
-          const t2 = setTimeout(() => { setPhase("sorry"); setShowText(false); }, 2600);
-          return () => { clearTimeout(t); clearTimeout(t2); }; }
-      case "sorry":
-        { const t = setTimeout(() => { setPhase("hopeful"); setSubPhase(0); triggerHearts(); }, 3000); return () => clearTimeout(t); }
-      case "hopeful":
-        setExpression("hopeful");
-        { const t = setTimeout(() => { setShowText(true); setTextContent("Can you forgive me?"); }, 500);
-          const t2 = setTimeout(() => { setPhase("complete"); }, 3800);
-          return () => { clearTimeout(t); clearTimeout(t2); }; }
-      case "complete":
-        { const t = setTimeout(() => onComplete(), 800); return () => clearTimeout(t); }
+    if (phase === "peek") setExpression("shy");
+    if (phase === "wave") setExpression("guilty");
+    if (phase === "stumble") setExpression("surprised");
+    if (phase === "present") { setExpression("shy"); setShowText(true); setTextContent("I… brought you something…"); triggerHearts(); }
+    if (phase === "read") setExpression("reading");
+    if (phase === "waiting") triggerHearts();
+    if (phase === "minimize") setExpression("surprised");
+    if (phase === "bow") { setShowText(true); setTextContent("Sorry…"); }
+    if (phase === "sorry") { const t = setTimeout(() => { setPhase("hopeful"); setSubPhase(0); triggerHearts(); }, 3000); return () => clearTimeout(t); }
+    if (phase === "hopeful") {
+      setExpression("hopeful"); setShowText(true); setTextContent("Can you forgive me?");
+      const t = setTimeout(() => setPhase("complete"), 3800);
+      return () => clearTimeout(t);
     }
+    if (phase === "complete") { const t = setTimeout(() => onComplete(), 800); return () => clearTimeout(t); }
   }, [phase, onComplete, triggerHearts, triggerSparkles]);
+
+  const handleTap = useCallback(() => {
+    if (phase === "complete" || phase === "sorry" || phase === "hopeful") return;
+    const next = PHASE_CHAIN[phase];
+    if (next) {
+      setPhase(next as Phase);
+      setSubPhase(0);
+      setShowText(false);
+      haptic("tap");
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (phase === "peek") { const i = setInterval(() => setSubPhase(p => p >= 2 ? 0 : p + 1), 900); return () => clearInterval(i); }
@@ -192,7 +180,7 @@ export function KittyApologyGame({ message, onComplete }: { message: string; onC
   const isZoomed = ["zoom-in", "read", "letter-show", "waiting", "minimize"].includes(phase);
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden select-none" style={{ fontFamily: "'Nunito Sans', system-ui, sans-serif", touchAction: "manipulation" }}>
+    <div ref={containerRef} onClick={handleTap} className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden select-none" style={{ fontFamily: "'Nunito Sans', system-ui, sans-serif", touchAction: "manipulation" }}>
       {/* Background */}
       <div className="absolute inset-0 transition-all duration-[2000ms] ease-in-out" style={{
         background: isZoomed

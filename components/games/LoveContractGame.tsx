@@ -2,10 +2,125 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { ExperienceRecord, Template } from "@/lib/types";
 
 type Props = { template: Template; experience: ExperienceRecord; mode: "demo" | "generated" | "preview"; shareUrl?: string };
+
+function InkSplatter({ x, y, id: _id }: { x: number; y: number; id: number }) {
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 1 }}
+      animate={{ scale: 1.2, opacity: 1 }}
+      exit={{ scale: 1, opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      className="pointer-events-none fixed z-50"
+      style={{ left: x - 20, top: y - 20 }}
+    >
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="2" fill="#b8860b">
+          <animate attributeName="r" from="0" to="18" dur="0.3s" fill="freeze" />
+          <animate attributeName="opacity" from="0.6" to="0" dur="0.5s" fill="freeze" />
+        </circle>
+        {[0, 1, 2, 3, 5, 6, 7].map((i) => (
+          <circle key={i} cx={20 + Math.cos(i * 1.2) * 16} cy={20 + Math.sin(i * 1.2) * 16} r="1.5" fill="#d4af37" opacity="0.5">
+            <animate attributeName="r" from="0" to={2 + Math.random() * 3} dur="0.4s" fill="freeze" />
+            <animate attributeName="opacity" from="0.6" to="0" dur="0.6s" fill="freeze" />
+          </circle>
+        ))}
+      </svg>
+    </motion.div>
+  );
+}
+
+function ContractCard({
+  item,
+  index,
+  total,
+  section,
+  onAgree,
+}: {
+  item: string;
+  index: number;
+  total: number;
+  section: string;
+  onAgree: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ y: 500, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -500, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      className="w-full"
+    >
+      <div className="rounded-xl border border-[#b8860b]/20 bg-white/70 p-5 sm:p-6 shadow-md text-center">
+        <p className="mb-1 font-serif text-[10px] uppercase tracking-[0.15em] text-[#b8860b]/60">
+          {section} {index + 1} of {total}
+        </p>
+        <p className="font-serif text-base leading-relaxed text-[#3a1a0a]">{item}</p>
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={onAgree}
+            className="inline-flex items-center gap-2 rounded-full border-2 border-[#b8860b] bg-gradient-to-r from-[#b8860b] to-[#d4af37] px-6 py-2 font-serif text-sm font-bold text-white shadow-md transition-all hover:shadow-[#d4af37]/30 active:scale-95"
+          >
+            I Agree ✍️
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function CardDeck({
+  items,
+  currentAcks,
+  onAcknowledge,
+  section,
+  onStamp,
+}: {
+  items: string[];
+  currentAcks: number;
+  onAcknowledge: (idx: number) => void;
+  section: string;
+  onStamp: () => void;
+}) {
+  const [splashes, setSplashes] = useState<{ id: number; x: number; y: number }[]>([]);
+  const splashId = useRef(0);
+
+  if (currentAcks >= items.length) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-4">
+        <span className="text-emerald-600 text-lg">✓</span>
+        <span className="font-serif text-sm text-emerald-700 font-bold">All {items.length} acknowledged</span>
+      </div>
+    );
+  }
+
+  const currentIdx = currentAcks;
+  const currentItem = items[currentIdx];
+
+  return (
+    <AnimatePresence mode="wait">
+      <ContractCard
+        key={`${section}-${currentIdx}`}
+        item={currentItem}
+        index={currentIdx}
+        total={items.length}
+        section={section}
+        onAgree={(e) => {
+          onAcknowledge(currentIdx);
+          onStamp();
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          setSplashes(prev => [...prev, { id: splashId.current++, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }]);
+          setTimeout(() => setSplashes(prev => prev.filter(s => s.id !== splashId.current - 1)), 600);
+        }}
+      />
+      {splashes.map(s => <InkSplatter key={s.id} x={s.x} y={s.y} id={s.id} />)}
+    </AnimatePresence>
+  );
+}
 
 const DEFAULT_RULES = [
   "Good morning texts are mandatory every single day.",
@@ -299,6 +414,8 @@ export function LoveContractGame({ template, experience, mode }: Props) {
     }
   };
 
+  const handleStamp = useCallback(() => playStamp(getAudio()), [getAudio]);
+
   const handleSeal = () => {
     if (!allTicked || !recipientSignature) {
       scrollToFirstIncomplete();
@@ -497,41 +614,7 @@ export function LoveContractGame({ template, experience, mode }: Props) {
                       {tickedRules.size === rules.length && <span className="text-emerald-600 text-xs">✓</span>}
                     </h2>
                     <p className="font-serif text-xs text-[#3a1a0a]/50 mb-3 italic pl-1">Acknowledge each rule by ticking the box:</p>
-                    <motion.div
-                      className="space-y-2"
-                      animate={shakeSection === "rules" ? { x: [0, -6, 6, -6, 6, 0] } : {}}
-                      transition={{ duration: 0.4 }}
-                    >
-                      {rules.map((rule, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => toggleTick(setTickedRules, idx)}
-                          className={`group flex items-start gap-3 rounded-xl border p-3 sm:p-4 transition-all cursor-pointer ${
-                            tickedRules.has(idx)
-                              ? "border-[#b8860b]/40 bg-[#b8860b]/10"
-                              : "border-[#b8860b]/15 bg-white/50 hover:border-[#b8860b]/30 hover:bg-white/70"
-                          }`}
-                        >
-                          <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all ${
-                            tickedRules.has(idx)
-                              ? "border-[#b8860b] bg-[#b8860b]"
-                              : "border-[#b8860b]/30 bg-white/80 group-hover:border-[#b8860b]/50"
-                          }`}>
-                            {tickedRules.has(idx) && (
-                              <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                          <span className={`font-serif text-sm transition-all ${
-                            tickedRules.has(idx) ? "text-[#3a1a0a] font-bold" : "text-[#3a1a0a]/70"
-                          }`}>
-                            {rule}
-                          </span>
-                        </div>
-                      ))}
-                    </motion.div>
-                    <ProgressBar current={tickedRules.size} total={rules.length} label="acknowledged" />
+                    <CardDeck items={rules} currentAcks={tickedRules.size} onAcknowledge={(idx) => toggleTick(setTickedRules, idx)} section="Rule" onStamp={handleStamp} />
                   </section>
 
                   <SectionDivider />
@@ -543,44 +626,7 @@ export function LoveContractGame({ template, experience, mode }: Props) {
                       {tickedPromises.size === promises.length && <span className="text-rose-500 text-xs">❤️</span>}
                     </h2>
                     <p className="font-serif text-xs text-[#3a1a0a]/50 mb-3 italic pl-1">Affirm each promise by ticking the box:</p>
-                    <motion.div
-                      className="space-y-2"
-                      animate={shakeSection === "promises" ? { x: [0, -6, 6, -6, 6, 0] } : {}}
-                      transition={{ duration: 0.4 }}
-                    >
-                      {promises.map((promise, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => toggleTick(setTickedPromises, idx)}
-                          className={`group flex items-start gap-3 rounded-xl border p-3 sm:p-4 transition-all cursor-pointer ${
-                            tickedPromises.has(idx)
-                              ? "border-rose-300/60 bg-rose-50/80"
-                              : "border-rose-200/25 bg-white/50 hover:border-rose-300/40 hover:bg-rose-50/50"
-                          }`}
-                        >
-                          <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                            tickedPromises.has(idx)
-                              ? "border-rose-400 bg-rose-400"
-                              : "border-rose-300/30 bg-white/80 group-hover:border-rose-300/50"
-                          }`}>
-                            {tickedPromises.has(idx) && (
-                              <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <span className="mt-0.5 text-sm">❤️</span>
-                            <span className={`font-serif text-sm transition-all ${
-                              tickedPromises.has(idx) ? "text-[#3a1a0a] font-bold" : "text-[#3a1a0a]/70"
-                            }`}>
-                              {promise}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </motion.div>
-                    <ProgressBar current={tickedPromises.size} total={promises.length} label="affirmed" />
+                    <CardDeck items={promises} currentAcks={tickedPromises.size} onAcknowledge={(idx) => toggleTick(setTickedPromises, idx)} section="Promise" onStamp={handleStamp} />
                   </section>
 
                   <SectionDivider />
@@ -592,41 +638,7 @@ export function LoveContractGame({ template, experience, mode }: Props) {
                       {tickedPenalties.size === penalties.length && <span className="text-amber-600 text-xs">✓</span>}
                     </h2>
                     <p className="font-serif text-xs text-[#3a1a0a]/50 mb-3 italic pl-1">Accept the penalties by ticking each:</p>
-                    <motion.div
-                      className="space-y-2"
-                      animate={shakeSection === "penalties" ? { x: [0, -6, 6, -6, 6, 0] } : {}}
-                      transition={{ duration: 0.4 }}
-                    >
-                      {penalties.map((penalty, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => toggleTick(setTickedPenalties, idx)}
-                          className={`group flex items-start gap-3 rounded-xl border p-3 sm:p-4 transition-all cursor-pointer ${
-                            tickedPenalties.has(idx)
-                              ? "border-amber-300/60 bg-amber-50/80"
-                              : "border-amber-200/25 bg-white/50 hover:border-amber-300/40 hover:bg-amber-50/50"
-                          }`}
-                        >
-                          <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all ${
-                            tickedPenalties.has(idx)
-                              ? "border-amber-500 bg-amber-500"
-                              : "border-amber-300/30 bg-white/80 group-hover:border-amber-300/50"
-                          }`}>
-                            {tickedPenalties.has(idx) && (
-                              <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                          <span className={`font-serif text-sm transition-all ${
-                            tickedPenalties.has(idx) ? "text-[#3a1a0a] font-bold" : "text-[#3a1a0a]/70"
-                          }`}>
-                            {penalty}
-                          </span>
-                        </div>
-                      ))}
-                    </motion.div>
-                    <ProgressBar current={tickedPenalties.size} total={penalties.length} label="accepted" />
+                    <CardDeck items={penalties} currentAcks={tickedPenalties.size} onAcknowledge={(idx) => toggleTick(setTickedPenalties, idx)} section="Penalty" onStamp={handleStamp} />
                   </section>
 
                   <SectionDivider />

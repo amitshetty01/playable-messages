@@ -243,8 +243,8 @@ export function ComeCloserPrank({ message, onComplete }: { message: string; onCo
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden select-none"
       style={{
         fontFamily: "'Nunito Sans', system-ui, sans-serif",
-        touchAction: "manipulation",
-        background: "#0d0d12",
+        touchAction: "none",
+        background: phase === "alone-check" || phase === "count3" || phase === "count2" || phase === "count1" || phase === "flash" ? "#000" : "#0d0d12",
         cursor: phase === "alone-check" && liarRevealed ? "pointer" : "default",
       }}
     >

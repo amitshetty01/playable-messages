@@ -259,8 +259,18 @@ export function EscapeMeGame({ template, experience, mode }: Props) {
   const sizeRef = useRef(21);
 
   const toneMsg = TONE_MESSAGES[experience.tone] || TONE_MESSAGES.Romantic;
+  const [frustrationHint, setFrustrationHint] = useState(false);
+  const frustrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (phase !== "playing") return;
+    frustrationTimerRef.current = setTimeout(() => setFrustrationHint(true), 10000);
+    return () => { if (frustrationTimerRef.current) clearTimeout(frustrationTimerRef.current); };
+  }, [phase]);
 
   function initGame() {
+    setFrustrationHint(false);
+    if (frustrationTimerRef.current) { clearTimeout(frustrationTimerRef.current); frustrationTimerRef.current = null; }
     let cfg = { ...HARD_CFG };
     for (let attempt = 0; attempt < 20; attempt++) {
       const mask = createHeartMask(cfg.grid, cfg.threshold);
@@ -316,6 +326,8 @@ export function EscapeMeGame({ template, experience, mode }: Props) {
 
   function onCellClick(r: number, c: number) {
     if (phase !== "playing" || isAnimating) return;
+    if (frustrationHint) setFrustrationHint(false);
+    if (frustrationTimerRef.current) { clearTimeout(frustrationTimerRef.current); frustrationTimerRef.current = null; }
     const piece = puzzle.find(p => p.r === r && p.c === c && p.active);
     if (!piece) return;
 
@@ -454,7 +466,7 @@ export function EscapeMeGame({ template, experience, mode }: Props) {
                       : shakeId === piece.id ? "translateX(0)" : hintId === piece.id ? "scale(1)" : "none",
                     opacity: removingId === piece.id ? 0 : 1,
                     transition: removingId === piece.id ? "transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.45s ease" : "none",
-                    boxShadow: hintId === piece.id ? "inset 0 0 20px rgba(100,200,255,0.5), 0 0 15px rgba(100,200,255,0.25)" : shakeId === piece.id ? "inset 0 0 20px rgba(255,50,50,0.4)" : "none",
+                    boxShadow: frustrationHint && piece.r === 1 && piece.c === 1 ? "0 0 20px rgba(100,200,255,0.6), inset 0 0 15px rgba(100,200,255,0.3)" : hintId === piece.id ? "inset 0 0 20px rgba(100,200,255,0.5), 0 0 15px rgba(100,200,255,0.25)" : shakeId === piece.id ? "inset 0 0 20px rgba(255,50,50,0.4)" : "none",
                     borderRadius: 4,
                   }}
                 >

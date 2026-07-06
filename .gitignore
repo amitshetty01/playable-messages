@@ -15,3 +15,6 @@ pnpm-debug.log*
 *.backup
 
 /new project
+
+.env*
+supabase/.temp/

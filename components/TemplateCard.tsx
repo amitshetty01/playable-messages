@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { categories, getTemplateSeoSlug } from "@/lib/data";
 import type { Template } from "@/lib/types";

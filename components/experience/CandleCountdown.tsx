@@ -359,7 +359,14 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
               {candles.filter(Boolean).length > 0 ? (
                 <div className="flex flex-wrap justify-center gap-2">
                   {revealedWords.filter(Boolean).map((w, i) => (
-                    <span key={i} className="animate-[section-in_300ms_cubic-bezier(.22,1,.36,1)_both] rounded-full bg-white/10 px-3 py-1 text-sm font-bold text-white/90">{w}</span>
+                    <span key={i} className="animate-icing-squish rounded-full px-3 py-1 text-sm font-extrabold" style={{
+                      color: "#f5e6c8",
+                      WebkitTextStroke: "1px #d4a373",
+                      textShadow: "0 2px 0px #c68642",
+                      fontFamily: "'Georgia', serif",
+                      background: "rgba(255,255,255,0.06)",
+                      letterSpacing: "0.02em",
+                    }}>{w}</span>
                   ))}
                   {revealedWords.filter(Boolean).length < candleCount ? <span className="inline-block h-5 w-2 animate-pulse rounded-full bg-amber-400/60" /> : null}
                 </div>
