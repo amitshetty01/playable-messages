@@ -135,27 +135,28 @@ export function Header() {
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 sm:hidden">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setMenuOpen(false)} />
-          <div data-theme="dark" className="absolute bottom-0 left-0 right-0 flex flex-col gap-1 rounded-t-2xl border-t border-white/10 bg-[#1a1527] px-5 pb-10 pt-6 shadow-2xl">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setMenuOpen(false)} />
+          <div data-theme="dark" className="absolute bottom-0 left-0 right-0 flex flex-col gap-1 rounded-t-[1.75rem] border-t border-white/10 bg-[#1a1527]/95 px-5 pb-10 pt-6 shadow-2xl backdrop-blur-xl" style={{ animation: "reveal-up 400ms cubic-bezier(0.22, 1, 0.36, 1) both" }}>
             <div className="mb-4 flex items-center justify-between">
               <span className="text-[0.65rem] font-bold uppercase tracking-[0.15em] text-white/40">Menu</span>
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
                 onContextMenu={(e) => e.preventDefault()}
-                className="grid h-6 w-6 place-items-center rounded-full border border-white/15 bg-white/5 text-white/50 select-none"
+                className="grid h-7 w-7 place-items-center rounded-full border border-white/15 bg-white/5 text-white/50 transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-90 select-none"
               >
-                <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            {links.map((l) => (
+            {links.map((l, i) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setMenuOpen(false)}
-                className="rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white hover:translate-x-1 active:scale-[0.98]"
+                style={{ animation: `reveal-up 400ms ${i * 50}ms cubic-bezier(0.22, 1, 0.36, 1) both` }}
               >
               {l.label ?? t(l.labelKey!)}
               </Link>
@@ -169,7 +170,7 @@ export function Header() {
                     key={l.code}
                     type="button"
                     onClick={() => setLang(l.code)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                    className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
                       lang === l.code ? "bg-white/15 text-white" : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70"
                     }`}
                   >
@@ -183,7 +184,7 @@ export function Header() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-colors hover:bg-white/10"
+                className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-[0.98]"
               >
                 {theme === "dark" ? "☀️" : "🌙"} {theme === "dark" ? t("nav.theme.light") : t("nav.theme.dark")} mode
               </button>
@@ -191,7 +192,7 @@ export function Header() {
             <Link
               href="/create"
               onClick={() => setMenuOpen(false)}
-              className="mt-3 rounded-full bg-white py-3 text-center text-sm font-bold text-ink transition-colors hover:bg-white/90"
+              className="mt-3 rounded-full bg-white py-3 text-center text-sm font-bold text-ink shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
             >
               {t("nav.create")}
             </Link>

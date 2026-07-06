@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { getSceneFlow, buildSceneContext } from "@/lib/scene-registry";
 import { SceneErrorBoundary } from "@/components/SceneErrorBoundary";
@@ -112,8 +112,8 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
   useEffect(() => {
     if (experience.scheduledAt && mode === "generated") {
       const scheduledTime = new Date(experience.scheduledAt).getTime();
-      const now = Date.now();
-      if (scheduledTime > now) {
+      if (scheduledTime > Date.now()) {
+        setLoading(false);
         return;
       }
     }
@@ -123,14 +123,14 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
 
   const sceneFlow = getSceneFlow(template.id, experience);
 
-  const handleComplete = useCallback(() => {
+  function handleComplete() {
     setEnded(true);
     setShowReaction(true);
-  }, []);
+  }
 
-  const handleTrack = useCallback((action: string) => {
+  function handleTrack(action: string) {
     void track(experience.id, "selected_mood_choice", template.id, action);
-  }, [experience.id, template.id]);
+  }
 
   if (loading && mode === "generated") {
     return (
@@ -196,7 +196,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
     </SceneErrorBoundary>
   ) : FLOWS[template.id] ? (
     <SceneErrorBoundary>
-      {(template.id === "kitty-apology" || template.id === "escape-me" || mode === "demo") ? (
+      {(template.fullscreen === false || mode === "demo") ? (
         FLOWS[template.id]({ template, experience, mode, shareUrl })
       ) : (
         <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
@@ -205,15 +205,15 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
       )}
     </SceneErrorBoundary>
   ) : (
-    <SceneErrorBoundary>
-      {mode === "demo" ? (
-        <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
-      ) : (
-        <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
-          <StaticFrequencyGame template={template} experience={experience} mode={mode} shareUrl={shareUrl} />
-        </FullscreenExperience>
-      )}
-    </SceneErrorBoundary>
+    <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center px-4">
+      <div className="glass rounded-[2rem] p-8 sm:p-12 max-w-md">
+        <p className="text-5xl mb-4">🔮</p>
+        <h1 className="text-2xl font-bold text-white">This experience format is no longer supported</h1>
+        <p className="mt-3 text-white/60">
+          The template used to create this message has been removed or updated.
+        </p>
+      </div>
+    </div>
   );
 
   return (

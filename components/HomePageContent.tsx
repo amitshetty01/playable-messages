@@ -392,10 +392,10 @@ export function HomePageContent() {
               <Link
                 key={o.label}
                 href={`/mood/${o.slug}`}
-                className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-0.5"
+                className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(184,165,255,0.15)] active:scale-95"
               >
-                <span className="text-xl transition-transform duration-300 group-hover:scale-125" aria-hidden="true">{o.icon}</span>
-                <span className="text-[10px] font-extrabold text-white/70 transition-colors group-hover:text-white text-center leading-tight">{o.label}</span>
+                <span className="text-xl transition-transform duration-300 ease-out group-hover:scale-125 group-active:scale-110" aria-hidden="true">{o.icon}</span>
+                <span className="text-[10px] font-extrabold text-white/70 transition-colors duration-200 group-hover:text-white text-center leading-tight">{o.label}</span>
               </Link>
             ))}
           </div>
@@ -471,8 +471,8 @@ export function HomePageContent() {
               { emoji: "🎨", title: "50+ templates", desc: "Choose from love, apology, birthday, funny, memory, and mystery experiences." },
               { emoji: "🔒", title: "Private by default", desc: "Each link is unique and unguessable. You control who sees it." },
             ].map((item) => (
-              <div key={item.title} className="glass rounded-[1.6rem] p-5">
-                <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
+              <div key={item.title} className="glass lift rounded-[1.6rem] p-5 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(184,165,255,0.12)]">
+                <span className="text-2xl transition-transform duration-300 hover:scale-110" aria-hidden="true">{item.emoji}</span>
                 <h3 className="mt-3 text-lg font-extrabold text-white">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-white/60">{item.desc}</p>
               </div>
@@ -579,38 +579,38 @@ export function HomePageContent() {
         <section className="mx-auto mt-24 sm:mt-32 max-w-3xl px-4">
           <SectionHeader eyebrow="Questions" lead="Everything you need to know before creating your first message." />
           <div className="mt-10 space-y-4">
-            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/15">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80 transition-colors group-hover:text-white">
                 <span>What can I create?</span>
-                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-300 ease-out group-open:rotate-45 group-open:text-blush">+</span>
               </summary>
               <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Love confessions, birthday surprises, apology messages, anniversary notes, proposal questions, good morning texts, good night wishes, friendship appreciation, funny roasts, farewell messages, and more. Each one is interactive and shareable as a link.</p>
             </details>
-            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/15">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80 transition-colors group-hover:text-white">
                 <span>Does the recipient need to sign up?</span>
-                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-300 ease-out group-open:rotate-45 group-open:text-blush">+</span>
               </summary>
               <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">No. They just tap the link and the experience opens in their browser. No account, no app, no download.</p>
             </details>
-            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/15">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80 transition-colors group-hover:text-white">
                 <span>Can I send it on WhatsApp?</span>
-                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-300 ease-out group-open:rotate-45 group-open:text-blush">+</span>
               </summary>
               <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Copy your unique link and paste it into any WhatsApp chat. The recipient taps it and the experience opens instantly.</p>
             </details>
-            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/15">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80 transition-colors group-hover:text-white">
                 <span>Is it really free?</span>
-                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-300 ease-out group-open:rotate-45 group-open:text-blush">+</span>
               </summary>
               <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every template, every generator, every AI tool is completely free. No hidden charges or subscriptions.</p>
             </details>
-            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.06]">
-              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80">
+            <details className="group rounded-xl border border-white/10 bg-white/[0.04] p-4 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/15">
+              <summary className="flex cursor-pointer items-center justify-between font-bold text-white/80 transition-colors group-hover:text-white">
                 <span>Can I edit after sharing?</span>
-                <span className="shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-45">+</span>
+                <span className="shrink-0 text-white/45 transition-transform duration-300 ease-out group-open:rotate-45 group-open:text-blush">+</span>
               </summary>
               <p className="mt-3 border-t border-white/10 pt-3 text-sm leading-6 text-white/60">Yes. Every created message includes an edit link. You can update the text, change the template, or customize it even after the recipient has seen it.</p>
             </details>

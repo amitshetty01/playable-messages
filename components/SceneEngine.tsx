@@ -22,8 +22,6 @@ type Props = {
   mode: "demo" | "generated" | "preview";
 };
 
-let currentTone: Tone = "Emotional";
-
 const REACTION_EMOJIS = ["💖", "✨", "🔥", "💫", "🎉", "💗", "⭐", "🌸"];
 
 function EggBanner({ message }: { message: string | null }) {
@@ -96,7 +94,7 @@ const DODGE_POSITIONS = [
   { left: "85%", top: "8%" },
 ];
 
-function ChaseTitle({ text, attempts, onCaught }: { text: string; attempts: number; onCaught: () => void }) {
+function ChaseTitle({ text, attempts, onCaught, tone }: { text: string; attempts: number; onCaught: () => void; tone: Tone }) {
   const [dodges, setDodges] = useState(0);
   const [pos, setPos] = useState({ left: "50%", top: "50%" });
   const [caught, setCaught] = useState(false);
@@ -107,14 +105,14 @@ function ChaseTitle({ text, attempts, onCaught }: { text: string; attempts: numb
     const next = dodges + 1;
     if (next > attempts) {
       setCaught(true);
-      playToneSound("ding", currentTone);
-      hapticTone("ding", currentTone);
+      playToneSound("ding", tone);
+      hapticTone("ding", tone);
       setFlash("caught");
       setTimeout(() => { setFlash(""); onCaught(); }, 500);
       return;
     }
-    playToneSound("tap", currentTone);
-    hapticTone("tap", currentTone);
+    playToneSound("tap", tone);
+    hapticTone("tap", tone);
     setDodges(next);
     setPos(DODGE_POSITIONS[(next - 1) % DODGE_POSITIONS.length]);
     setFlash("dodge");
@@ -352,7 +350,7 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
   );
 }
 
-function GhostType({ words, onComplete }: { words: string[]; onComplete: () => void }) {
+function GhostType({ words, onComplete, tone }: { words: string[]; onComplete: () => void; tone: Tone }) {
   const [index, setIndex] = useState(0);
   const [restored, setRestored] = useState<string[]>([]);
   const [fading, setFading] = useState(false);
@@ -370,8 +368,8 @@ function GhostType({ words, onComplete }: { words: string[]; onComplete: () => v
     if (!fading) return;
     const loseTimer = setTimeout(() => {
       setMissed(true);
-      playToneSound("tap", currentTone);
-      hapticTone("tap", currentTone);
+      playToneSound("tap", tone);
+      hapticTone("tap", tone);
       setTimeout(() => setIndex((i) => i), 600);
     }, 2000);
     return () => clearTimeout(loseTimer);
@@ -379,8 +377,8 @@ function GhostType({ words, onComplete }: { words: string[]; onComplete: () => v
 
   function handleTap() {
     if (missed) return;
-    playToneSound("tap", currentTone);
-    hapticTone("tap", currentTone);
+    playToneSound("tap", tone);
+    hapticTone("tap", tone);
     setRestored((prev) => [...prev, words[index]]);
     setIndex((i) => i + 1);
   }
@@ -412,7 +410,7 @@ function GhostType({ words, onComplete }: { words: string[]; onComplete: () => v
 
 const SMASH_EMOJIS = ["😏", "😜", "😂", "😈", "🤭", "😋", "😅", "😘"];
 
-function SmashEmoji({ count = 5, onComplete }: { count?: number; onComplete: () => void }) {
+function SmashEmoji({ count = 5, onComplete, tone }: { count?: number; onComplete: () => void; tone: Tone }) {
   const [smashed, setSmashed] = useState(0);
   const [emoji, setEmoji] = useState({ emoji: "😏", left: "50%", top: "50%" });
   const [burst, setBurst] = useState(false);
@@ -427,8 +425,8 @@ function SmashEmoji({ count = 5, onComplete }: { count?: number; onComplete: () 
   }
 
   function handleSmash() {
-    playToneSound("tap", currentTone);
-    hapticTone("tap", currentTone);
+    playToneSound("tap", tone);
+    hapticTone("tap", tone);
     setBurst(true);
     const next = smashed + 1;
     if (next >= count) {
@@ -464,7 +462,7 @@ function SmashEmoji({ count = 5, onComplete }: { count?: number; onComplete: () 
   );
 }
 
-function FlipCoin({ flips = 3, onComplete }: { flips?: number; onComplete: () => void }) {
+function FlipCoin({ flips = 3, onComplete, tone }: { flips?: number; onComplete: () => void; tone: Tone }) {
   const [flipCount, setFlipCount] = useState(0);
   const [flipping, setFlipping] = useState(false);
   const [side, setSide] = useState(0);
@@ -472,8 +470,8 @@ function FlipCoin({ flips = 3, onComplete }: { flips?: number; onComplete: () =>
   function handleFlip() {
     if (flipping) return;
     setFlipping(true);
-    playToneSound("tap", currentTone);
-    hapticTone("tap", currentTone);
+    playToneSound("tap", tone);
+    hapticTone("tap", tone);
     setTimeout(() => {
       const next = flipCount + 1;
       setFlipCount(next);
@@ -499,13 +497,13 @@ function FlipCoin({ flips = 3, onComplete }: { flips?: number; onComplete: () =>
   );
 }
 
-function Candles({ count = 5, onComplete }: { count?: number; onComplete: () => void }) {
+function Candles({ count = 5, onComplete, tone }: { count?: number; onComplete: () => void; tone: Tone }) {
   const [lit, setLit] = useState<boolean[]>(Array(count).fill(true));
 
   function blow(i: number) {
     if (!lit[i]) return;
-    playToneSound("whoosh", currentTone);
-    hapticTone("whoosh", currentTone);
+    playToneSound("whoosh", tone);
+    hapticTone("whoosh", tone);
     const next = [...lit];
     next[i] = false;
     setLit(next);
@@ -530,7 +528,7 @@ function Candles({ count = 5, onComplete }: { count?: number; onComplete: () => 
   );
 }
 
-function ScratchReveal({ text, onComplete }: { text: string; onComplete: () => void }) {
+function ScratchReveal({ text, onComplete, tone }: { text: string; onComplete: () => void; tone: Tone }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [revealed, setRevealed] = useState(false);
   const isDrawing = useRef(false);
@@ -570,7 +568,7 @@ function ScratchReveal({ text, onComplete }: { text: string; onComplete: () => v
     }
     if (cleared / total > 0.4) {
       setRevealed(true);
-      hapticTone("ding", currentTone);
+      hapticTone("ding", tone);
       setTimeout(onComplete, 400);
     }
   }
@@ -652,14 +650,14 @@ function ScratchReveal({ text, onComplete }: { text: string; onComplete: () => v
   );
 }
 
-function WaxSeal({ cracks = 3, onComplete }: { cracks?: number; onComplete: () => void }) {
+function WaxSeal({ cracks = 3, onComplete, tone }: { cracks?: number; onComplete: () => void; tone: Tone }) {
   const [cracked, setCracked] = useState(0);
 
   function handleCrack() {
     const next = cracked + 1;
     setCracked(next);
-    playToneSound("tap", currentTone);
-    hapticTone("tap", currentTone);
+    playToneSound("tap", tone);
+    hapticTone("tap", tone);
     if (next >= cracks) setTimeout(onComplete, 400);
   }
 
@@ -680,7 +678,7 @@ function WaxSeal({ cracks = 3, onComplete }: { cracks?: number; onComplete: () =
   );
 }
 
-function DragBox({ onComplete }: { onComplete: () => void }) {
+function DragBox({ onComplete, tone }: { onComplete: () => void; tone: Tone }) {
   const [progress, setProgress] = useState(0);
   const dragRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
@@ -694,7 +692,7 @@ function DragBox({ onComplete }: { onComplete: () => void }) {
     const delta = x - startXRef.current;
     const pct = Math.min(100, Math.max(0, (delta / 150) * 100));
     setProgress(pct);
-    if (pct >= 100) { onComplete(); hapticTone("ding", currentTone); }
+    if (pct >= 100) { onComplete(); hapticTone("ding", tone); }
   }
 
   return (
@@ -770,7 +768,7 @@ function RippleButton({ interaction, onClick }: { interaction: NonNullable<Scene
   );
 }
 
-function MultiTapButton({ interaction, onComplete }: { interaction: NonNullable<SceneStep["interaction"]>; onComplete: () => void }) {
+function MultiTapButton({ interaction, onComplete, tone }: { interaction: NonNullable<SceneStep["interaction"]>; onComplete: () => void; tone: Tone }) {
   const [count, setCount] = useState(0);
   const [dodges, setDodges] = useState(0);
   const [chasePos, setChasePos] = useState({ left: 50, top: 50 });
@@ -793,12 +791,12 @@ function MultiTapButton({ interaction, onComplete }: { interaction: NonNullable<
       setFlash("dodge");
       if (isChase) setChasePos(chasePositions[nextDodge % chasePositions.length]);
       setTimeout(() => setFlash(""), 300);
-      playToneSound("tap", currentTone);
-      hapticTone("tap", currentTone);
+      playToneSound("tap", tone);
+      hapticTone("tap", tone);
       return;
     }
-    playToneSound("tap", currentTone);
-    hapticTone("tap", currentTone);
+    playToneSound("tap", tone);
+    hapticTone("tap", tone);
     setFlash("hit");
     setTimeout(() => setFlash(""), 200);
     const next = count + 1;
@@ -874,14 +872,14 @@ function MultiTapButton({ interaction, onComplete }: { interaction: NonNullable<
   );
 }
 
-function ChoiceButtons({ choices, onChoose }: { choices: NonNullable<NonNullable<SceneStep["interaction"]>["choices"]>; onChoose: (id: string) => void }) {
+function ChoiceButtons({ choices, onChoose, tone }: { choices: NonNullable<NonNullable<SceneStep["interaction"]>["choices"]>; onChoose: (id: string) => void; tone: Tone }) {
   return (
     <div className="flex flex-wrap justify-center gap-3">
       {choices.map((choice) => (
         <button
           key={choice.id}
           type="button"
-          onClick={() => { playToneSound("tap", currentTone); hapticTone("tap", currentTone); onChoose(choice.id); }}
+          onClick={() => { playToneSound("tap", tone); hapticTone("tap", tone); onChoose(choice.id); }}
           className="group relative min-h-[56px] rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-bold text-white/90 backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:scale-105 active:scale-95"
         >
           {choice.emoji && <span className="mr-2 inline-block">{choice.emoji}</span>}
@@ -955,7 +953,6 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
   const [showCTA, setShowCTA] = useState(false);
 
   const { customMessages, finalMessage, onComplete, onTrack, tone } = context;
-  currentTone = tone;
 
   useEffect(() => {
     const attemptPlay = () => {
@@ -1179,6 +1176,7 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
                 text={current.content.title}
                 attempts={current.dodge.attempts}
                 onCaught={advance}
+                tone={tone}
               />
             ) : (
               <div className="flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-2 sm:gap-3">
@@ -1192,23 +1190,23 @@ export function SceneEngine({ flow, context, theme, mode }: Props) {
                     {current.interaction.type === "love-chase" ? (
                       <LoveChaseInteraction label={current.interaction.label || "You love me 💖"} onTruth={advance} />
                     ) : current.interaction.type === "multi-tap" ? (
-                      <MultiTapButton interaction={current.interaction} onComplete={advance} />
+                      <MultiTapButton interaction={current.interaction} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "choices" && current.interaction.choices ? (
-                      <ChoiceButtons choices={current.interaction.choices} onChoose={handleChoice} />
+                      <ChoiceButtons choices={current.interaction.choices} onChoose={handleChoice} tone={tone} />
                     ) : current.interaction.type === "ghost-type" && current.interaction.words ? (
-                      <GhostType words={current.interaction.words} onComplete={advance} />
+                      <GhostType words={current.interaction.words} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "smash-emoji" ? (
-                      <SmashEmoji count={current.interaction.count || 5} onComplete={advance} />
+                      <SmashEmoji count={current.interaction.count || 5} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "flip-coin" ? (
-                      <FlipCoin flips={current.interaction.count || 3} onComplete={advance} />
+                      <FlipCoin flips={current.interaction.count || 3} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "candles" ? (
-                      <Candles count={current.interaction.count || 5} onComplete={advance} />
+                      <Candles count={current.interaction.count || 5} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "scratch-reveal" ? (
-                      <ScratchReveal text={current.interaction.label || "Your message here"} onComplete={advance} />
+                      <ScratchReveal text={current.interaction.label || "Your message here"} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "wax-seal" ? (
-                      <WaxSeal cracks={current.interaction.count || 3} onComplete={advance} />
+                      <WaxSeal cracks={current.interaction.count || 3} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "drag-box" ? (
-                      <DragBox onComplete={advance} />
+                      <DragBox onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "tap-anywhere" ? (
                       <button
                         type="button"

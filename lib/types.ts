@@ -38,6 +38,7 @@ export type Template = {
   status: "full" | "placeholder" | "coming-soon";
   formula: string[];
   description: string;
+  fullscreen?: boolean;
 };
 
 export type RelationshipTag = "partner" | "friend" | "family" | "coworker" | "";

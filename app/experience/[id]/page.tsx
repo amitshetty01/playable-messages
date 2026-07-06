@@ -5,12 +5,12 @@ import { getTemplate } from "@/lib/data";
 import { getExperience } from "@/lib/experiences";
 import { SCENE_ENGINE_TEMPLATES } from "@/lib/scene-registry";
 import { buildMetadata, siteName, defaultOgImage } from "@/lib/seo";
-import { absoluteUrl } from "@/lib/utils";
+import { absoluteUrl, truncate } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const { data } = await getExperience(id);
-  const title = data?.finalMessage ? `${data.finalMessage.slice(0, 60)}...` : "Interactive Message";
+  const title = data?.finalMessage ? truncate(data.finalMessage, 60) : "Interactive Message";
   const ogImage = data?.templateId
     ? `/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(`A ${data.templateId.replace(/-/g, " ")} interactive message created on ${siteName}`)}&type=message`
     : defaultOgImage;
@@ -57,7 +57,20 @@ export default async function ExperiencePage({ params }: { params: Promise<{ id:
     );
   }
 
-  const template = getTemplate(data.templateId) ?? getTemplate("the-final-button")!;
+  const template = getTemplate(data.templateId) ?? getTemplate("the-final-button");
+
+  if (!template) {
+    return (
+      <div className="mx-auto max-w-2xl text-center">
+        <div className="glass rounded-[2rem] p-5 sm:p-8">
+          <p className="text-xs font-bold tracking-[0.08em] text-rose-100">Template unavailable</p>
+          <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-5xl">The template for this experience is no longer available.</h1>
+          <p className="mt-5 text-white/70">This experience may have been created with a template that has been removed.</p>
+        </div>
+      </div>
+    );
+  }
+
   const isScene = SCENE_ENGINE_TEMPLATES.includes(data.templateId) || SCENE_ENGINE_TEMPLATES.includes(template.id);
 
   if (isScene) {

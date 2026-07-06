@@ -384,6 +384,7 @@ export const templates: Template[] = [
     tone: "Sorry",
     theme: "Cute Pink",
     status: "full",
+    fullscreen: false,
     formula: ["Kitty enters", "Cute comedy", "Letter appears", "Adorable sorry"],
     description: "A cute kitty appears, does funny little actions, then reveals an apology letter in the most adorable way possible."
   },
@@ -748,6 +749,7 @@ export const templates: Template[] = [
     tone: "Mystery",
     theme: "Dark Romantic",
     status: "full",
+    fullscreen: false,
     formula: ["Heart of arrows", "Tap to remove", "Clear the path", "Message revealed"],
     description: "A heart made of arrow pieces. Tap each arrow in the right order to clear the walls and unlock a hidden personal message inside."
   },
