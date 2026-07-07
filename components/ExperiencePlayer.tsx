@@ -9,6 +9,7 @@ import { FullscreenExperience } from "@/components/FullscreenExperience";
 import { LockGate } from "@/components/LockGate";
 import { ReactionCapture } from "@/components/ReactionCapture";
 import { ReplyScreen } from "@/components/ReplyScreen";
+import { VibeCapture } from "@/components/VibeCapture";
 import { ChainMessageFlow } from "@/components/ChainMessageFlow";
 import { TranslateBanner } from "@/components/TranslateBanner";
 import { detectBrowserLanguage, translateText } from "@/lib/translator";
@@ -356,7 +357,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
       )}
       {showReaction && reactionSent && (
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4">
-          <ReplyScreen experienceId={experience.id} />
+          <VibeCapture experienceId={experience.id} />
         </div>
       )}
     </>

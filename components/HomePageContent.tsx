@@ -11,6 +11,7 @@ import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
 import { TrendingTemplates } from "@/components/TrendingTemplates";
 import { ConfettiEffect } from "@/components/scenes/ConfettiEffect";
+import { DailyPrompt } from "@/components/DailyPrompt";
 import { getTemplate, templates } from "@/lib/data";
 import { createDemoExperience } from "@/lib/demo";
 
@@ -480,6 +481,15 @@ export function HomePageContent() {
           </motion.div>
         </div>
       </section>
+
+      {/* ════════════════════════════════════════
+          DAILY PROMPT
+          ════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="mx-auto mt-20 sm:mt-28 max-w-md px-4">
+          <DailyPrompt />
+        </section>
+      </ScrollReveal>
 
       {/* ════════════════════════════════════════
           QUICK CREATE
