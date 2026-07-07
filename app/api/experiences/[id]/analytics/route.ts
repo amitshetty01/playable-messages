@@ -15,7 +15,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const result = await trackExperienceEvent(id, {
       eventType: body.eventType,
       templateId: body.templateId?.slice(0, 80),
-      choice: body.choice?.slice(0, 80)
+      choice: body.choice?.slice(0, 80),
+      metadata: body.metadata,
+      durationMs: body.durationMs
     });
 
     if (!result.ok) {

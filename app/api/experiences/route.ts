@@ -7,6 +7,7 @@ const ALLOWED_FIELDS = [
   "showCreatorName", "tone", "theme", "customMessages", "images", "customPassword",
   "passwordQuestion", "passwordAnswer", "togetherSince", "expiresAt", "scheduledAt",
   "lockType", "lockValue", "giftSongUrl", "giftSongTitle", "isReply", "replyToId", "category",
+  "isChain", "chainTarget",
 ] as const;
 
 export async function POST(request: Request) {

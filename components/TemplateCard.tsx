@@ -1,8 +1,11 @@
 "use client";
 
+import { useState, useRef } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import Link from "next/link";
 import { categories, getTemplateSeoSlug } from "@/lib/data";
 import type { Template } from "@/lib/types";
+import { TemplatePreviewOverlay } from "./TemplatePreviewOverlay";
 
 type ThumbVisual = {
   gradient: string;
@@ -107,6 +110,33 @@ export function TemplateCard({ template }: { template: Template }) {
   const categoryNames = template.categorySlugs.map((slug) => categories.find((category) => category.slug === slug)?.name).filter(Boolean).join(", ");
   const v = thumbVisuals[template.id] || defaultVisual;
 
+  const [showPreviewOverlay, setShowPreviewOverlay] = useState(false);
+  const [cardRect, setCardRect] = useState<DOMRect | null>(null);
+  const cardRef = useRef<HTMLElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+
+  const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (isLocked) return;
+    if (cardRef.current) {
+      setCardRect(cardRef.current.getBoundingClientRect());
+      setShowPreviewOverlay(true);
+    }
+  };
+
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleCardClick(e as unknown as React.MouseEvent<HTMLElement>);
+    }
+  };
+
+  const handleCloseOverlay = () => {
+    setShowPreviewOverlay(false);
+    setCardRect(null);
+  };
+
   const patternSvgs: Record<string, string> = {
     dots: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E")`,
     grid: `url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 24 0 L 0 0 0 24' fill='none' stroke='rgba(255,255,255,0.06)' stroke-width='0.5'/%3E%3C/svg%3E")`,
@@ -116,15 +146,37 @@ export function TemplateCard({ template }: { template: Template }) {
   };
 
   return (
-    <article
-      data-glow-color={template.categorySlugs.includes("love-crush") ? "blush" : template.categorySlugs.includes("apology-fight-repair") ? "violet" : template.categorySlugs.includes("funny-roast") ? "rose" : template.categorySlugs.includes("birthday-special-days") ? "amber" : template.categorySlugs.includes("friendship-best-friend") ? "neon" : "violet"}
-      className={`card-sheen glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] ${isLocked ? "opacity-50" : ""}`}
+    <>
+      <motion.article
+        ref={cardRef}
+        role="button"
+        tabIndex={0}
+        aria-label={template.title}
+        data-glow-color={template.categorySlugs.includes("love-crush") ? "blush" : template.categorySlugs.includes("apology-fight-repair") ? "violet" : template.categorySlugs.includes("funny-roast") ? "rose" : template.categorySlugs.includes("birthday-special-days") ? "amber" : template.categorySlugs.includes("friendship-best-friend") ? "neon" : "violet"}
+        className={`card-sheen glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] cursor-pointer ${isLocked ? "opacity-50" : ""}`}
+        onClick={handleCardClick}
+        onKeyDown={handleCardKeyDown}
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => {
+          setIsHovered(false);
+          rotateX.set(0);
+          rotateY.set(0);
+        }}
+        style={{ perspective: 1000, rotateX, rotateY }}
+        whileHover={{ scale: 1.03, y: -4 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        rotateX.set(-y * 6);
+        rotateY.set(x * 6);
         e.currentTarget.style.setProperty("--mx", `${((e.clientX - rect.left) / rect.width) * 100}%`);
         e.currentTarget.style.setProperty("--my", `${((e.clientY - rect.top) / rect.height) * 100}%`);
       }}
       onMouseLeave={(e) => {
+        rotateX.set(0);
+        rotateY.set(0);
         e.currentTarget.style.setProperty("--mx", "50%");
         e.currentTarget.style.setProperty("--my", "50%");
       }}
@@ -148,11 +200,30 @@ export function TemplateCard({ template }: { template: Template }) {
         {/* Main emoji with glow */}
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-white/20 blur-xl scale-150 opacity-0 group-hover:opacity-60 transition-all duration-500" />
-          <span className="relative text-4xl drop-shadow-2xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">{v.mainIcon}</span>
+          <motion.span
+            className="relative text-4xl drop-shadow-2xl"
+            animate={isHovered ? { scale: [1, 1.25, 1], rotate: [0, 6, -3, 0] } : { scale: 1, rotate: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          >
+            {v.mainIcon}
+          </motion.span>
         </div>
 
-        {/* Hover shine overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Live Peek shimmer overlay */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/10 to-transparent"
+          initial={{ opacity: 0, x: "-100%" }}
+          animate={isHovered ? { opacity: 1, x: "100%" } : { opacity: 0, x: "-100%" }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+        />
+        {isHovered && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-blush/20 via-transparent to-transparent"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
 
         {/* Mechanic badge - micro-interactive hover hint */}
         {MECHANICS[template.id] && (
@@ -177,33 +248,38 @@ export function TemplateCard({ template }: { template: Template }) {
           {isLocked ? "Coming soon" : "Ready to play"}
         </span>
       </div>
-      <h3 className="mt-4 text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">
-        {isLocked ? (
-          <span className="text-white/50">{template.title}</span>
-        ) : (
-          <Link className="transition duration-200 hover:text-blush" href={`/templates/${getTemplateSeoSlug(template)}`}>{template.title}</Link>
-        )}
-      </h3>
+          <h3 className="mt-4 text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">
+            {isLocked ? (
+              <span className="text-white/50">{template.title}</span>
+            ) : (
+              <span className="transition duration-200 group-hover:text-blush">{template.title}</span>
+            )}
+          </h3>
       <div className="mt-3 flex flex-wrap gap-2">
         <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/50">Best for: {template.bestFor}</span>
         {template.categorySlugs.length > 0 ? <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/50">{categoryNames}</span> : null}
       </div>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        {isLocked ? (
-          <div className="flex w-full items-center justify-center py-4">
-            <span className="inline-block text-4xl animate-lock-shake select-none">🔒</span>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            {isLocked ? (
+              <div className="flex w-full items-center justify-center py-4">
+                <span className="inline-block text-4xl animate-lock-shake select-none">🔒</span>
+              </div>
+            ) : (
+              <div className="flex w-full items-center justify-center py-4 text-sm font-bold text-white/50">
+                Click to preview
+              </div>
+            )}
           </div>
-        ) : (
-          <>
-            <Link className="ghost-button flex-1 text-sm" href={template.id === "our-memories" ? "/our-memories" : `/demo/${template.id}`}>
-              <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8.688c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V8.688z" /></svg>
-              Preview
-            </Link>
-            <Link className="premium-button flex-1 text-sm" href={template.id === "our-memories" ? "/our-memories?edit=true" : `/create/${template.id}`}>Use template</Link>
-          </>
-        )}
       </div>
-      </div>
-    </article>
+      </motion.article>
+
+      {cardRect && showPreviewOverlay && (
+        <TemplatePreviewOverlay
+          template={template}
+          cardRect={cardRect}
+          onClose={handleCloseOverlay}
+        />
+      )}
+    </>
   );
 }

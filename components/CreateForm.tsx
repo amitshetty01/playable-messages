@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getVariant } from "@/lib/ab-testing";
 import { useUndoRedo } from "@/lib/useUndoRedo";
 import { DynamicFieldEditor } from "@/components/DynamicFieldEditor";
+import { DraftRecoveryModal } from "@/components/DraftRecoveryModal";
 import { ExperiencePlayer } from "@/components/ExperiencePlayer";
 import { defaultCustomMessages, defaultFinalMessage, getTemplateCategory } from "@/lib/data";
 import { saveExperience } from "@/lib/my-experiences";
@@ -10,6 +13,9 @@ import { compressImage } from "@/lib/compressImage";
 import { Spinner } from "@/components/Spinner";
 import { useAudio } from "@/lib/audio-engine";
 import { getTemplateConfig } from "@/lib/template-configs";
+import { ChainCreateForm } from "@/components/ChainCreateForm";
+import { analyzeSentiment } from "@/lib/sentiment";
+import { SentimentBadge } from "@/components/SentimentBadge";
 import type { ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
 import { RELATIONSHIP_TAGS, ANON_TONES } from "@/lib/types";
 
@@ -91,6 +97,9 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     passwordQuestion: existingExperience?.passwordQuestion ?? "Only one person has the permission to go inside.",
     passwordAnswer: existingExperience?.passwordAnswer ?? "",
     togetherSince: existingExperience?.togetherSince ?? "",
+    scheduledAt: "",
+    enableSchedule: false,
+    viewOnce: false,
   };
 
   const { state: form, setState: setForm, undo, redo, canUndo, canRedo } = useUndoRedo(initialFormState);
@@ -102,8 +111,15 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [draftToast, setDraftToast] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<Record<string, any> | null>(null);
+  const [draftChecked, setDraftChecked] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [isChain, setIsChain] = useState(false);
+  const generateButtonStyle = getVariant('create-button-style') || 'premium-button';
+  const [chainTarget, setChainTarget] = useState(3);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showStepCustomization, setShowStepCustomization] = useState(false);
   const [showAdvancedTone, setShowAdvancedTone] = useState(false);
@@ -118,6 +134,35 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   });
   const draftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalMessageDirty = useRef(false);
+  const [detectedSentiment, setDetectedSentiment] = useState<{ tone: Tone; theme: ThemeName; confidence: number } | null>(null);
+  const [showSentimentBadge, setShowSentimentBadge] = useState(false);
+  const manualToneSet = useRef(false);
+
+  // Remix: auto-fill tone, theme, and finalMessage from original experience
+  useEffect(() => {
+    if (isEdit) return;
+    const params = new URLSearchParams(window.location.search);
+    const remixId = params.get("remix");
+    if (!remixId) return;
+    fetch(`/api/experiences/${remixId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setForm((prev) => ({
+            ...prev,
+            tone: data.tone ?? prev.tone,
+            theme: data.theme ?? prev.theme,
+            finalMessage: data.finalMessage ?? prev.finalMessage,
+            creatorName: data.creatorName ?? prev.creatorName,
+            receiverName: data.receiverName ?? prev.receiverName,
+            relationshipTag: data.relationshipTag ?? prev.relationshipTag,
+            ctaMessage: data.customMessages?.ctaMessage ?? prev.ctaMessage,
+          }));
+          finalMessageDirty.current = true;
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // FP3: Auto-fill finalMessage on template/tone change (if user hasn't manually typed)
   useEffect(() => {
@@ -130,6 +175,27 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
       setForm((prev) => ({ ...prev, finalMessage: matched }));
     }
   }, [form.templateId, form.tone]);
+
+  // Feature 4: Sentiment-Driven Auto-Theming
+  useEffect(() => {
+    if (isEdit || !form.finalMessage.trim()) {
+      setShowSentimentBadge(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      const result = analyzeSentiment(form.finalMessage);
+      if (result.confidence >= 0.3 && !manualToneSet.current) {
+        setDetectedSentiment(result);
+        setShowSentimentBadge(true);
+        setForm((prev) => ({
+          ...prev,
+          tone: result.tone,
+          theme: result.theme,
+        }));
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.finalMessage, isEdit]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -167,45 +233,66 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   }, [saveDraft, isEdit]);
 
   useEffect(() => {
-    if (isEdit) return;
+    if (isEdit || draftChecked) return;
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
-      const draft = JSON.parse(raw) as Record<string, string>;
+      const draft = JSON.parse(raw) as Record<string, any>;
       if (!draft.templateId) return;
-      const restored = {
-        templateId: draft.templateId ?? initialFormState.templateId,
-        category: draft.category ?? initialFormState.category,
-        creatorName: draft.creatorName ?? initialFormState.creatorName,
-        receiverName: draft.receiverName ?? initialFormState.receiverName,
-        tone: (draft.tone ?? initialFormState.tone) as Tone,
-        theme: (draft.theme ?? initialFormState.theme) as ThemeName,
-        landingText: draft.landingText ?? initialFormState.landingText,
-        buttonText: draft.buttonText ?? initialFormState.buttonText,
-        steps: draft.steps ?? initialFormState.steps,
-        finalMessage: draft.finalMessage ?? initialFormState.finalMessage,
-        ctaMessage: draft.ctaMessage ?? initialFormState.ctaMessage,
-        sceneTitles: draft.sceneTitles ?? initialFormState.sceneTitles,
-        expiryOption: draft.expiryOption ?? initialFormState.expiryOption,
-        relationshipTag: (draft as any).relationshipTag ?? initialFormState.relationshipTag,
-        showCreatorName: (draft as any).showCreatorName ?? initialFormState.showCreatorName,
-        customPassword: (draft as any).customPassword ?? initialFormState.customPassword,
-        passwordQuestion: (draft as any).passwordQuestion ?? initialFormState.passwordQuestion,
-        passwordAnswer: (draft as any).passwordAnswer ?? initialFormState.passwordAnswer,
-        togetherSince: (draft as any).togetherSince ?? initialFormState.togetherSince,
-      };
-      setForm(restored);
-      if (Array.isArray(draft.images)) setImages(draft.images);
-      if ((draft as any).templateData) setTemplateData((draft as any).templateData);
-      setDraftToast(true);
-      setTimeout(() => setDraftToast(false), 4000);
+      setPendingDraft(draft);
+      setShowDraftModal(true);
     } catch { /* invalid draft */ }
+    setDraftChecked(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleDraftChoice(choice: "continue" | "fresh") {
+    if (choice === "fresh") {
+      clearDraft();
+      setShowDraftModal(false);
+      setPendingDraft(null);
+      return;
+    }
+    if (!pendingDraft) return;
+    const draft = pendingDraft;
+    const restored = {
+      templateId: draft.templateId ?? initialFormState.templateId,
+      category: draft.category ?? initialFormState.category,
+      creatorName: draft.creatorName ?? initialFormState.creatorName,
+      receiverName: draft.receiverName ?? initialFormState.receiverName,
+      tone: (draft.tone ?? initialFormState.tone) as Tone,
+      theme: (draft.theme ?? initialFormState.theme) as ThemeName,
+      landingText: draft.landingText ?? initialFormState.landingText,
+      buttonText: draft.buttonText ?? initialFormState.buttonText,
+      steps: draft.steps ?? initialFormState.steps,
+      finalMessage: draft.finalMessage ?? initialFormState.finalMessage,
+      ctaMessage: draft.ctaMessage ?? initialFormState.ctaMessage,
+      sceneTitles: draft.sceneTitles ?? initialFormState.sceneTitles,
+      expiryOption: draft.expiryOption ?? initialFormState.expiryOption,
+      relationshipTag: (draft as any).relationshipTag ?? initialFormState.relationshipTag,
+      showCreatorName: (draft as any).showCreatorName ?? initialFormState.showCreatorName,
+      customPassword: (draft as any).customPassword ?? initialFormState.customPassword,
+      passwordQuestion: (draft as any).passwordQuestion ?? initialFormState.passwordQuestion,
+      passwordAnswer: (draft as any).passwordAnswer ?? initialFormState.passwordAnswer,
+      togetherSince: (draft as any).togetherSince ?? initialFormState.togetherSince,
+      scheduledAt: (draft as any).scheduledAt ?? initialFormState.scheduledAt,
+      enableSchedule: (draft as any).enableSchedule ?? initialFormState.enableSchedule,
+      viewOnce: (draft as any).viewOnce ?? initialFormState.viewOnce,
+    };
+    setForm(restored);
+    if (Array.isArray(draft.images)) setImages(draft.images);
+    if ((draft as any).templateData) setTemplateData((draft as any).templateData);
+    setShowDraftModal(false);
+    setPendingDraft(null);
+    setDraftToast(true);
+    setTimeout(() => setDraftToast(false), 4000);
+  }
 
   const experience = useMemo<ExperienceRecord & { expiresAt?: string }>(() => ({
     id: isEdit ? existingExperience!.id : "preview",
     templateId: template.id,
     category: form.category,
+    isChain,
+    chainTarget: isChain ? chainTarget : 0,
     creatorName: form.creatorName,
     receiverName: form.receiverName || "You",
     relationshipTag: form.relationshipTag,
@@ -222,6 +309,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     finalMessage: form.finalMessage,
     createdAt: existingExperience?.createdAt ?? new Date().toISOString(),
     expiresAt: computeExpiresAt(form.expiryOption),
+    scheduledAt: form.enableSchedule && form.scheduledAt ? new Date(form.scheduledAt).toISOString() : undefined,
+    viewOnce: form.viewOnce,
     analytics: existingExperience?.analytics ?? {
       opened: 0,
       completed: 0,
@@ -338,6 +427,11 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             <button type="button" className="ghost-button" onClick={() => window.open(shareUrl, "_blank", "noopener,noreferrer")}>Preview it</button>
             <button type="button" className="premium-button" onClick={() => setCreatedId(null)}>Create another</button>
           </div>
+          <div className="mt-6">
+            <a className="text-sm font-bold text-blush underline underline-offset-4 transition-colors hover:text-white" href={`/my-experiences/${createdId}`}>
+              Track your message&apos;s journey &rarr;
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -359,20 +453,81 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     );
   }
 
+  const WIZARD_STEPS = [
+    { num: 1, title: "Choose Tone", icon: "🎨" },
+    { num: 2, title: "Write Message", icon: "💬" },
+    { num: 3, title: "Add Media", icon: "📸" },
+    { num: 4, title: "Preview & Share", icon: "🚀" },
+  ];
+
   return (
-    <div className="mx-auto max-w-3xl">
+    <>
+      {showDraftModal && pendingDraft && (
+        <DraftRecoveryModal
+          draft={pendingDraft}
+          onChoose={handleDraftChoice}
+        />
+      )}
+      <div className="mx-auto max-w-3xl">
       <section className="glass min-w-0 rounded-[2rem] p-5 sm:p-8">
-        <p className="text-xs font-bold tracking-[0.08em] text-white/50">Customization</p>
+        <p className="text-xs font-bold tracking-[0.08em] text-white/50">{isEdit ? "Edit Mode" : "Gamified Creation"}</p>
         <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">
           {isEdit ? "Edit your version." : "Create your own version."}
         </h1>
-        <p className="mt-4 max-w-2xl text-white/70">{isEdit ? "Update and save changes." : "Customize the words, pick a template, then generate a shareable link."}</p>
+        <p className="mt-4 max-w-2xl text-white/70">{isEdit ? "Update and save changes." : "Turn your words into a playable surprise."}</p>
 
-        <div className="mt-8 space-y-8">
+        {/* Gamified progress bar */}
+        <div className="mt-6 mb-8">
+          <div className="flex items-center justify-between">
+            {WIZARD_STEPS.map((s) => (
+              <div key={s.num} className="flex items-center gap-2">
+                <motion.button
+                  type="button"
+                  onClick={() => setWizardStep(s.num)}
+                  className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                    wizardStep >= s.num
+                      ? "bg-gradient-to-br from-blush to-violet text-white shadow-lg shadow-blush/30"
+                      : "border border-white/15 bg-white/[0.04] text-white/40"
+                  }`}
+                  animate={wizardStep >= s.num ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {wizardStep > s.num ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  ) : (
+                    s.icon
+                  )}
+                </motion.button>
+                <span className={`hidden sm:block text-xs font-bold ${wizardStep >= s.num ? "text-white" : "text-white/30"}`}>{s.title}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-blush via-violet to-neon"
+              initial={{ width: "0%" }}
+              animate={{ width: `${(wizardStep / WIZARD_STEPS.length) * 100}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={wizardStep}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -30 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+        <div className="space-y-8">
+
+        {wizardStep === 1 && (<>
           <Field label="Pick a template" full htmlFor="template-select">
             <select id="template-select" value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;
               finalMessageDirty.current = false;
+              manualToneSet.current = true;
               setForm((prev) => ({
                 ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin",
                 finalMessage: "",
@@ -380,6 +535,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
               }));
               setImages([]);
               setTemplateData({});
+              setShowSentimentBadge(false);
             }} className="input">
               {templates.filter((item) => item.status === "full").sort((a, b) => a.title.localeCompare(b.title)).map((item) => <option className="bg-ink" key={item.id} value={item.id}>{item.title}</option>)}
             </select>
@@ -387,13 +543,115 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           </Field>
 
           <div>
+            <p className="mb-2 text-xs font-bold text-white/40">Pick a Tone</p>
+            {showSentimentBadge && detectedSentiment && (
+              <div className="mb-2">
+                <SentimentBadge tone={detectedSentiment.tone} confidence={detectedSentiment.confidence} onDismiss={() => setShowSentimentBadge(false)} />
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "Romantic" as Tone, emoji: "💖", gradient: "from-pink-400 to-rose-600" },
+                { value: "Funny" as Tone, emoji: "😂", gradient: "from-yellow-400 to-orange-500" },
+                { value: "Sorry" as Tone, emoji: "🥺", gradient: "from-blue-400 to-indigo-600" },
+                { value: "Savage" as Tone, emoji: "🔥", gradient: "from-red-500 to-rose-700" },
+                { value: "Emotional" as Tone, emoji: "💗", gradient: "from-purple-400 to-pink-600" },
+                { value: "Mystery" as Tone, emoji: "🔮", gradient: "from-violet-500 to-purple-800" },
+                { value: "Birthday" as Tone, emoji: "🎂", gradient: "from-amber-400 to-yellow-600" },
+                { value: "Friendship" as Tone, emoji: "🤝", gradient: "from-teal-400 to-emerald-600" },
+              ].map((toneOpt) => (
+                <button
+                  key={toneOpt.value}
+                  type="button"
+                  onClick={() => { manualToneSet.current = true; finalMessageDirty.current = false; setShowSentimentBadge(false); setForm((prev) => ({ ...prev, tone: toneOpt.value, finalMessage: "" })); }}
+                  className={`relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${toneOpt.gradient} text-sm transition-all duration-200 ${
+                    form.tone === toneOpt.value
+                      ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                      : "opacity-60 hover:opacity-100 hover:scale-105"
+                  }`}
+                  title={toneOpt.value}
+                >
+                  {toneOpt.emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold text-white/40">Pick a Theme</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "Dark Romantic" as ThemeName, gradient: "from-[#2d1b3d] to-[#1a0a2e]" },
+                { value: "Soft Pastel" as ThemeName, gradient: "from-[#fce4ec] to-[#f3e5f5]" },
+                { value: "Minimal Black" as ThemeName, gradient: "from-[#1a1a1a] to-[#0d0d0d]" },
+                { value: "Cute Pink" as ThemeName, gradient: "from-[#ffb6c1] to-[#ff69b4]" },
+                { value: "Neon Glitch" as ThemeName, gradient: "from-[#00ffcc] to-[#ff00ff]" },
+                { value: "Cinematic Purple" as ThemeName, gradient: "from-[#4a0e4e] to-[#1a0033]" },
+                { value: "Clean White" as ThemeName, gradient: "from-[#f8f9fa] to-[#e9ecef]" },
+              ].map((themeOpt) => (
+                <button
+                  key={themeOpt.value}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, theme: themeOpt.value }))}
+                  className={`relative h-8 w-8 rounded-full bg-gradient-to-br ${themeOpt.gradient} transition-all duration-200 ${
+                    form.theme === themeOpt.value
+                      ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110"
+                      : "opacity-50 hover:opacity-100 hover:scale-105"
+                  }`}
+                  title={themeOpt.value}
+                />
+              ))}
+            </div>
+          </div>
+        </>)}
+
+        {wizardStep === 2 && (<>
+          <div>
+            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">💬 Message</p>
+            <div className="grid gap-5">
+              <Field label="What's your real message?" full>
+                <textarea value={form.finalMessage} onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }} maxLength={520} className={`input min-h-28 py-3 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
+                <div className="mt-1 flex items-center justify-between">
+                  {fieldErrors.finalMessage && <p className="text-xs font-bold text-rose-300">{fieldErrors.finalMessage}</p>}
+                  <span className="ml-auto text-xs text-white/30">{form.finalMessage.length}/520</span>
+                </div>
+              </Field>
+
+              {form.finalMessage.trim() && (
+                <div className="animate-section-fade rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                  <p className="mb-2 text-[10px] font-bold tracking-[0.08em] text-white/30">PREVIEW</p>
+                  <div className="mx-auto max-w-[280px] rounded-2xl bg-[#005c4b] p-3">
+                    <p className="text-sm leading-relaxed text-white">{form.finalMessage}</p>
+                    <p className="mt-1.5 text-right text-[10px] text-white/40">Just now</p>
+                  </div>
+                </div>
+              )}
+
+              <details className="group" open={showStepCustomization} onToggle={(e) => setShowStepCustomization((e.target as HTMLDetailsElement).open)}>
+                <summary className="cursor-pointer text-xs font-bold tracking-[0.08em] text-white/40 hover:text-white/60 transition-colors">
+                  Customize Build-up Steps ▾
+                </summary>
+                <div className="mt-3 animate-section-fade space-y-4">
+                  <Field label="Build-up steps (one per line)" full>
+                    <textarea value={form.steps} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.steps; return next; }); setForm((prev) => ({ ...prev, steps: event.target.value })); }} className={`input min-h-36 py-3 ${fieldErrors.steps ? "border-rose-400/50" : ""}`} placeholder="You mean a lot to me...&#10;I don't say it enough...&#10;So here's something special..." />
+                    {fieldErrors.steps && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.steps}</p>}
+                  </Field>
+                  <Field label="Scene titles (one per line, optional)" full>
+                    <textarea value={form.sceneTitles} onChange={(event) => setForm((prev) => ({ ...prev, sceneTitles: event.target.value }))} className="input min-h-24 py-3" placeholder="Step 1 title&#10;Step 2 title&#10;Step 3 title" />
+                  </Field>
+                </div>
+              </details>
+            </div>
+          </div>
+        </>)}
+
+        {wizardStep === 3 && (<>
+          <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">👤 People</p>
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="Your name (who's sending this?)" htmlFor="creator-name">
                 <input id="creator-name" value={form.creatorName} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.creatorName; return next; }); setForm((prev) => ({ ...prev, creatorName: event.target.value })); }} maxLength={80} className={`input ${fieldErrors.creatorName ? "border-rose-400/50" : ""}`} placeholder="Your name" />
                 {fieldErrors.creatorName && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.creatorName}</p>}
               </Field>
-              {/* FP5: Optional receiverName with smart placeholder */}
               <Field label="Their name (optional)">
                 <input value={form.receiverName} onChange={(event) => { setForm((prev) => ({ ...prev, receiverName: event.target.value })); }} maxLength={80} className="input" placeholder="e.g. Sarah (Leave blank for 'You')" />
                 <p className="mt-1 text-xs text-white/40">If blank, we&apos;ll use &ldquo;You&rdquo; in the message.</p>
@@ -422,111 +680,6 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           </div>
 
           <div>
-            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">💬 Message</p>
-            <div className="grid gap-5">
-              {/* FP3: Auto-filled finalMessage */}
-              <Field label="What's your real message?" full>
-                <textarea value={form.finalMessage} onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }} maxLength={520} className={`input min-h-28 py-3 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
-                <div className="mt-1 flex items-center justify-between">
-                  {fieldErrors.finalMessage && <p className="text-xs font-bold text-rose-300">{fieldErrors.finalMessage}</p>}
-                  <span className="ml-auto text-xs text-white/30">{form.finalMessage.length}/520</span>
-                </div>
-              </Field>
-
-              {/* FP8: WhatsApp-style live preview */}
-              {form.finalMessage.trim() && (
-                <div className="animate-section-fade rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                  <p className="mb-2 text-[10px] font-bold tracking-[0.08em] text-white/30">PREVIEW</p>
-                  <div className="mx-auto max-w-[280px] rounded-2xl bg-[#005c4b] p-3">
-                    <p className="text-sm leading-relaxed text-white">{form.finalMessage}</p>
-                    <p className="mt-1.5 text-right text-[10px] text-white/40">Just now</p>
-                  </div>
-                </div>
-              )}
-
-              {/* FP6: Collapsed steps behind accordion */}
-              <details className="group" open={showStepCustomization} onToggle={(e) => setShowStepCustomization((e.target as HTMLDetailsElement).open)}>
-                <summary className="cursor-pointer text-xs font-bold tracking-[0.08em] text-white/40 hover:text-white/60 transition-colors">
-                  Customize Steps ▾
-                </summary>
-                <div className="mt-3 animate-section-fade space-y-4">
-                  <Field label="Build-up steps (one per line)" full>
-                    <textarea value={form.steps} onChange={(event) => { setFieldErrors((prev) => { const next = { ...prev }; delete next.steps; return next; }); setForm((prev) => ({ ...prev, steps: event.target.value })); }} className={`input min-h-36 py-3 ${fieldErrors.steps ? "border-rose-400/50" : ""}`} placeholder="You mean a lot to me...&#10;I don't say it enough...&#10;So here's something special..." />
-                    {fieldErrors.steps && <p className="mt-1 text-xs font-bold text-rose-300">{fieldErrors.steps}</p>}
-                  </Field>
-                  <Field label="Scene titles (one per line, optional)" full>
-                    <textarea value={form.sceneTitles} onChange={(event) => setForm((prev) => ({ ...prev, sceneTitles: event.target.value }))} className="input min-h-24 py-3" placeholder="Step 1 title&#10;Step 2 title&#10;Step 3 title" />
-                  </Field>
-                </div>
-              </details>
-            </div>
-          </div>
-
-          {/* FP4: Infer tone/theme from template, hide behind accordion */}
-          <details className="group" open={showAdvancedTone} onToggle={(e) => setShowAdvancedTone((e.target as HTMLDetailsElement).open)}>
-            <summary className="cursor-pointer text-xs font-bold tracking-[0.08em] text-white/40 hover:text-white/60 transition-colors">
-              Advanced Options ▾
-            </summary>
-            <div className="mt-3 animate-section-fade space-y-5">
-              <div>
-                <p className="mb-2 text-xs font-bold text-white/40">Tone</p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "Romantic" as Tone, emoji: "💖", gradient: "from-pink-400 to-rose-600" },
-                    { value: "Funny" as Tone, emoji: "😂", gradient: "from-yellow-400 to-orange-500" },
-                    { value: "Sorry" as Tone, emoji: "🥺", gradient: "from-blue-400 to-indigo-600" },
-                    { value: "Savage" as Tone, emoji: "🔥", gradient: "from-red-500 to-rose-700" },
-                    { value: "Emotional" as Tone, emoji: "💗", gradient: "from-purple-400 to-pink-600" },
-                    { value: "Mystery" as Tone, emoji: "🔮", gradient: "from-violet-500 to-purple-800" },
-                    { value: "Birthday" as Tone, emoji: "🎂", gradient: "from-amber-400 to-yellow-600" },
-                    { value: "Friendship" as Tone, emoji: "🤝", gradient: "from-teal-400 to-emerald-600" },
-                  ].map((toneOpt) => (
-                    <button
-                      key={toneOpt.value}
-                      type="button"
-                      onClick={() => { finalMessageDirty.current = false; setForm((prev) => ({ ...prev, tone: toneOpt.value, finalMessage: "" })); }}
-                      className={`relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${toneOpt.gradient} text-sm transition-all duration-200 ${
-                        form.tone === toneOpt.value
-                          ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-                          : "opacity-60 hover:opacity-100 hover:scale-105"
-                      }`}
-                      title={toneOpt.value}
-                    >
-                      {toneOpt.emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-2 text-xs font-bold text-white/40">Theme</p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "Dark Romantic" as ThemeName, gradient: "from-[#2d1b3d] to-[#1a0a2e]" },
-                    { value: "Soft Pastel" as ThemeName, gradient: "from-[#fce4ec] to-[#f3e5f5]" },
-                    { value: "Minimal Black" as ThemeName, gradient: "from-[#1a1a1a] to-[#0d0d0d]" },
-                    { value: "Cute Pink" as ThemeName, gradient: "from-[#ffb6c1] to-[#ff69b4]" },
-                    { value: "Neon Glitch" as ThemeName, gradient: "from-[#00ffcc] to-[#ff00ff]" },
-                    { value: "Cinematic Purple" as ThemeName, gradient: "from-[#4a0e4e] to-[#1a0033]" },
-                    { value: "Clean White" as ThemeName, gradient: "from-[#f8f9fa] to-[#e9ecef]" },
-                  ].map((themeOpt) => (
-                    <button
-                      key={themeOpt.value}
-                      type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, theme: themeOpt.value }))}
-                      className={`relative h-8 w-8 rounded-full bg-gradient-to-br ${themeOpt.gradient} transition-all duration-200 ${
-                        form.theme === themeOpt.value
-                          ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110"
-                          : "opacity-50 hover:opacity-100 hover:scale-105"
-                      }`}
-                      title={themeOpt.value}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <div>
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">🔘 Buttons &amp; Labels</p>
             <div className="grid gap-5 md:grid-cols-3">
               <Field label="Hook / landing text">
@@ -540,43 +693,134 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
               </Field>
             </div>
           </div>
-        </div>
 
-        {templateConfig.editableFields.length > 0 && (
-          <div className="mt-8">
-            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">✨ Template Settings</p>
-            <DynamicFieldEditor
-              fields={templateConfig.editableFields}
-              values={templateData}
-              onChange={handleTemplateFieldChange}
-              errors={fieldErrors}
-            />
+          {templateConfig.editableFields.length > 0 && (
+            <div className="mt-8">
+              <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">✨ Template Settings</p>
+              <DynamicFieldEditor
+                fields={templateConfig.editableFields}
+                values={templateData}
+                onChange={handleTemplateFieldChange}
+                errors={fieldErrors}
+              />
+            </div>
+          )}
+
+          <div className="mt-6">
+            <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">🔗 Link settings</p>
+            <div className="grid gap-5 md:grid-cols-2">
+              <Field label="Link expiry">
+                <select value={form.expiryOption} onChange={(event) => setForm((prev) => ({ ...prev, expiryOption: event.target.value }))} className="input">
+                  {EXPIRY_OPTIONS.map((opt) => <option className="bg-ink" key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </Field>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setForm((prev) => ({ ...prev, viewOnce: !prev.viewOnce }))}
+                  className={`h-5 w-9 rounded-full transition-colors ${form.viewOnce ? "bg-neon" : "bg-white/20"}`}>
+                  <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${form.viewOnce ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+                </button>
+                <span className="text-sm font-bold text-white/80">View-once message</span>
+              </div>
+              {form.viewOnce && (
+                <p className="text-xs text-amber-300/80">The message will self-destruct after the recipient reads it.</p>
+              )}
+            </div>
           </div>
+
+          <div className="mt-6">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={() => setIsChain((prev) => !prev)}
+                className={`h-5 w-9 rounded-full transition-colors ${isChain ? "bg-blush" : "bg-white/20"}`}>
+                <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${isChain ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+              </button>
+              <span className="text-sm font-bold text-white/80">Make it a group message?</span>
+            </div>
+            {isChain && (
+              <div className="mt-4">
+                <ChainCreateForm chainTarget={chainTarget} onChange={setChainTarget} />
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={() => setForm((prev) => ({ ...prev, enableSchedule: !prev.enableSchedule, scheduledAt: !prev.enableSchedule ? "" : prev.scheduledAt }))}
+                className={`h-5 w-9 rounded-full transition-colors ${form.enableSchedule ? "bg-neon" : "bg-white/20"}`}>
+                <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${form.enableSchedule ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+              </button>
+              <span className="text-sm font-bold text-white/80">Schedule for later</span>
+            </div>
+            {form.enableSchedule && (
+              <div className="mt-4">
+                <Field label="Unlock date & time" full>
+                  <input
+                    type="datetime-local"
+                    value={form.scheduledAt}
+                    onChange={(e) => setForm((prev) => ({ ...prev, scheduledAt: e.target.value }))}
+                    className="input"
+                    min={new Date().toISOString().slice(0, 16)}
+                  />
+                  <p className="mt-1 text-xs text-white/40">The message will stay locked until this date and time.</p>
+                </Field>
+              </div>
+            )}
+          </div>
+        </>)}
+
+        {wizardStep === 4 && (<>
+          <div className="text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blush/20 to-violet/20 text-3xl">
+              🚀
+            </div>
+            <h2 className="text-2xl font-bold text-white">Ready to launch!</h2>
+            <p className="mt-2 text-white/60">Review your message, then share the link.</p>
+
+            {form.finalMessage.trim() && (
+              <div className="mx-auto mt-6 max-w-[280px] rounded-2xl bg-[#005c4b] p-4">
+                <p className="text-sm leading-relaxed text-white">{form.finalMessage}</p>
+                <p className="mt-1.5 text-right text-[10px] text-white/40">Just now</p>
+              </div>
+            )}
+
+            {error ? <p className="mt-5 rounded-2xl border border-rose-200/30 bg-rose-300/10 p-4 text-sm font-bold text-rose-100" role="alert">{error}</p> : null}
+
+            {draftToast ? <p className="mt-4 animate-section-fade rounded-2xl border border-emerald-200/30 bg-emerald-300/10 p-4 text-sm font-bold text-emerald-100" role="status">Draft restored — your unsaved work is back.</p> : null}
+
+            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <button className="ghost-button" type="button" onClick={() => setShowPreview(true)}>Preview</button>
+              <button className={generateButtonStyle} type="button" disabled={isSubmitting} onClick={submit}>
+                {isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> Saving...</span> : "Generate link 🎉"}
+              </button>
+            </div>
+          </div>
+        </>)}
+      </div>
+      </motion.div>
+      </AnimatePresence>
+
+      {/* Wizard navigation */}
+      <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-6">
+        <button
+          type="button"
+          onClick={() => setWizardStep((s) => Math.max(1, s - 1))}
+          disabled={wizardStep === 1}
+          className="ghost-button"
+        >
+          ← Back
+        </button>
+        {wizardStep < WIZARD_STEPS.length && (
+          <button
+            type="button"
+            onClick={() => setWizardStep((s) => Math.min(WIZARD_STEPS.length, s + 1))}
+            className="premium-button"
+          >
+            Continue →
+          </button>
         )}
-
-        <div className="mt-6">
-          <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">🔗 Link settings</p>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field label="Link expiry">
-              <select value={form.expiryOption} onChange={(event) => setForm((prev) => ({ ...prev, expiryOption: event.target.value }))} className="input">
-                {EXPIRY_OPTIONS.map((opt) => <option className="bg-ink" key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </Field>
-          </div>
-        </div>
-
-        {error ? <p className="mt-5 rounded-2xl border border-rose-200/30 bg-rose-300/10 p-4 text-sm font-bold text-rose-100" role="alert">{error}</p> : null}
-
-        {draftToast ? <p className="mt-4 animate-section-fade rounded-2xl border border-emerald-200/30 bg-emerald-300/10 p-4 text-sm font-bold text-emerald-100" role="status">Draft restored — your unsaved work is back.</p> : null}
-
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <button className="ghost-button" type="button" onClick={() => setShowPreview(true)}>Preview</button>
-          <button className="ghost-button" type="button" onClick={undo} disabled={!canUndo} aria-label="Undo">↩ Undo</button>
-          <button className="ghost-button" type="button" onClick={redo} disabled={!canRedo} aria-label="Redo">↪ Redo</button>
-          <button className="premium-button" type="button" disabled={isSubmitting} onClick={submit}>{isSubmitting ? <span className="inline-flex items-center gap-2"><Spinner className="h-4 w-4" /> Saving...</span> : isEdit ? "Save changes" : "Generate link"}</button>
-        </div>
-      </section>
+      </div>
+    </section>
     </div>
+    </>
   );
 }
 

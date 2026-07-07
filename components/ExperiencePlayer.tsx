@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { getSceneFlow, buildSceneContext } from "@/lib/scene-registry";
 import { SceneErrorBoundary } from "@/components/SceneErrorBoundary";
 import { FullscreenExperience } from "@/components/FullscreenExperience";
 import { LockGate } from "@/components/LockGate";
 import { ReactionCapture } from "@/components/ReactionCapture";
+import { ReplyScreen } from "@/components/ReplyScreen";
+import { ChainMessageFlow } from "@/components/ChainMessageFlow";
+import { TranslateBanner } from "@/components/TranslateBanner";
+import { detectBrowserLanguage, translateText } from "@/lib/translator";
 import type { AnalyticsEventType, ExperienceRecord, Template } from "@/lib/types";
 
 function calcLateNight(): boolean {
@@ -101,11 +106,35 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "sorry-maze": () => <SorryMazePreview />,
 };
 
-export function ExperiencePlayer({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) {
+export function ExperiencePlayer({ template, experience, mode, shareUrl, isPaused, onDemoClimax }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string; isPaused?: boolean; onDemoClimax?: () => void }) {
   const [unlocked, setUnlocked] = useState(!experience.lockType);
+  const [chainComplete, setChainComplete] = useState(!experience.isChain || !!experience.chainCompleted);
   const [showReaction, setShowReaction] = useState(false);
+  const [reactionSent, setReactionSent] = useState(false);
   const [ended, setEnded] = useState(false);
   const [isLateNight] = useState(calcLateNight);
+  const stepTimers = useRef<Map<number, number>>(new Map());
+  const stepRef = useRef(0);
+
+  const [browserLang, setBrowserLang] = useState("");
+  const [showTranslateBanner, setShowTranslateBanner] = useState(false);
+  const [translatedTexts, setTranslatedTexts] = useState<Record<string, string>>({});
+  const translateShown = useRef(false);
+
+  useEffect(() => {
+    const lang = detectBrowserLanguage();
+    setBrowserLang(lang);
+    if (lang !== "en" && !translateShown.current) {
+      const cacheKey = `translation-${experience.id}-${lang}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try { setTranslatedTexts(JSON.parse(cached)); } catch { /* ignore */ }
+      } else {
+        setShowTranslateBanner(true);
+      }
+    }
+    translateShown.current = true;
+  }, [experience.id]);
 
   useEffect(() => {
     if (mode === "generated") {
@@ -114,15 +143,76 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
     }
   }, [experience.id, mode, template.id]);
 
-  const sceneFlow = getSceneFlow(template.id, experience);
+  const translatedExperience = useMemo(() => {
+    if (Object.keys(translatedTexts).length === 0) return experience;
+    return {
+      ...experience,
+      finalMessage: translatedTexts.finalMessage || experience.finalMessage,
+      customMessages: {
+        ...experience.customMessages,
+        steps: experience.customMessages?.steps?.map((s, i) => translatedTexts[`step-${i}`] || s) || experience.customMessages?.steps,
+        landingText: translatedTexts.landingText || experience.customMessages?.landingText || "",
+      },
+    };
+  }, [translatedTexts, experience]);
+
+  const sceneFlow = getSceneFlow(template.id, translatedExperience);
+
+  useEffect(() => {
+    if (!sceneFlow || mode !== "generated") return;
+    if (sceneFlow.scenes.length > 0 && stepRef.current < sceneFlow.scenes.length) {
+      stepRef.current = 0;
+      stepTimers.current.set(0, performance.now());
+      void track(experience.id, "step_started", template.id, undefined, { step: 0 });
+    }
+  }, [sceneFlow, mode, template.id]);
+
+  function handleStepProgress(step: number) {
+    if (mode !== "generated") return;
+    const prev = stepRef.current;
+    const start = stepTimers.current.get(prev);
+    if (start) {
+      const duration = Math.round(performance.now() - start);
+      void track(experience.id, "step_completed", template.id, undefined, { step: prev }, duration);
+    }
+    stepTimers.current.set(step, performance.now());
+    stepRef.current = step;
+    void track(experience.id, "step_started", template.id, undefined, { step });
+  }
 
   function handleComplete() {
+    if (mode === "generated") {
+      const start = stepTimers.current.get(stepRef.current);
+      if (start) {
+        const duration = Math.round(performance.now() - start);
+        void track(experience.id, "step_completed", template.id, undefined, { step: stepRef.current }, duration);
+      }
+      void track(experience.id, "experience_completed", template.id);
+      if (experience.viewOnce) {
+        fetch(`/api/experiences/${experience.id}/view-once`, { method: "POST" }).catch(() => {});
+      }
+    }
     setEnded(true);
     setShowReaction(true);
   }
 
   function handleTrack(action: string) {
     void track(experience.id, "selected_mood_choice", template.id, action);
+    if (mode === "generated") {
+      void track(experience.id, "game_interaction", template.id, undefined, { action });
+    }
+  }
+
+  async function handleTranslate() {
+    setShowTranslateBanner(false);
+    const textsToTranslate: Record<string, string> = {};
+    if (experience.finalMessage) textsToTranslate["finalMessage"] = await translateText(experience.finalMessage, browserLang);
+    for (let i = 0; i < (experience.customMessages?.steps?.length || 0); i++) {
+      textsToTranslate[`step-${i}`] = await translateText(experience.customMessages.steps[i], browserLang);
+    }
+    setTranslatedTexts(textsToTranslate);
+    const cacheKey = `translation-${experience.id}-${browserLang}`;
+    try { localStorage.setItem(cacheKey, JSON.stringify(textsToTranslate)); } catch { /* ignore */ }
   }
 
   if (experience.scheduledAt && mode === "generated") {
@@ -132,6 +222,14 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
       const diff = scheduledTime - now;
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const unlockDate = new Date(experience.scheduledAt);
+      const formattedDate = !isNaN(unlockDate.getTime())
+        ? `${unlockDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} at ${unlockDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`
+        : experience.scheduledAt;
+
       return (
         <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center px-4">
           <div className="glass rounded-[2rem] p-8 sm:p-12 max-w-md">
@@ -142,12 +240,35 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
                 ? `${experience.creatorName} scheduled this message to open later.`
                 : "This message has been scheduled for a future date."}
             </p>
-            <div className="mt-6 rounded-xl bg-white/10 p-4">
-              <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-fuchsia-300">
-                {days > 0 ? `${days}d ${hours}h` : `${hours}h`}
-              </p>
-              <p className="text-xs text-white/40 mt-1">until it unlocks</p>
+            <p className="mt-2 text-sm text-white/40">Unlocks on {formattedDate}</p>
+            <div className="mt-6 grid grid-cols-4 gap-3">
+              {[
+                { value: days, label: "Days" },
+                { value: hours, label: "Hours" },
+                { value: minutes, label: "Minutes" },
+                { value: seconds, label: "Seconds" },
+              ].map((unit) => (
+                <motion.div
+                  key={unit.label}
+                  className="rounded-xl bg-white/10 p-3"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.p
+                    className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-pink-300 to-fuchsia-300"
+                    key={unit.value}
+                    initial={{ y: -10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {String(unit.value).padStart(2, "0")}
+                  </motion.p>
+                  <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider">{unit.label}</p>
+                </motion.div>
+              ))}
             </div>
+            <p className="text-xs text-white/40 mt-4">until it unlocks</p>
           </div>
         </div>
       );
@@ -167,23 +288,32 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
     );
   }
 
+  if (!chainComplete) {
+    return (
+      <ChainMessageFlow
+        experience={experience}
+        onComplete={() => setChainComplete(true)}
+      />
+    );
+  }
+
   const content = sceneFlow ? (
     <SceneErrorBoundary>
       {mode === "demo" ? (
-        <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} isLateNight={isLateNight} />
+        <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={mode} isLateNight={isLateNight} />
       ) : (
         <FullscreenExperience templateId={template.id}>
-          <SceneEngine flow={sceneFlow} context={buildSceneContext(experience, handleComplete, handleTrack)} theme={experience.theme} mode={mode} isLateNight={isLateNight} />
+          <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={mode} isLateNight={isLateNight} />
         </FullscreenExperience>
       )}
     </SceneErrorBoundary>
   ) : FLOWS[template.id] ? (
     <SceneErrorBoundary>
       {(template.fullscreen === false || mode === "demo") ? (
-        FLOWS[template.id]({ template, experience, mode, shareUrl })
+        FLOWS[template.id]({ template, experience: translatedExperience, mode, shareUrl })
       ) : (
         <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
-          {FLOWS[template.id]({ template, experience, mode, shareUrl })}
+          {FLOWS[template.id]({ template, experience: translatedExperience, mode, shareUrl })}
         </FullscreenExperience>
       )}
     </SceneErrorBoundary>
@@ -201,24 +331,43 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl }: { tem
 
   return (
     <>
+      <div className="space-y-2 px-4 pt-2">
+        <TranslateBanner
+          language={browserLang}
+          onTranslate={handleTranslate}
+          onDismiss={() => setShowTranslateBanner(false)}
+        />
+        {Object.keys(translatedTexts).length > 0 && (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            Translated
+          </div>
+        )}
+      </div>
       {content}
-      {showReaction && (
+      {showReaction && !reactionSent && (
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4">
           <ReactionCapture
             experienceId={experience.id}
+            onSent={() => setReactionSent(true)}
             onReply={() => window.open(`/create?replyTo=${experience.id}`, "_blank")}
           />
+        </div>
+      )}
+      {showReaction && reactionSent && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4">
+          <ReplyScreen experienceId={experience.id} />
         </div>
       )}
     </>
   );
 }
 
-async function track(experienceId: string, eventType: AnalyticsEventType, templateId: string, choice?: string) {
+async function track(experienceId: string, eventType: AnalyticsEventType, templateId: string, choice?: string, metadata?: Record<string, unknown>, durationMs?: number) {
   if (!experienceId || experienceId === "demo" || experienceId === "preview") return;
   await fetch(`/api/experiences/${experienceId}/analytics`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ eventType, templateId, choice })
+    body: JSON.stringify({ eventType, templateId, choice, metadata, durationMs })
   }).catch(() => undefined);
 }

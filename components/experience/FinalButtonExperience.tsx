@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { FinalScreen } from "@/components/FinalScreen";
 import { Watermark } from "@/components/Watermark";
 import { TypewriterText } from "@/components/TypewriterText";
@@ -52,7 +52,21 @@ const STATIC_PROGRESS: Record<string, number> = {
   final: 5
 };
 
-export function FinalButtonExperience({ template, experience, mode, shareUrl }: { template: Template; experience: ExperienceRecord; mode: "demo" | "generated" | "preview"; shareUrl?: string }) {
+export function FinalButtonExperience({
+  template,
+  experience,
+  mode,
+  shareUrl,
+  isPaused = false,
+  onDemoClimax,
+}: {
+  template: Template;
+  experience: ExperienceRecord;
+  mode: "demo" | "generated" | "preview";
+  shareUrl?: string;
+  isPaused?: boolean;
+  onDemoClimax?: () => void;
+}) {
   const [screen, setScreen] = useState<Screen>("landing");
   const [missingResult, setMissingResult] = useState(54);
   const messages = experience.customMessages;
@@ -61,18 +75,24 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
   const totalSteps = 5;
   const tone = experience.tone;
 
+  const autoAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fourthWallTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   function chooseMood(mood: string, next: Screen) {
+    if (isPaused) return;
     playToneSound("tap", tone);
     void track(experience.id, "selected_mood_choice", template.id, mood);
     setScreen(next);
   }
 
   function advance(s: Screen) {
+    if (isPaused) return;
     playToneSound("whoosh", tone);
     setScreen(s);
   }
 
   function complete() {
+    if (isPaused) return;
     playToneSound("ding", tone);
     void track(experience.id, "experience_completed", template.id);
     setScreen("final");
@@ -91,11 +111,34 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
   );
 
   const { message: eggMessage } = useEasterEgg(template.id);
-  useAutoAdvance({ active: mode === "demo" && screen === "landing", onAdvance: useCallback(() => advance("pressed"), []) });
+  useAutoAdvance({
+    active: mode === "demo" && screen === "landing" && !isPaused,
+    onAdvance: useCallback(() => advance("pressed"), [advance])
+  });
+
+  useEffect(() => {
+    // In demo mode, if not paused and on a screen that needs auto-advancing, trigger the climax.
+    if (mode === "demo" && !isPaused && screen === "pressed" && onDemoClimax) {
+      // This part is now handled by TypewriterText's onComplete for more precise timing
+      // No explicit timeout here for onDemoClimax
+    } else if (isPaused && autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+    }
+
+    if (!isPaused && screen === "pressed" && onDemoClimax && mode === "demo") {
+      fourthWallTimeoutRef.current = setTimeout(() => {
+        advance("mood");
+      }, 3000);
+    }
+    return () => {
+      if (autoAdvanceTimeoutRef.current) clearTimeout(autoAdvanceTimeoutRef.current);
+      if (fourthWallTimeoutRef.current) clearTimeout(fourthWallTimeoutRef.current);
+    };
+  }, [screen, mode, onDemoClimax, isPaused, advance]);
 
   return (
     <ExperienceLayout kicker={mode === "demo" ? "Demo experience" : "Playable message"} theme={experience.theme} title={template.title} titleAs={mode === "generated" ? "h1" : "h2"}>
-      {screen === "landing" ? (
+      {screen === "landing" && !isPaused ? (
         <StepTransition step={0}>
           <PlayerCard>
             <ProgressBar current={1} total={totalSteps} theme={experience.theme} />
@@ -106,7 +149,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "pressed" ? (
+      {screen === "pressed" && !isPaused ? (
         <StepTransition step={1}>
           <PlayerCard>
             <ProgressBar current={2} total={totalSteps} theme={experience.theme} />
@@ -118,7 +161,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "mood" ? (
+      {screen === "mood" && !isPaused ? (
         <StepTransition step={2}>
           <PlayerCard>
             <ProgressBar current={3} total={totalSteps} theme={experience.theme} />
@@ -135,7 +178,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "angry" ? (
+      {screen === "angry" && !isPaused ? (
         <StepTransition step={3}>
           <PlayerCard>
             <ChoiceBadge label="You said: Upset" />
@@ -146,19 +189,19 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "angryReveal" ? (
+      {screen === "angryReveal" && !isPaused ? (
         <StepTransition step={4}>
           <PlayerCard>
             <ProgressBar current={5} total={totalSteps} theme={experience.theme} />
             <h2 className="display-title text-3xl font-bold leading-tight sm:text-5xl">Thanks for staying with it.</h2>
-            <p className="mt-5 text-white/75"><TypewriterText text={steps[0]} /></p>
-            <p className="mt-3 text-white/70"><TypewriterText text={steps[1]} /></p>
+          <p className="mt-5 text-white/75"><TypewriterText text={steps[0]} isPaused={isPaused} onComplete={() => {/* optional callback */}} /></p>
+          <p className="mt-3 text-white/70"><TypewriterText text={steps[1]} isPaused={isPaused} onComplete={() => onDemoClimax?.()} /></p>
             <button className="premium-button mt-8" type="button" onClick={complete}>Okay, continue.</button>
           </PlayerCard>
         </StepTransition>
       ) : null}
 
-      {screen === "happy" ? (
+      {screen === "happy" && !isPaused ? (
         <StepTransition step={3}>
           <PlayerCard>
             <ChoiceBadge label="You said: Happy" />
@@ -169,7 +212,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "happySuccess" ? (
+      {screen === "happySuccess" && !isPaused ? (
         <StepTransition step={4}>
           <PlayerCard>
             <ProgressBar current={5} total={totalSteps} theme={experience.theme} />
@@ -180,7 +223,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "sad" ? (
+      {screen === "sad" && !isPaused ? (
         <StepTransition step={3}>
           <PlayerCard>
             <ChoiceBadge label="You said: A little sad" />
@@ -191,7 +234,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "sadReveal" ? (
+      {screen === "sadReveal" && !isPaused ? (
         <StepTransition step={4}>
           <PlayerCard>
             <ChoiceBadge label="You said: A little sad" />
@@ -203,7 +246,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "missing" ? (
+      {screen === "missing" && !isPaused ? (
         <StepTransition step={3}>
           <PlayerCard>
             <ChoiceBadge label="You said: Missing someone" />
@@ -214,7 +257,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "missingReveal" ? (
+      {screen === "missingReveal" && !isPaused ? (
         <StepTransition step={4}>
           <PlayerCard>
             <ChoiceBadge label="You said: Missing someone" />
@@ -226,7 +269,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "unknown" ? (
+      {screen === "unknown" && !isPaused ? (
         <StepTransition step={3}>
           <PlayerCard>
             <ChoiceBadge label="You said: Not sure yet" />
@@ -243,7 +286,7 @@ export function FinalButtonExperience({ template, experience, mode, shareUrl }: 
         </StepTransition>
       ) : null}
 
-      {screen === "final" ? final : null}
+      {screen === "final" && !isPaused ? final : null}
       <EggBanner message={eggMessage} />
       <Watermark />
     </ExperienceLayout>

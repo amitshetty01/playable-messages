@@ -77,7 +77,13 @@ export default function PrivacyPage() {
 
         <section className="glass rounded-[2rem] p-5 sm:p-8">
           <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-white">5. Data Retention</h2>
-          <p className="mt-4 leading-8 text-white/70">Generated experiences are stored indefinitely unless you delete them or set an expiry date. If you would like us to manually remove a specific experience, please contact us with the experience ID. Analytics data may be retained in aggregate after individual experiences are deleted.</p>
+          <p className="mt-4 leading-8 text-white/70">Generated experiences are stored only as long as necessary. We automatically apply the following retention schedule:</p>
+          <ul className="mt-4 list-inside list-disc space-y-2 text-white/70">
+            <li><strong className="text-white">Unclaimed experiences</strong> (never opened) — automatically deleted after 30 days</li>
+            <li><strong className="text-white">All other experiences</strong> — automatically deleted after 90 days</li>
+            <li><strong className="text-white">Experiences with a reaction/engagement</strong> — anonymized after 365 days (message content is replaced, but engagement data is preserved in aggregate)</li>
+          </ul>
+          <p className="mt-4 leading-8 text-white/70">If you would like us to manually remove a specific experience before these timeframes, please contact us with the experience ID. Analytics data may be retained in aggregate after individual experiences are deleted.</p>
         </section>
 
         <section className="glass rounded-[2rem] p-5 sm:p-8">

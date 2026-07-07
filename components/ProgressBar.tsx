@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 export function ProgressBar({ current, total, theme }: { current: number; total: number; theme?: string }) {
   const pct = total > 0 ? Math.min(current / total, 1) : 0;
 
@@ -19,9 +21,10 @@ export function ProgressBar({ current, total, theme }: { current: number; total:
     <div className="mb-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-          <div
-            className={`h-full rounded-full bg-gradient-to-r ${gradient} transition-all duration-500 ease-out`}
-            style={{ width: `${pct * 100}%` }}
+          <motion.div
+            className={`h-full rounded-full bg-gradient-to-r ${gradient}`}
+            animate={{ width: `${pct * 100}%` }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
           />
         </div>
         <span className="text-xs font-bold tracking-[0.08em] text-white/50 shrink-0">

@@ -13,6 +13,7 @@ import { CookieBanner } from "@/components/CookieBanner";
 import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
 import { AudioProvider } from "@/lib/audio-engine";
 import { AmbientGlow } from "@/components/AmbientGlow";
+import { TRPCProvider } from "@/lib/trpc/provider";
 import { defaultDescription, defaultOgImage, siteName } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -73,10 +74,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`dark ${fraunces.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body>
+        <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <Script id="theme-init" strategy="beforeInteractive">
           {`(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()`}
         </Script>
+        <TRPCProvider>
         <ThemeProvider>
         <AudioProvider>
         <LanguageProvider>
@@ -86,8 +89,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="google-analytics" strategy="lazyOnload">
           {`if(window.__consent){!function(){var e=document.createElement("script");e.src="https://www.googletagmanager.com/gtag/js?id=G-CKB6NM2LXG",e.async=!0,document.head.appendChild(e);window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date()),gtag("config","G-CKB6NM2LXG")}()}`}
         </Script>
-        <Script id="sw-unregister" strategy="afterInteractive">
-          {`if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(r){r.unregister()})})}`}
+        <Script id="sw-register" strategy="afterInteractive">
+          {`if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`}
         </Script>
         <a className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white-static focus:px-4 focus:py-2 focus:text-ink" href="#content">
           Skip to content
@@ -106,6 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </LanguageProvider>
         </AudioProvider>
         </ThemeProvider>
+        </TRPCProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-export function TypewriterText({ text, speed = 30, className, onComplete }: { text: string; speed?: number; className?: string; onComplete?: () => void }) {
+export function TypewriterText({ text, speed = 30, className, onComplete, isPaused = false }: { text: string; speed?: number; className?: string; onComplete?: () => void; isPaused?: boolean }) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
   const indexRef = useRef(0);
@@ -20,6 +20,7 @@ export function TypewriterText({ text, speed = 30, className, onComplete }: { te
   useEffect(() => {
     reset();
     if (!text) { setDone(true); setDisplayed(""); onComplete?.(); return; }
+    if (isPaused) { setDisplayed(text); setDone(true); return; } // Skip typing if paused
 
     let accumulated = 0;
     const step = (timestamp: number) => {

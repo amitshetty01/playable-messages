@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { playSound } from "@/lib/flowSounds";
 import dynamic from "next/dynamic";
 import type { Template } from "@/lib/types";
 import { createDemoExperience } from "@/lib/demo";
@@ -102,9 +103,9 @@ function CardFace({ emoji, gradient, pattern }: { emoji: string; gradient: strin
 }
 
 /* ─── Phone with preview children ─── */
-function PhoneFrame({ children }: { children: React.ReactNode }) {
+function PhoneFrame({ children, style }: { children: React.ReactNode, style?: React.CSSProperties }) {
   return (
-    <div className="h-full w-full overflow-hidden" style={{ borderRadius: "36px" }}>
+    <div className="h-full w-full overflow-hidden" style={{ borderRadius: "36px", ...style }}>
       <div className="h-full w-full bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_0_1px_rgba(255,255,255,0.10)]">
         <div className="relative h-full w-full overflow-hidden bg-black" style={{ borderRadius: "33px" }}>
           <div className="pointer-events-none absolute inset-0 z-30" style={{ borderRadius: "33px" }}>
@@ -153,8 +154,11 @@ export function TemplatePreviewOverlay({
   const [phase, setPhase] = useState<"enter" | "show" | "exit">("enter");
   const [showPreview, setShowPreview] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
+  const [isDemoPaused, setIsDemoPaused] = useState(false);
+  const [showBurst, setShowBurst] = useState(false); // New state for particle burst
   const morphTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fourthWallTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const v = VISUALS[template.id] || VISUALS["the-final-button"]!;
 
@@ -172,6 +176,7 @@ export function TemplatePreviewOverlay({
       document.body.style.overflow = "";
       if (morphTimeoutRef.current) clearTimeout(morphTimeoutRef.current);
       if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
+      if (fourthWallTimeoutRef.current) clearTimeout(fourthWallTimeoutRef.current);
     };
   }, []);
 
@@ -186,25 +191,39 @@ export function TemplatePreviewOverlay({
   // Show preview after morph completes
   useEffect(() => {
     if (phase === "show" && !showPreview) {
-      morphTimeoutRef.current = setTimeout(() => setShowPreview(true), 750);
+      morphTimeoutRef.current = setTimeout(() => {
+        setShowPreview(true);
+        setShowBurst(true); // Trigger particle burst
+        playSound("click");
+      }, 750);
     }
     return () => { if (morphTimeoutRef.current) clearTimeout(morphTimeoutRef.current); };
   }, [phase, showPreview]);
 
   /* ─── Handlers ─── */
   const restart = useCallback(() => {
+    setIsDemoPaused(false);
     setPreviewKey((k) => k + 1);
   }, []);
 
   const handleBack = useCallback(() => {
+    setIsDemoPaused(false);
     setShowPreview(false);
     setPhase("exit");
     exitTimeoutRef.current = setTimeout(() => onClose(), 800);
   }, [onClose]);
 
   const handleBg = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && phase === "show") handleBack();
-  }, [handleBack, phase]);
+    if (e.target === e.currentTarget && phase === "show" && !isDemoPaused) handleBack();
+  }, [handleBack, phase, isDemoPaused]);
+
+    const handleDemoClimax = useCallback(() => {
+      setIsDemoPaused(true);
+      playSound("ding"); // Play sound on fourth-wall reveal
+      fourthWallTimeoutRef.current = setTimeout(() => {
+        setIsDemoPaused(false); // End fourth-wall break
+      }, 4000); // Fourth wall message duration
+    }, []);
 
   /* ─── Layout ─── */
   const [vp, setVp] = useState<{ w: number; h: number } | null>(null);
@@ -236,9 +255,10 @@ export function TemplatePreviewOverlay({
   const phoneH = isEnter || isExit ? cardRect.height : ph;
 
   const spring = { type: "spring" as const, stiffness: 70, damping: 14, mass: 0.9 };
+  const cinematicSpring = { type: "spring" as const, stiffness: 50, damping: 12, mass: 1.2 };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className={`fixed inset-0 z-50 overflow-hidden transition-all duration-300 ${phase === 'show' ? 'backdrop-blur-xl' : 'backdrop-blur-none'}`}>
       {/* Dark overlay */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -278,9 +298,16 @@ export function TemplatePreviewOverlay({
           top: phoneTop, left: phoneLeft,
           width: phoneW, height: phoneH,
           borderRadius: isEnter || isExit ? "1.4rem" : "36px",
+          rotateY: isDemoPaused ? [0, -15, 15, -5, 0] : 0, // Dynamic rotation for fourth-wall
+          scale: isEnter ? 0.95 : 1, // Add scale animation for the morph
+          translateZ: isEnter ? 0 : 50, // Added translateZ for volumetric feel
         }}
-        transition={spring}
-        style={{ willChange: "top, left, width, height, border-radius" }}
+        transition={{
+          ...spring,
+          ease: isEnter ? [0.6, 0.05, 0.2, 1] : (isDemoPaused ? [0.22, 1, 0.36, 1] : [0.4, 0, 0.2, 1]), // Cinematic ease for rotation, return ease
+          duration: isEnter ? 0.9 : (isDemoPaused ? 1.2 : 0.6), // Longer duration for cinematic rotation, faster return
+        }}
+        style={{ willChange: "top, left, width, height, border-radius, rotateY, scale, translateZ" }}
       >
         {/* Card face — always underneath */}
         <div className="absolute inset-0">
@@ -290,18 +317,42 @@ export function TemplatePreviewOverlay({
         {/* Phone frame — only during active preview */}
         {showPreview && !isExit && (
           <div className="absolute inset-0">
-            <PhoneFrame>
+            <PhoneFrame style={{ filter: isDemoPaused ? "brightness(0.7)" : "none", transition: "filter 0.3s ease-in-out" }}>
               {isAvailable && experience ? (
                 <ExperiencePlayer
                   key={previewKey}
                   template={template}
                   experience={experience}
                   mode="demo"
+                  isPaused={isDemoPaused}
+                  onDemoClimax={handleDemoClimax}
                 />
               ) : (
                 <PreviewComingSoon />
               )}
             </PhoneFrame>
+            <AnimatePresence>
+              {isDemoPaused && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none z-50 text-center"
+                  style={{
+                    // Position this exactly over the phone screen area
+                    top: `calc(${topPhone}px + ${ph * 0.18}px)`, // Further adjusted for visual center
+                    left: `calc(${phoneLeft}px + ${pw * 0.1}px)`,
+                    width: `calc(${pw}px - ${pw * 0.2}px)`,
+                    height: `calc(${ph}px - ${ph * 0.36}px)`,
+                  }}
+                >
+                  <p className="text-white display-title text-4xl font-extrabold leading-tight drop-shadow-2xl shadow-text-glow-blush">
+                    Now imagine this... made <br /><strong className="text-blush">just for YOU.</strong>
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </motion.div>
@@ -328,10 +379,11 @@ export function TemplatePreviewOverlay({
 
       {/* Info panel */}
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{
           opacity: showPreview && !isExit ? 1 : 0,
           x: showPreview && !isExit ? 0 : -20,
+          y: showPreview && !isExit ? 0 : 20, // Add y animation for entry/exit
         }}
         transition={{
           type: "spring", stiffness: 100, damping: 22,
@@ -347,7 +399,12 @@ export function TemplatePreviewOverlay({
       >
         <div className="relative">
           <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-blush/10 via-violet/10 to-transparent blur-2xl opacity-60" />
-          <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 backdrop-blur-2xl shadow-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: showPreview && !isExit ? 1 : 0, y: showPreview && !isExit ? 0 : 20 }}
+            transition={{ type: "spring", stiffness: 100, damping: 22, delay: showPreview ? 0.35 : 0 }}
+            className="relative rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 backdrop-blur-2xl shadow-2xl"
+          >
             <div className="flex items-center gap-4">
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.06] text-3xl ring-1 ring-white/[0.08] shadow-lg">{v.emoji}</span>
               <div>
@@ -365,7 +422,7 @@ export function TemplatePreviewOverlay({
                 href={template.id === "our-memories" ? "/our-memories?edit=true" : `/create/${template.id}`}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blush via-violet to-violet py-3 text-sm font-extrabold text-white shadow-lg shadow-blush/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                ✨ Create Yours
+                ✨ Direct This Scene
               </Link>
               <button type="button" onClick={restart}
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] py-3 text-sm font-bold text-white/60 transition-all hover:bg-white/[0.08] hover:text-white/80 active:scale-[0.98]"
@@ -380,7 +437,7 @@ export function TemplatePreviewOverlay({
                 Back
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </div>

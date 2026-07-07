@@ -75,6 +75,12 @@ export function normalizeExperiencePayload(body: Record<string, unknown>): Omit<
     giftSongTitle: typeof body.giftSongTitle === "string" ? body.giftSongTitle.slice(0, 200) : undefined,
     isReply: typeof body.isReply === "boolean" ? body.isReply : false,
     replyToId: typeof body.replyToId === "string" ? body.replyToId.slice(0, 14) : undefined,
+    isChain: typeof body.isChain === "boolean" ? body.isChain : false,
+    chainTarget: typeof body.chainTarget === "number" ? Math.min(Math.max(1, body.chainTarget), 10) : 0,
+    viewOnce: typeof body.viewOnce === "boolean" ? body.viewOnce : false,
+    viewedAt: typeof body.viewedAt === "string" ? body.viewedAt : undefined,
+    vibeEmoji: typeof body.vibeEmoji === "string" ? body.vibeEmoji.slice(0, 10) : undefined,
+    vibeAudioUrl: typeof body.vibeAudioUrl === "string" ? body.vibeAudioUrl.slice(0, 500) : undefined,
   };
 }
 

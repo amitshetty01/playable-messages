@@ -38,6 +38,11 @@ add column if not exists password_question text not null default '';
 alter table generated_experiences
 add column if not exists password_answer text not null default '';
 
+alter table generated_experiences
+add column if not exists reply_text text not null default '';
+alter table generated_experiences
+add column if not exists reply_reaction text not null default '';
+
 create table if not exists analytics_events (
   id bigserial primary key,
   experience_id text references generated_experiences(id) on delete cascade,
@@ -130,3 +135,62 @@ alter table chat_messages replica identity full;
 
 alter table chat_messages add column if not exists edited_at timestamptz;
 alter table chat_messages add column if not exists reactions jsonb not null default '{}'::jsonb;
+
+-- ─── Chain / Group Messages ───
+
+alter table generated_experiences
+add column if not exists is_chain boolean not null default false;
+alter table generated_experiences
+add column if not exists chain_target integer not null default 0;
+alter table generated_experiences
+add column if not exists chain_completed boolean not null default false;
+
+create table if not exists chain_messages (
+  id bigserial primary key,
+  experience_id text references generated_experiences(id) on delete cascade not null,
+  contributor_name text not null default 'Someone',
+  message text not null,
+  contribution_type text not null default 'text',
+  sequence_number integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table chain_messages enable row level security;
+
+drop policy if exists "Public can read chain messages" on chain_messages;
+create policy "Public can read chain messages"
+on chain_messages for select
+using (true);
+
+drop policy if exists "Public can insert chain messages" on chain_messages;
+create policy "Public can insert chain messages"
+on chain_messages for insert
+with check (true);
+
+create index if not exists idx_chain_messages_experience_id on chain_messages(experience_id);
+
+-- ─── Creator Journey Dashboard ───
+
+alter table analytics_events add column if not exists metadata jsonb default '{}'::jsonb;
+alter table analytics_events add column if not exists duration_ms integer;
+
+drop policy if exists "Public can read analytics events" on analytics_events;
+create policy "Public can read analytics events"
+on analytics_events for select
+using (true);
+
+create index if not exists idx_analytics_events_experience_id on analytics_events(experience_id);
+
+-- ─── View-Once Messages ───
+
+alter table generated_experiences
+add column if not exists view_once boolean not null default false;
+alter table generated_experiences
+add column if not exists viewed_at timestamptz;
+
+-- ─── Vibe Reactions ───
+
+alter table generated_experiences
+add column if not exists vibe_emoji text not null default '';
+alter table generated_experiences
+add column if not exists vibe_audio_url text not null default '';

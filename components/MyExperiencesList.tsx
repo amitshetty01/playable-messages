@@ -41,6 +41,7 @@ export function MyExperiencesList() {
           <div className="flex shrink-0 gap-2">
             <Link className="ghost-button !min-h-10 !px-4 !py-2 text-sm" href={`/experience/${exp.id}`}>Open</Link>
             <Link className="ghost-button !min-h-10 !px-4 !py-2 text-sm" href={`/edit/${exp.id}`}>Edit</Link>
+            <Link className="ghost-button !min-h-10 !px-4 !py-2 text-sm text-blush" href={`/my-experiences/${exp.id}`}>Journey</Link>
             <button className="ghost-button !min-h-10 !px-4 !py-2 text-sm text-rose-300" type="button" onClick={() => handleDelete(exp.id)}>Delete</button>
           </div>
         </div>

@@ -35,6 +35,18 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/sw.js",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+      },
+      {
+        source: "/embed/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'none'", "frame-ancestors *") },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "Content-Security-Policy", value: csp },

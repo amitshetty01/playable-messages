@@ -216,20 +216,30 @@ const LOVE_DODGE_TEXTS = [
   ["It's already gone 😘","rgba(255,107,157,1)"],
   ["Giving up yet? 🫣", "rgba(255,50,50,0.9)"],
   ["Almost… 😈",        "rgba(196,77,255,1)"],
+  ["Too fast! 😰",      "rgba(255,50,50,0.9)"],
+  ["Calm down! 💦",     "rgba(100,180,255,0.8)"],
+  ["Are you even trying? 🥱","rgba(200,200,100,0.8)"],
+  ["Hello? 👀",         "rgba(180,130,255,0.9)"],
+  ["Don't look at me! 😳","rgba(255,150,150,0.9)"],
 ];
 
-function FallingHearts() {
+function FallingHearts({ speedBoost = 1, dizzy = 0 }: { speedBoost?: number; dizzy?: number }) {
   const hearts = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       delay: Math.random() * 12,
-      dur: 8 + Math.random() * 7,
+      dur: (8 + Math.random() * 7) / speedBoost,
       size: 14 + Math.random() * 18,
       drift: (Math.random() - 0.5) * 80,
-    })), []);
+    })), [speedBoost]);
   return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      style={{
+        filter: dizzy > 0 ? `blur(${dizzy}px)` : undefined,
+      }}
+    >
       {hearts.map(h => (
         <div key={h.id}
           className="absolute"
@@ -247,16 +257,27 @@ function FallingHearts() {
   );
 }
 
-function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () => void }) {
+function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: Tone; onTruth: () => void }) {
   const [flying, setFlying] = useState(false);
   const [pos, setPos] = useState({ left: "50%", top: "50%" });
   const [rotation, setRotation] = useState(0);
   const [textIndex, setTextIndex] = useState(0);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; angle: number; dist: number }[]>([]);
   const [burst, setBurst] = useState(false);
+  const [panicText, setPanicText] = useState<string | null>(null);
+  const [fakeOut, setFakeOut] = useState(false);
+  const [fastDodge, setFastDodge] = useState(false);
+  const [trailParticles, setTrailParticles] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
+  const [poofs, setPoofs] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [victoryFlash, setVictoryFlash] = useState(false);
+  const [victorySlam, setVictorySlam] = useState(false);
   const textIndexRef = useRef(0);
   const pidRef = useRef(0);
   const dodgeCountRef = useRef(0);
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const lastDodgeTimeRef = useRef(0);
+  const oldPosRef = useRef({ left: "50%", top: "50%" });
+  const panicTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function spawnParticles(cx: number, cy: number) {
     const count = 3 + Math.floor(Math.random() * 3);
@@ -269,21 +290,100 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
     setParticles(prev => [...prev.slice(-15), ...newP]);
   }
 
-  function handleMove(e: React.MouseEvent | React.TouchEvent | React.FocusEvent) {
-    if (!flying && "clientX" in e && e.type === "mouseenter") return;
-    dodgeCountRef.current++;
-    const isFast = dodgeCountRef.current > 5;
-    const nx = 5 + Math.random() * (isFast ? 75 : 80);
-    const ny = 5 + Math.random() * (isFast ? 70 : 75);
-    setFlying(true);
-    setPos({ left: `${nx}%`, top: `${ny}%` });
+  function getContextTextIndex(): number {
+    const now = Date.now();
+    const elapsed = now - lastDodgeTimeRef.current;
+    const base = LOVE_DODGE_TEXTS.length;
+    if (elapsed < 400 && lastDodgeTimeRef.current > 0) return base - 5; // "Too fast! 😰"
+    if (elapsed > 3000 && lastDodgeTimeRef.current > 0) return base - 4; // "Are you even trying? 🥱"
+    if (elapsed > 2000 && lastDodgeTimeRef.current > 0) return base - 3; // "Hello? 👀"
+    return textIndexRef.current % (base - 5);
+  }
 
-    const rot = (Math.random() - 0.5) * (isFast ? 40 : 24);
+  function doDodge() {
+    const now = Date.now();
+    const elapsed = now - lastDodgeTimeRef.current;
+    lastDodgeTimeRef.current = now;
+    const isFast = dodgeCountRef.current > 5;
+
+    // Velocity-based bounce physics
+    let vx = velocityRef.current.x;
+    let vy = velocityRef.current.y;
+
+    if (vx === 0 && vy === 0) {
+      // First move: assign random velocity
+      vx = (Math.random() - 0.5) * 60;
+      vy = (Math.random() - 0.5) * 60;
+    }
+
+    // Parse current position
+    const curX = parseFloat(pos.left);
+    const curY = parseFloat(pos.top);
+
+    let newX = curX + vx * 0.02;
+    let newY = curY + vy * 0.02;
+
+    // Wall bounce: X bounds [5, 90], Y bounds [5, 78]
+    if (newX < 5) { newX = 5; vx = Math.abs(vx); haptic("tap"); }
+    if (newX > 90) { newX = 90; vx = -Math.abs(vx); haptic("tap"); }
+    if (newY < 5) { newY = 5; vy = Math.abs(vy); haptic("tap"); }
+    if (newY > 78) { newY = 78; vy = -Math.abs(vy); haptic("tap"); }
+
+    velocityRef.current = { x: vx * 0.98, y: vy * 0.98 }; // slight friction
+
+    setFlying(true);
+    setPos({ left: `${newX}%`, top: `${newY}%` });
+    const rot = vx * 0.3;
     setRotation(rot);
 
-    textIndexRef.current = (textIndexRef.current + 1) % LOVE_DODGE_TEXTS.length;
-    setTextIndex(textIndexRef.current);
+    // Context-aware text selection
+    let idx: number;
+    if (elapsed < 400 && lastDodgeTimeRef.current > 0) idx = 10; // Too fast! 😰
+    else if (elapsed > 3000 && lastDodgeTimeRef.current > 0) idx = 12; // Are you even trying? 🥱
+    else if (elapsed > 2000 && lastDodgeTimeRef.current > 0) idx = 13; // Hello? 👀
+    else idx = textIndexRef.current % 10;
 
+    textIndexRef.current = (idx + 1) % LOVE_DODGE_TEXTS.length;
+    setTextIndex(idx);
+  }
+
+  function handleMove(e: React.MouseEvent | React.TouchEvent | React.FocusEvent) {
+    if (!flying && "clientX" in e && e.type === "mouseenter") return;
+
+    // Fake Out: at attempt 4, pretend to give up
+    if (dodgeCountRef.current === 4 && !fakeOut) {
+      setFakeOut(true);
+      setFlying(true);
+      setPos({ left: "50%", top: "50%" });
+      setRotation(0);
+      return;
+    }
+
+    dodgeCountRef.current++;
+    hapticTone("tap", tone);
+
+    // Spawn trail at old position before moving
+    oldPosRef.current = pos;
+    if (flying) {
+      const noEl = document.querySelector('[data-no-zone]');
+      if (noEl) {
+        const r = noEl.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const trailId = ++pidRef.current;
+        setTrailParticles(prev => [...prev.slice(-8), { id: trailId, x: cx, y: cy, emoji: Math.random() > 0.5 ? "💨" : "✨" }]);
+        setTimeout(() => setTrailParticles(prev => prev.filter(p => p.id !== trailId)), 500);
+
+        // Desperation poofs after 3 dodges
+        if (dodgeCountRef.current > 3) {
+          const poofId = ++pidRef.current;
+          setPoofs(prev => [...prev.slice(-20), { id: poofId, x: cx + (Math.random() - 0.5) * 20, y: cy + (Math.random() - 0.5) * 20 }]);
+          setTimeout(() => setPoofs(prev => prev.filter(p => p.id !== poofId)), 600);
+        }
+      }
+    }
+
+    doDodge();
     if ("clientX" in e) {
       spawnParticles((e as React.MouseEvent).clientX, (e as React.MouseEvent).clientY);
     } else if ("touches" in e && (e as React.TouchEvent).touches.length) {
@@ -292,17 +392,117 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
     }
   }
 
+  function handleFakeOutClick(e: React.MouseEvent | React.TouchEvent) {
+    if (!fakeOut) return;
+    haptic("error");
+    // Aggressive dodge
+    setFastDodge(true);
+    setFakeOut(false);
+    setPanicText("PSYCH! 😜");
+    const nx = 2 + Math.random() * 5;
+    const ny = 2 + Math.random() * 5;
+    setPos({ left: `${nx}%`, top: `${ny}%` });
+    setRotation(15);
+    dodgeCountRef.current++;
+    if ("clientX" in e) {
+      spawnParticles((e as React.MouseEvent).clientX, (e as React.MouseEvent).clientY);
+    } else if ("touches" in e && (e as React.TouchEvent).touches.length) {
+      const t = (e as React.TouchEvent).touches[0];
+      spawnParticles(t.clientX, t.clientY);
+    }
+    setTimeout(() => { setPanicText(null); setFastDodge(false); }, 2500);
+  }
+
+  function handleProximityPanic(e: React.MouseEvent) {
+    if (flying || burst || fakeOut) return;
+    if (e.clientY < window.innerHeight * 0.6) return;
+    dodgeCountRef.current++;
+    const isFast = dodgeCountRef.current > 5;
+
+    oldPosRef.current = pos;
+    if (flying) {
+      const noEl = document.querySelector('[data-no-zone]');
+      if (noEl) {
+        const r = noEl.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const trailId = ++pidRef.current;
+        setTrailParticles(prev => [...prev.slice(-8), { id: trailId, x: cx, y: cy, emoji: "✨" }]);
+        setTimeout(() => setTrailParticles(prev => prev.filter(p => p.id !== trailId)), 500);
+
+        if (dodgeCountRef.current > 3) {
+          const poofId = ++pidRef.current;
+          setPoofs(prev => [...prev.slice(-20), { id: poofId, x: cx + (Math.random() - 0.5) * 20, y: cy + (Math.random() - 0.5) * 20 }]);
+          setTimeout(() => setPoofs(prev => prev.filter(p => p.id !== poofId)), 600);
+        }
+      }
+    }
+
+    doDodge();
+    if (panicTimeoutRef.current) clearTimeout(panicTimeoutRef.current);
+    setPanicText("Hey! Where are you going?! 👀");
+    panicTimeoutRef.current = setTimeout(() => setPanicText(null), 2500);
+    spawnParticles(e.clientX, e.clientY);
+  }
+
+  function handleTouchProximity(e: React.TouchEvent) {
+    if (flying || burst || fakeOut) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    // Get No span bounding rect
+    const noEl = document.querySelector('[data-no-zone]');
+    if (!noEl) return;
+    const rect = noEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = touch.clientX - cx;
+    const dy = touch.clientY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 80) {
+      handleMove(e);
+    }
+  }
+
   function handleTruth() {
+    if (victorySlam) return; // prevent double-click during animation
+    hapticTone("whoosh", tone);
+    setVictorySlam(true);
+    setVictoryFlash(true);
+    setTimeout(() => setVictoryFlash(false), 200);
     setBurst(true);
-    setTimeout(() => { onTruth(); setBurst(false); }, 600);
+    setTimeout(() => {
+      setBurst(false);
+      setVictorySlam(false);
+      onTruth();
+    }, 1000);
   }
 
   const [currentText, currentColor] = LOVE_DODGE_TEXTS[flying ? textIndex : 0];
+  const dodgeCount = dodgeCountRef.current;
+
+  // Yes button glow/scale evolution
+  const yesGlow = dodgeCount >= 5
+    ? "0 0 60px rgba(255,107,157,0.7), 0 0 100px rgba(196,77,255,0.4), 0 4px 20px rgba(0,0,0,0.3)"
+    : dodgeCount >= 3
+    ? "0 0 50px rgba(196,77,255,0.6), 0 0 80px rgba(196,77,255,0.3), 0 4px 20px rgba(0,0,0,0.3)"
+    : "0 0 40px rgba(255,107,157,0.5), 0 0 80px rgba(196,77,255,0.2), 0 4px 20px rgba(0,0,0,0.3)";
+
+  const yesScale = dodgeCount >= 5 ? [1.05, 1.08, 1.05] : [1, 1.03, 1];
+  const yesLabel = dodgeCount >= 5 ? "Yes please! 💖" : label;
+
+  // Fake out text
+  const displayText = fakeOut
+    ? "Okay fine, you win 😔"
+    : panicText || currentText;
 
   return (
-    <div className="relative flex w-full flex-row items-center justify-between gap-3 px-2 sm:px-6">
-      {/* Falling hearts background */}
-      <FallingHearts />
+    <div
+      className="relative flex w-full flex-row items-center justify-between gap-3 px-2 sm:px-6"
+      onMouseMove={handleProximityPanic}
+      onTouchMove={handleTouchProximity}
+    >
+      {/* Falling hearts background (reacts to dodge count) */}
+      <FallingHearts speedBoost={dodgeCount >= 3 ? 2 : 1} dizzy={dodgeCount >= 5 ? 1 : 0} />
 
       {/* Chase particles */}
       {particles.map(p => (
@@ -318,25 +518,58 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
         </div>
       ))}
 
-      {/* Yes button */}
-      <button
-        type="button"
-        onClick={handleTruth}
-        className={`z-20 shrink-0 overflow-hidden rounded-2xl border border-white/20 px-7 py-4 text-sm font-extrabold tracking-wider text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${
-          burst ? "scale-125 opacity-0" : ""
-        }`}
-        style={{
-          background: burst
-            ? "transparent"
-            : "linear-gradient(135deg, #ff6b9d, #c44dff)",
-          boxShadow: burst
-            ? "none"
-            : "0 0 30px rgba(196,77,255,0.4), 0 4px 20px rgba(0,0,0,0.3)",
-          transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease",
-        }}
-      >
-        {burst ? "💖" : label}
-      </button>
+      {/* Trail particles */}
+      {trailParticles.map(p => (
+        <div key={p.id} className="pointer-events-none fixed z-40 text-xs"
+          style={{
+            left: p.x, top: p.y,
+            animation: "love-chase-particle 0.5s ease-out forwards",
+          } as React.CSSProperties}
+        >
+          {p.emoji}
+        </div>
+      ))}
+
+      {/* Desperation poofs */}
+      {poofs.map(p => (
+        <div
+          key={p.id}
+          className="pointer-events-none fixed z-30 h-10 w-10 rounded-full bg-white/5 backdrop-blur-sm"
+          style={{
+            left: p.x, top: p.y,
+            animation: "desperation-poof 0.6s ease-out forwards",
+          } as React.CSSProperties}
+        />
+      ))}
+
+      {/* Yes button with reaction ring */}
+      <div className="relative shrink-0">
+        {dodgeCount >= 5 && (
+          <motion.div
+            className="pointer-events-none absolute -inset-3 rounded-2xl border-2 border-pink-400/40"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+        <motion.button
+          type="button"
+          onClick={handleTruth}
+          className={`z-20 overflow-hidden rounded-2xl border border-white/20 px-7 py-4 text-sm font-extrabold tracking-wider text-white shadow-lg hover:scale-105 active:scale-95 ${
+            burst ? "scale-125 opacity-0" : ""
+          }`}
+          style={{
+            background: burst
+              ? "transparent"
+              : "linear-gradient(135deg, #ff6b9d, #c44dff)",
+            boxShadow: burst ? "none" : yesGlow,
+            pointerEvents: victorySlam ? "none" : "auto",
+          }}
+          animate={victorySlam ? { scale: [1, 1.3, 0.9, 1] } : { scale: yesScale }}
+          transition={victorySlam ? { duration: 0.5, ease: "easeOut" } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {burst ? "💖" : yesLabel}
+        </motion.button>
+      </div>
 
       {/* Heart burst on truth */}
       {burst && (
@@ -358,39 +591,46 @@ function LoveChaseInteraction({ label, onTruth }: { label: string; onTruth: () =
         </div>
       )}
 
-      <span
-        onMouseEnter={handleMove}
-        onClick={handleMove}
-        onTouchStart={handleMove}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMove(e as unknown as React.MouseEvent); } }}
+      <motion.span
+        onMouseEnter={fakeOut ? undefined : handleMove}
+        onClick={(e) => { e.stopPropagation(); if (fakeOut) { handleFakeOutClick(e); return; } handleMove(e); }}
+        onTouchStart={(e) => { e.stopPropagation(); if (fakeOut) { handleFakeOutClick(e); return; } handleMove(e); }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (fakeOut) { handleFakeOutClick(e as unknown as React.MouseEvent); return; } handleMove(e as unknown as React.MouseEvent); } }}
         tabIndex={0}
         role="button"
-        aria-label="Dodge text, moves on interaction"
+        aria-label={fakeOut ? "Okay fine, you win" : "Dodge text, moves on interaction"}
         className={`whitespace-nowrap rounded-2xl px-5 py-3 text-sm font-extrabold tracking-wider backdrop-blur-md select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 ${
           flying ? "fixed z-40" : "relative z-20 shrink-0"
         }`}
+        data-no-zone="true"
         style={
           flying
             ? {
-                left: pos.left,
-                top: pos.top,
-                transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-                background: `linear-gradient(135deg, ${currentColor}22, ${currentColor}44)`,
-                border: `2px solid ${currentColor}`,
-                color: "white",
-                boxShadow: `0 0 25px ${currentColor}44, inset 0 0 30px ${currentColor}22`,
-                transition: "left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s ease, background 0.4s ease, border 0.3s ease, box-shadow 0.4s ease",
+                background: fakeOut
+                  ? "rgba(255,255,255,0.08)"
+                  : `linear-gradient(135deg, ${currentColor}22, ${currentColor}44)`,
+                border: fakeOut ? "2px solid rgba(255,255,255,0.2)" : `2px solid ${currentColor}`,
+                color: fakeOut ? "rgba(255,255,255,0.4)" : "white",
+                boxShadow: fakeOut ? "none" : `0 0 25px ${currentColor}44, inset 0 0 30px ${currentColor}22`,
               }
             : {
                 background: "rgba(255,255,255,0.05)",
                 border: "1px dashed rgba(255,255,255,0.15)",
                 color: "rgba(255,255,255,0.5)",
                 cursor: "pointer",
+                transform: "rotate(-2deg)",
               }
         }
+        animate={flying || fastDodge ? { left: pos.left, top: pos.top, rotate: rotation } : {}}
+        transition={fastDodge ? { duration: 0.1, ease: "easeOut" } : flying ? { type: "spring", stiffness: 300, damping: 20 } : {}}
       >
-        <span className="text-base sm:text-lg">{currentText}</span>
-      </span>
+        <span className="text-base sm:text-lg">{displayText}</span>
+      </motion.span>
+
+      {/* Victory flash */}
+      {victoryFlash && (
+        <div className="pointer-events-none fixed inset-0 z-[100] bg-white" style={{ animation: "victory-flash 0.2s ease-out forwards" }} />
+      )}
     </div>
   );
 }
@@ -1180,6 +1420,9 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
           <AnimatePresence mode="wait">
             <motion.div
               key={transitionKey}
+              role="region"
+              aria-live="polite"
+              aria-label={`Scene ${step + 1} of ${totalScenes}`}
               className="flex w-full flex-1 flex-col"
               initial={{ x: 60, opacity: 0, filter: "blur(4px)" }}
               animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
@@ -1256,7 +1499,7 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
                 {current?.interaction && current.interaction.type !== "auto" && (
                   <div className="flex w-full shrink-0 justify-center pt-1">
                     {current.interaction.type === "love-chase" ? (
-                      <LoveChaseInteraction label={current.interaction.label || "You love me 💖"} onTruth={advance} />
+                      <LoveChaseInteraction label={current.interaction.label || "You love me 💖"} tone={tone} onTruth={advance} />
                     ) : current.interaction.type === "multi-tap" ? (
                       <MultiTapButton interaction={current.interaction} onComplete={advance} tone={tone} />
                     ) : current.interaction.type === "choices" && current.interaction.choices ? (

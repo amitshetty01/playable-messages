@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
 import { motion, useInView, useSpring, useMotionValue } from "framer-motion";
+import { getVariant } from "@/lib/ab-testing";
 import { QuickFlow } from "@/components/QuickFlow";
 import { GuidedFlow } from "@/components/GuidedFlow";
 import { BrowseFlow } from "@/components/BrowseFlow";
@@ -20,6 +21,10 @@ const TestimonialCarousel = dynamic(
 );
 const ExperiencePlayer = dynamic(
   () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
+  { ssr: false }
+);
+const FloatingEnvelope = dynamic(
+  () => import("@/components/FloatingEnvelope").then((m) => ({ default: m.default })),
   { ssr: false }
 );
 
@@ -182,6 +187,7 @@ export function HomePageContent() {
   const [showBrowse, setShowBrowse] = useState(false);
   const [preview, setPreview] = useState<{ id: string; rect: DOMRect } | null>(null);
   const [demoKey, setDemoKey] = useState(0);
+  const heroCtaText = getVariant('hero-cta-text') || "Create an Experience";
 
   const handlePreview = useCallback((id: string, rect?: DOMRect) => {
     const fallback = { top: 120, left: 0, width: 340, height: 280, x: 0, y: 120, bottom: 400, right: 340 };
@@ -358,6 +364,10 @@ export function HomePageContent() {
           HERO
           ════════════════════════════════════════ */}
       <section className="relative overflow-hidden pt-6 sm:pt-10">
+        {/* Interactive 3D Floating Envelope */}
+        <div className="pointer-events-none absolute right-4 top-4 z-20 h-[200px] w-[200px] opacity-60 lg:opacity-100">
+          <FloatingEnvelope />
+        </div>
         <motion.div
           animate={{ x: [0, 30, 0, -20, 0], scale: [1, 1.05, 0.98, 1.02, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
@@ -411,7 +421,7 @@ export function HomePageContent() {
                 onClick={handleHeroCreate}
                 className="premium-button min-w-[200px] text-base"
               >
-                Create an Experience
+                {heroCtaText}
               </button>
               <button
                 type="button"

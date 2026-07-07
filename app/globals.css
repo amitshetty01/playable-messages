@@ -87,6 +87,19 @@ html.light ::-webkit-scrollbar-thumb {
   background-clip: content-box;
 }
 
+/* ─── Screen-reader only ─── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* ─── Selection ─── */
 ::selection {
   background: rgba(246, 177, 201, 0.3);
@@ -960,6 +973,17 @@ html.light .text-white-static {
   20% { opacity: 0.7; }
   60% { transform: translateY(85vh) translateX(var(--drift, 0px)) rotate(180deg); opacity: 0.3; }
   100% { transform: translateY(100vh) translateX(var(--drift, 0px)) rotate(360deg); opacity: 0; }
+}
+
+@keyframes desperation-poof {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.5; }
+  50% { opacity: 0.3; }
+  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}
+
+@keyframes victory-flash {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
 }
 
 @layer components {

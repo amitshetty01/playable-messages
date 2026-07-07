@@ -125,6 +125,23 @@ export type ExperienceRecord = {
   giftSongTitle?: string;
   isReply?: boolean;
   replyToId?: string;
+  isChain?: boolean;
+  chainTarget?: number;
+  chainCompleted?: boolean;
+  viewOnce?: boolean;
+  viewedAt?: string;
+  vibeEmoji?: string;
+  vibeAudioUrl?: string;
+};
+
+export type ChainContribution = {
+  id: number;
+  experienceId: string;
+  contributorName: string;
+  message: string;
+  contributionType: 'text' | 'emoji' | 'voice';
+  sequenceNumber: number;
+  createdAt: string;
 };
 
 export type EditableFieldType = "text" | "textarea" | "image" | "password" | "date" | "time" | "number" | "color";
@@ -152,10 +169,15 @@ export type AnalyticsEventType =
   | "experience_completed"
   | "selected_mood_choice"
   | "final_cta_clicked"
-  | "template_used";
+  | "template_used"
+  | "step_started"
+  | "step_completed"
+  | "game_interaction";
 
 export type AnalyticsPayload = {
   eventType: AnalyticsEventType;
   templateId?: string;
   choice?: string;
+  metadata?: Record<string, unknown>;
+  durationMs?: number;
 };

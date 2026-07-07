@@ -5,6 +5,7 @@ import { useState } from "react";
 type ReactionCaptureProps = {
   experienceId: string;
   onReply?: () => void;
+  onSent?: () => void;
 };
 
 const BIG_EMOJIS = [
@@ -15,7 +16,7 @@ const BIG_EMOJIS = [
   { emoji: "💀", label: "Dead" },
 ];
 
-export function ReactionCapture({ experienceId, onReply }: ReactionCaptureProps) {
+export function ReactionCapture({ experienceId, onReply, onSent }: ReactionCaptureProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -34,6 +35,7 @@ export function ReactionCapture({ experienceId, onReply }: ReactionCaptureProps)
     } catch {}
     setSending(false);
     setSent(true);
+    onSent?.();
   };
 
   if (sent) {

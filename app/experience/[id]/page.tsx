@@ -11,17 +11,29 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const { data } = await getExperience(id);
   const title = data?.finalMessage ? truncate(data.finalMessage, 60) : "Interactive Message";
+  const receiverName = data?.receiverName || "";
+  const template = data?.templateId ? getTemplate(data.templateId) : null;
+  const templateName = template?.title || "";
+
+  const ogDescription = receiverName
+    ? `A secret interactive message for ${receiverName}...`
+    : `A ${templateName || "interactive message"} created on ${siteName}`;
+
   const ogImage = data?.templateId
-    ? `/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(`A ${data.templateId.replace(/-/g, " ")} interactive message created on ${siteName}`)}&type=message`
+    ? `/og?title=${encodeURIComponent(title)}&description=${encodeURIComponent(ogDescription)}&type=message&receiverName=${encodeURIComponent(receiverName)}&templateName=${encodeURIComponent(templateName)}`
     : defaultOgImage;
+
+  const metaDescription = receiverName
+    ? `A secret interactive message for ${receiverName}... Open to play.`
+    : "An interactive message experience created with love on Craft Your Message.";
 
   return {
     title: `${title} | ${siteName}`,
-    description: "An interactive message experience created with love on Craft Your Message.",
+    description: metaDescription,
     alternates: { canonical: absoluteUrl(`/experience/${id}`) },
     openGraph: {
       title,
-      description: "Open this interactive message experience.",
+      description: metaDescription,
       url: absoluteUrl(`/experience/${id}`),
       siteName,
       type: "website",
@@ -30,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     twitter: {
       card: "summary_large_image",
       title,
-      description: "Open this interactive message experience.",
+      description: metaDescription,
       images: [absoluteUrl(ogImage)],
     },
     robots: { index: false, follow: false },
