@@ -417,7 +417,7 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
     if (flying || burst || fakeOut) return;
     if (e.clientY < window.innerHeight * 0.6) return;
     dodgeCountRef.current++;
-    const isFast = dodgeCountRef.current > 5;
+    hapticTone("tap", tone);
 
     oldPosRef.current = pos;
     if (flying) {
