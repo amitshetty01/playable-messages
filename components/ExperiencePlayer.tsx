@@ -127,7 +127,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
     setBrowserLang(lang);
     if (lang !== "en" && !translateShown.current) {
       const cacheKey = `translation-${experience.id}-${lang}`;
-      const cached = localStorage.getItem(cacheKey);
+      const cached = (() => { try { return localStorage.getItem(cacheKey); } catch { return null; } })();
       if (cached) {
         try { setTranslatedTexts(JSON.parse(cached)); } catch { /* ignore */ }
       } else {

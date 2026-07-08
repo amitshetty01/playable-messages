@@ -22,21 +22,25 @@ export function getMyExperiences(): SavedExperience[] {
 }
 
 export function saveExperience(exp: SavedExperience) {
-  const list = getMyExperiences();
-  const existing = list.findIndex((e) => e.id === exp.id);
-  if (existing >= 0) {
-    list[existing] = exp;
-  } else {
-    list.unshift(exp);
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
+  try {
+    const list = getMyExperiences();
+    const existing = list.findIndex((e) => e.id === exp.id);
+    if (existing >= 0) {
+      list[existing] = exp;
+    } else {
+      list.unshift(exp);
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
+  } catch { /* storage unavailable */ }
 }
 
 export function removeExperience(id: string) {
-  const list = getMyExperiences().filter((e) => e.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  try {
+    const list = getMyExperiences().filter((e) => e.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch { /* storage unavailable */ }
 }
 
 export function clearAllExperiences() {
-  localStorage.removeItem(STORAGE_KEY);
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* storage unavailable */ }
 }

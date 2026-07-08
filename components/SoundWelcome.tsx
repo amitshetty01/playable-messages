@@ -7,13 +7,15 @@ export function SoundWelcome() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const seen = localStorage.getItem("craft-message-sound-welcome");
-    if (seen === "seen") return;
-    const soundPref = localStorage.getItem("craft-message-sound");
-    if (soundPref === "off") return;
-    initSoundPref();
-    setShow(true);
-    localStorage.setItem("craft-message-sound-welcome", "seen");
+    try {
+      const seen = localStorage.getItem("craft-message-sound-welcome");
+      if (seen === "seen") return;
+      const soundPref = localStorage.getItem("craft-message-sound");
+      if (soundPref === "off") return;
+      initSoundPref();
+      setShow(true);
+      localStorage.setItem("craft-message-sound-welcome", "seen");
+    } catch { /* SSR guard */ }
     const t = setTimeout(() => setShow(false), 4000);
     return () => clearTimeout(t);
   }, []);

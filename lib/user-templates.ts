@@ -24,11 +24,13 @@ export type UserTemplate = {
 };
 
 export function saveUserTemplate(template: UserTemplate): void {
-  const all = getUserTemplates();
-  const existing = all.findIndex(t => t.id === template.id);
-  if (existing >= 0) all[existing] = template;
-  else all.push(template);
-  localStorage.setItem(USER_TEMPLATES_KEY, JSON.stringify(all));
+  try {
+    const all = getUserTemplates();
+    const existing = all.findIndex(t => t.id === template.id);
+    if (existing >= 0) all[existing] = template;
+    else all.push(template);
+    localStorage.setItem(USER_TEMPLATES_KEY, JSON.stringify(all));
+  } catch { /* storage unavailable */ }
 }
 
 export function getUserTemplates(): UserTemplate[] {
@@ -39,8 +41,10 @@ export function getUserTemplates(): UserTemplate[] {
 }
 
 export function deleteUserTemplate(id: string): void {
-  const all = getUserTemplates().filter(t => t.id !== id);
-  localStorage.setItem(USER_TEMPLATES_KEY, JSON.stringify(all));
+  try {
+    const all = getUserTemplates().filter(t => t.id !== id);
+    localStorage.setItem(USER_TEMPLATES_KEY, JSON.stringify(all));
+  } catch { /* storage unavailable */ }
 }
 
 export function userTemplateToTemplate(ut: UserTemplate): Template {

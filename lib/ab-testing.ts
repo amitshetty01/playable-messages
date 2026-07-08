@@ -23,13 +23,17 @@ function getBucket(userId: string, testId: string, variantsCount: number): numbe
 }
 
 function getUserId(): string {
-  if (typeof window === "undefined") return "ssr-fallback";
-  let id = localStorage.getItem('craft-user-id');
-  if (!id) {
-    id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
-    localStorage.setItem('craft-user-id', id);
+  try {
+    if (typeof window === "undefined") return "ssr-fallback";
+    let id = localStorage.getItem('craft-user-id');
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+      localStorage.setItem('craft-user-id', id);
+    }
+    return id;
+  } catch {
+    return "ssr-fallback";
   }
-  return id;
 }
 
 export function getVariant(testId: string): string {

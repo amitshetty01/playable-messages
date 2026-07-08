@@ -61,5 +61,6 @@ export function initSoundPref() {
 }
 
 export function setSoundPref(enabled: boolean) {
-  localStorage.setItem("craft-message-sound", enabled ? "on" : "off");
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem("craft-message-sound", enabled ? "on" : "off"); } catch { /* storage unavailable */ }
 }

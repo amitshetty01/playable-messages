@@ -8,14 +8,13 @@ export function useSound() {
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(SOUND_KEY);
-    setEnabled(stored !== "off");
+    try { const stored = localStorage.getItem(SOUND_KEY); setEnabled(stored !== "off"); } catch { /* SSR guard */ }
   }, []);
 
   const toggle = useCallback(() => {
     setEnabled((prev) => {
       const next = !prev;
-      localStorage.setItem(SOUND_KEY, next ? "on" : "off");
+      try { localStorage.setItem(SOUND_KEY, next ? "on" : "off"); } catch { /* storage unavailable */ }
       return next;
     });
   }, []);

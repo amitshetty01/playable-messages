@@ -8,11 +8,11 @@ export function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem(CONSENT_KEY)) setVisible(true);
+    try { if (!localStorage.getItem(CONSENT_KEY)) setVisible(true); } catch { setVisible(true); }
   }, []);
 
   function accept() {
-    localStorage.setItem(CONSENT_KEY, "1");
+    try { localStorage.setItem(CONSENT_KEY, "1"); } catch { /* storage unavailable */ }
     setVisible(false);
   }
 

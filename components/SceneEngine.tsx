@@ -223,6 +223,8 @@ const LOVE_DODGE_TEXTS = [
   ["Don't look at me! 😳","rgba(255,150,150,0.9)"],
 ];
 
+const CLONE_PANIC_TEXTS = ["No! 😵", "Me too! 🏃", "Split! 💫", "Run! 💨", "Bye! 👋", "Nope! 🙈"];
+
 function FallingHearts({ speedBoost = 1, dizzy = 0 }: { speedBoost?: number; dizzy?: number }) {
   const hearts = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
@@ -278,6 +280,9 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
   const lastDodgeTimeRef = useRef(0);
   const oldPosRef = useRef({ left: "50%", top: "50%" });
   const panicTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [clones, setClones] = useState<{ id: number; x: number; y: number; vx: number; vy: number; rotation: number; popped: boolean; text: string }[]>([]);
+  const cloneIdRef = useRef(0);
+  const [splitFlash, setSplitFlash] = useState(false);
 
   function spawnParticles(cx: number, cy: number) {
     const count = 3 + Math.floor(Math.random() * 3);
@@ -360,6 +365,23 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
     }
 
     dodgeCountRef.current++;
+
+    // Mitosis: at attempt 5, the No button panics and splits into two clones
+    if (dodgeCountRef.current === 5) {
+      setSplitFlash(true);
+      setTimeout(() => setSplitFlash(false), 400);
+      const curX = parseFloat(pos.left);
+      const curY = parseFloat(pos.top);
+      const cId1 = ++cloneIdRef.current;
+      const cId2 = ++cloneIdRef.current;
+      const t1 = CLONE_PANIC_TEXTS[Math.floor(Math.random() * CLONE_PANIC_TEXTS.length)];
+      const t2 = CLONE_PANIC_TEXTS[Math.floor(Math.random() * CLONE_PANIC_TEXTS.length)];
+      setClones(prev => [...prev,
+        { id: cId1, x: curX - 4, y: curY - 4, vx: 100, vy: -80, rotation: 0, popped: false, text: t1 },
+        { id: cId2, x: curX + 4, y: curY + 4, vx: -100, vy: 80, rotation: 0, popped: false, text: t2 },
+      ]);
+    }
+
     hapticTone("tap", tone);
 
     // Spawn trail at old position before moving
@@ -476,6 +498,36 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
       onTruth();
     }, 1000);
   }
+
+  function handleClonePop(id: number, e: React.MouseEvent | React.TouchEvent) {
+    e.stopPropagation();
+    e.preventDefault();
+    haptic("tap");
+    setClones(prev => prev.map(c => c.id === id ? { ...c, popped: true } : c));
+    setTimeout(() => {
+      setClones(prev => prev.filter(c => c.id !== id));
+    }, 500);
+  }
+
+  useEffect(() => {
+    const hasActive = clones.some(c => !c.popped);
+    if (!hasActive) return;
+    const interval = setInterval(() => {
+      setClones(prev => prev.map(c => {
+        if (c.popped) return c;
+        let newX = c.x + c.vx * 0.02;
+        let newY = c.y + c.vy * 0.02;
+        let vx = c.vx;
+        let vy = c.vy;
+        if (newX < 2) { newX = 2; vx = Math.abs(vx); }
+        if (newX > 93) { newX = 93; vx = -Math.abs(vx); }
+        if (newY < 2) { newY = 2; vy = Math.abs(vy); }
+        if (newY > 80) { newY = 80; vy = -Math.abs(vy); }
+        return { ...c, x: newX, y: newY, vx, vy, rotation: vx * 0.3 };
+      }));
+    }, 16);
+    return () => clearInterval(interval);
+  }, [clones]);
 
   const [currentText, currentColor] = LOVE_DODGE_TEXTS[flying ? textIndex : 0];
   const dodgeCount = dodgeCountRef.current;
@@ -626,6 +678,43 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
       >
         <span className="text-base sm:text-lg">{displayText}</span>
       </motion.span>
+
+      {/* Mitosis clones */}
+      {clones.map(c => c.popped ? (
+        <span key={c.id} className="pointer-events-none fixed z-50 text-xl"
+          style={{
+            left: `${c.x}%`, top: `${c.y}%`,
+            animation: "love-chase-particle 0.5s ease-out forwards",
+          }}
+        >💥</span>
+      ) : (
+        <motion.span
+          key={c.id}
+          className="fixed z-50 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-bold tracking-wider backdrop-blur-md select-none cursor-pointer"
+          style={{
+            left: `${c.x}%`, top: `${c.y}%`,
+            background: "linear-gradient(135deg, rgba(255,50,50,0.7), rgba(255,107,157,0.5))",
+            border: "2px solid rgba(255,50,50,0.7)",
+            color: "white",
+            boxShadow: "0 0 20px rgba(255,50,50,0.4)",
+            rotate: `${c.rotation}deg`,
+          }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          onClick={(e) => handleClonePop(c.id, e)}
+          onTouchStart={(e) => handleClonePop(c.id, e)}
+        >{c.text}</motion.span>
+      ))}
+
+      {/* Split flash */}
+      {splitFlash && (
+        <div className="pointer-events-none fixed inset-0 z-[90]"
+          style={{
+            background: "radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%)",
+            animation: "victory-flash 0.4s ease-out forwards",
+          }}
+        />
+      )}
 
       {/* Victory flash */}
       {victoryFlash && (
