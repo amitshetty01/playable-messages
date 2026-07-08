@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Script from "next/script";
@@ -13,22 +13,14 @@ import { TrendingTemplates } from "@/components/TrendingTemplates";
 import { ConfettiEffect } from "@/components/scenes/ConfettiEffect";
 import { DailyPrompt } from "@/components/DailyPrompt";
 import { getTemplate, templates } from "@/lib/data";
-import { createDemoExperience } from "@/lib/demo";
+
+import { WhoWhyRouter } from "@/components/WhoWhyRouter";
 
 const TemplatePreviewOverlay = dynamic(() => import("@/components/TemplatePreviewOverlay").then((m) => m.TemplatePreviewOverlay), { ssr: false });
 const TestimonialCarousel = dynamic(
   () => import("@/components/TestimonialCarousel").then((m) => m.TestimonialCarousel),
   { ssr: false }
 );
-const ExperiencePlayer = dynamic(
-  () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
-  { ssr: false }
-);
-const FloatingEnvelope = dynamic(
-  () => import("@/components/FloatingEnvelope").then((m) => ({ default: m.default })),
-  { ssr: false }
-);
-
 const REACTIONS = [
   { emoji: "😭", text: "She cried at the last reveal", author: "— Riya" },
   { emoji: "😂", text: "He chased the button for 40 seconds", author: "— Aarav" },
@@ -187,7 +179,6 @@ export function HomePageContent() {
   const [showGuided, setShowGuided] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
   const [preview, setPreview] = useState<{ id: string; rect: DOMRect } | null>(null);
-  const [demoKey, setDemoKey] = useState(0);
   const heroCtaText = getVariant('hero-cta-text') || "Create an Experience";
 
   const handlePreview = useCallback((id: string, rect?: DOMRect) => {
@@ -202,14 +193,7 @@ export function HomePageContent() {
 
   const previewTemplate = preview ? getTemplate(preview.id) : null;
 
-  const heroTemplate = useMemo(() => getTemplate("birthday-surprise-journey") ?? null, []);
-  const heroDemoExperience = useMemo(() => {
-    return heroTemplate ? createDemoExperience(heroTemplate) : null;
-  }, [heroTemplate]);
-
   const [showConfetti, setShowConfetti] = useState(false);
-  const [teaserScratched, setTeaserScratched] = useState(false);
-  const teaserCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleHeroCreate = useCallback(() => {
     setShowConfetti(true);
@@ -217,86 +201,7 @@ export function HomePageContent() {
     document.getElementById("quick-create")?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  const handleLiveDemo = useCallback(() => {
-    setDemoKey((k) => k + 1);
-    window.open("/demo/phone/birthday-surprise-journey", "_blank");
-  }, []);
 
-  function TeaserScratch() {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [scratched, setScratched] = useState(false);
-    const isDrawing = useRef(false);
-
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const w = 180; const h = 50;
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      const grad = ctx.createLinearGradient(0, 0, w, h);
-      grad.addColorStop(0, "#c8d0d8"); grad.addColorStop(1, "#a0b0c0");
-      ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
-      ctx.font = "bold 11px sans-serif";
-      ctx.fillStyle = "rgba(255,255,255,0.5)";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("✨ SCRATCH HERE ✨", w / 2, h / 2);
-    }, []);
-
-    function getPos(e: React.PointerEvent<HTMLCanvasElement>) {
-      const rect = canvasRef.current!.getBoundingClientRect();
-      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    }
-
-    function scratch(x: number, y: number) {
-      const canvas = canvasRef.current; if (!canvas) return;
-      const ctx = canvas.getContext("2d"); if (!ctx) return;
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2); ctx.fill();
-    }
-
-    function checkRevealed() {
-      const canvas = canvasRef.current; if (!canvas) return;
-      const ctx = canvas.getContext("2d"); if (!ctx) return;
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const pixels = imageData.data; let cleared = 0; let total = 0;
-      for (let y = 0; y < canvas.height; y += 4) {
-        for (let x = 0; x < canvas.width; x += 4) {
-          if (pixels[(y * canvas.width + x) * 4 + 3] === 0) cleared++;
-          total++;
-        }
-      }
-      if (cleared / total > 0.35) { setScratched(true); setTeaserScratched(true); }
-    }
-
-    function handleDown(e: React.PointerEvent<HTMLCanvasElement>) {
-      if (scratched) return; isDrawing.current = true;
-      const pos = getPos(e); scratch(pos.x, pos.y); checkRevealed();
-    }
-    function handleMove(e: React.PointerEvent<HTMLCanvasElement>) {
-      if (!isDrawing.current || scratched) return;
-      const pos = getPos(e); scratch(pos.x, pos.y); checkRevealed();
-    }
-    function handleUp() { isDrawing.current = false; }
-
-    return (
-      <div className="relative inline-block overflow-hidden rounded-lg border border-white/15">
-        <div className="flex items-center justify-center bg-white/5 px-4 py-2">
-          <p className="text-xs font-bold text-white/70">{scratched ? "🎉 Make their heart skip a beat!" : "???"}</p>
-        </div>
-        {!scratched && (
-          <canvas
-            ref={canvasRef}
-            onPointerDown={handleDown}
-            onPointerMove={handleMove}
-            onPointerUp={handleUp}
-            onPointerLeave={handleUp}
-            className="absolute inset-0 h-full w-full touch-none cursor-crosshair"
-          />
-        )}
-      </div>
-    );
-  }
 
   function CursorFollower() {
     const cx = useMotionValue(-100);
@@ -365,10 +270,6 @@ export function HomePageContent() {
           HERO
           ════════════════════════════════════════ */}
       <section className="relative overflow-hidden pt-6 sm:pt-10">
-        {/* Interactive 3D Floating Envelope */}
-        <div className="pointer-events-none absolute right-4 top-4 z-20 h-[200px] w-[200px] opacity-60 lg:opacity-100">
-          <FloatingEnvelope />
-        </div>
         <motion.div
           animate={{ x: [0, 30, 0, -20, 0], scale: [1, 1.05, 0.98, 1.02, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
@@ -386,7 +287,7 @@ export function HomePageContent() {
         />
         <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[600px] bg-gradient-to-r from-violet/5 via-blush/5 to-neon/5 blur-[120px]" />
 
-        <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -414,70 +315,15 @@ export function HomePageContent() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 flex flex-col items-center gap-4 sm:flex-row lg:justify-start"
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8"
             >
-              <button
-                type="button"
-                onClick={handleHeroCreate}
-                className="premium-button min-w-[200px] text-base"
-              >
-                {heroCtaText}
-              </button>
-              <button
-                type="button"
-                onClick={handleLiveDemo}
-                className="ghost-button min-w-[180px] text-base"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                Watch Live Demo
-              </button>
+              <WhoWhyRouter onCreateClick={handleHeroCreate} />
             </motion.div>
 
-            <p className="mt-3 text-xs font-bold text-white/40">
+            <p className="mt-4 text-xs font-bold text-white/40 text-center lg:text-left">
               No sign-up required. Takes 30 seconds.
             </p>
-
-            <div className="mt-4 flex justify-center lg:justify-start">
-              <TeaserScratch />
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="z-10 shrink-0"
-          >
-            <div className="relative mx-auto w-[280px] sm:w-[320px]">
-              <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-b from-violet/20 via-blush/10 to-neon/10 blur-3xl opacity-60" />
-              <div className="relative overflow-hidden rounded-[2.6rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_80px_rgba(0,0,0,0.5),0_0_40px_rgba(184,165,255,0.08)]">
-                <div className="relative overflow-hidden rounded-[2.4rem] bg-black">
-                  <div className="pointer-events-none absolute inset-0 z-30 rounded-[2.4rem] bg-gradient-to-br from-white/[0.06] via-transparent to-transparent" />
-                  <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-[2.4rem]">
-                    <div className="absolute -left-1/2 top-0 h-full w-1/3 skew-x-[20deg] bg-gradient-to-r from-transparent via-white/[0.07] to-transparent" />
-                  </div>
-                  <div className="absolute left-1/2 top-0 z-20 h-[4px] w-20 -translate-x-1/2 rounded-b-full bg-zinc-900" />
-                  <div className="absolute right-4 top-3 z-20 h-[6px] w-[6px] rounded-full bg-zinc-900 shadow-inner">
-                    <div className="h-full w-full rounded-full bg-gradient-to-br from-zinc-600 to-zinc-900" />
-                  </div>
-                  <div className="relative aspect-[9/19] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
-                    {heroTemplate && heroDemoExperience && (
-                      <ExperiencePlayer
-                        key={demoKey}
-                        template={heroTemplate}
-                        experience={heroDemoExperience}
-                        mode="demo"
-                      />
-                    )}
-                  </div>
-                  <div className="absolute bottom-2 left-1/2 z-20 h-[4px] w-28 -translate-x-1/2 rounded-full bg-zinc-900" />
-                </div>
-              </div>
-              <div className="mt-4 text-center">
-                <p className="text-[10px] font-bold tracking-widest text-white/25 uppercase">Blow Out the Candles · Live Demo</p>
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>

@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from "react";
 import { compressImage } from "@/lib/compressImage";
+import { enhanceImage } from "@/lib/enhanceImage";
 import type { EditableField } from "@/lib/types";
 
 type DynamicFieldEditorProps = {
@@ -293,7 +294,8 @@ function ImageSlot({
           reader.onload = async (ev) => {
             const dataUrl = ev.target?.result as string;
             const compressed = await compressImage(dataUrl);
-            onUpdate(index, compressed);
+            const enhanced = await enhanceImage(compressed);
+            onUpdate(index, enhanced);
           };
           reader.readAsDataURL(file);
           e.target.value = "";

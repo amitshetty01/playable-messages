@@ -9,13 +9,16 @@ import { DraftRecoveryModal } from "@/components/DraftRecoveryModal";
 import { ExperiencePlayer } from "@/components/ExperiencePlayer";
 import { defaultCustomMessages, defaultFinalMessage, getTemplateCategory } from "@/lib/data";
 import { saveExperience } from "@/lib/my-experiences";
-import { compressImage } from "@/lib/compressImage";
 import { Spinner } from "@/components/Spinner";
 import { useAudio } from "@/lib/audio-engine";
 import { getTemplateConfig } from "@/lib/template-configs";
 import { ChainCreateForm } from "@/components/ChainCreateForm";
 import { analyzeSentiment } from "@/lib/sentiment";
 import { SentimentBadge } from "@/components/SentimentBadge";
+import { VoiceInput } from "@/components/VoiceInput";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import { haptic } from "@/lib/haptic";
+import { playSound } from "@/lib/flowSounds";
 import type { ExperienceRecord, RelationshipTag, Template, ThemeName, Tone } from "@/lib/types";
 import { RELATIONSHIP_TAGS, ANON_TONES } from "@/lib/types";
 
@@ -115,10 +118,12 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [pendingDraft, setPendingDraft] = useState<Record<string, any> | null>(null);
   const [draftChecked, setDraftChecked] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
   const [wizardStep, setWizardStep] = useState(1);
   const [isChain, setIsChain] = useState(false);
-  const generateButtonStyle = getVariant('create-button-style') || 'premium-button';
+  let generateButtonStyle = 'premium-button';
+  try { generateButtonStyle = getVariant('create-button-style') || 'premium-button'; } catch { /* SSR guard */ }
   const [chainTarget, setChainTarget] = useState(3);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showStepCustomization, setShowStepCustomization] = useState(false);
@@ -405,6 +410,17 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   // FP7: Fallback success screen (when Web Share API fails)
   if (createdId) {
     const shareUrl = `${window.location.origin}/experience/${createdId}`;
+    async function copyUrl() {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        haptic("success");
+        playSound("ding");
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        /* clipboard unavailable */
+      }
+    }
     return (
       <div className="mx-auto max-w-lg text-center">
         <div className="animate-section-fade rounded-[2rem] bg-gradient-to-b from-white/10 to-white/5 p-10 backdrop-blur-xl">
@@ -413,16 +429,28 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           </div>
           <h2 className="display-title text-4xl font-bold text-white">Your experience is ready!</h2>
           <p className="mt-3 text-white/60">Share this link:</p>
+
+          {/* Copy button with visual toast */}
           <div className="mt-6 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/5 p-2">
             <input readOnly value={shareUrl} className="flex-1 bg-transparent px-3 py-2 text-sm text-white outline-none" onClick={(e) => (e.target as HTMLInputElement).select()} />
             <button
               type="button"
-              className="shrink-0 rounded-xl bg-white/15 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/25 active:scale-95"
-              onClick={() => { navigator.clipboard.writeText(shareUrl); }}
+              onClick={copyUrl}
+              className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all active:scale-95 ${
+                copied
+                  ? "bg-emerald-500/30 text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.3)]"
+                  : "bg-white/15 hover:bg-white/25"
+              }`}
             >
-              Copy
+              {copied ? "Copied! 🎉" : "Copy Link"}
             </button>
           </div>
+
+          {/* QR Code */}
+          <div className="mt-6 flex justify-center">
+            <QRCodeDisplay url={shareUrl} />
+          </div>
+
           <div className="mt-6 flex justify-center gap-3">
             <button type="button" className="ghost-button" onClick={() => window.open(shareUrl, "_blank", "noopener,noreferrer")}>Preview it</button>
             <button type="button" className="premium-button" onClick={() => setCreatedId(null)}>Create another</button>
@@ -468,7 +496,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
           onChoose={handleDraftChoice}
         />
       )}
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto flex gap-8 lg:max-w-7xl">
+      <div className="min-w-0 flex-1 lg:max-w-[50%]">
       <section className="glass min-w-0 rounded-[2rem] p-5 sm:p-8">
         <p className="text-xs font-bold tracking-[0.08em] text-white/50">{isEdit ? "Edit Mode" : "Gamified Creation"}</p>
         <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">
@@ -609,7 +638,10 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             <p className="mb-3 text-xs font-bold tracking-[0.08em] text-white/40">💬 Message</p>
             <div className="grid gap-5">
               <Field label="What's your real message?" full>
-                <textarea value={form.finalMessage} onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }} maxLength={520} className={`input min-h-28 py-3 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
+                <div className="flex items-start gap-2">
+                  <textarea value={form.finalMessage} onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }} maxLength={520} className={`input min-h-28 py-3 flex-1 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
+                  <VoiceInput onTranscript={(text) => setForm((prev) => ({ ...prev, finalMessage: prev.finalMessage + text }))} />
+                </div>
                 <div className="mt-1 flex items-center justify-between">
                   {fieldErrors.finalMessage && <p className="text-xs font-bold text-rose-300">{fieldErrors.finalMessage}</p>}
                   <span className="ml-auto text-xs text-white/30">{form.finalMessage.length}/520</span>
@@ -819,6 +851,39 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         )}
       </div>
     </section>
+    </div>
+
+    {/* ─── Live Phone Preview (desktop/tablet) ─── */}
+    <aside className="hidden lg:block sticky top-4 self-start w-[45%] shrink-0">
+      <div className="relative">
+        <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-b from-violet/20 via-blush/10 to-neon/10 blur-3xl opacity-40" />
+        <div className="relative overflow-hidden rounded-[2.6rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_80px_rgba(0,0,0,0.5),0_0_40px_rgba(184,165,255,0.08)]">
+          <div className="relative overflow-hidden rounded-[2.4rem] bg-black">
+            <div className="pointer-events-none absolute inset-0 z-30 rounded-[2.4rem] bg-gradient-to-br from-white/[0.06] via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-[2.4rem]">
+              <div className="absolute -left-1/2 top-0 h-full w-1/3 skew-x-[20deg] bg-gradient-to-r from-transparent via-white/[0.07] to-transparent" />
+            </div>
+            <div className="absolute left-1/2 top-0 z-20 h-[4px] w-20 -translate-x-1/2 rounded-b-full bg-zinc-900" />
+            <div className="absolute right-4 top-3 z-20 h-[6px] w-[6px] rounded-full bg-zinc-900 shadow-inner">
+              <div className="h-full w-full rounded-full bg-gradient-to-br from-zinc-600 to-zinc-900" />
+            </div>
+            <div className="relative aspect-[9/19] w-full max-h-[75vh] overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
+              <ExperiencePlayer
+                key={form.finalMessage.length + form.tone + form.theme}
+                template={template}
+                experience={experience}
+                mode="demo"
+              />
+            </div>
+            <div className="absolute bottom-2 left-1/2 z-20 h-[4px] w-28 -translate-x-1/2 rounded-full bg-zinc-900" />
+          </div>
+        </div>
+        <div className="mt-4 text-center">
+          <p className="text-[10px] font-bold tracking-widest text-white/25 uppercase">Live Preview</p>
+          <p className="text-[9px] text-white/20 mt-0.5">Updates as you type</p>
+        </div>
+      </div>
+    </aside>
     </div>
     </>
   );

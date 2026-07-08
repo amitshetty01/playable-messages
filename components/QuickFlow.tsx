@@ -6,6 +6,7 @@ import { pickTemplate } from "@/lib/pickTemplate";
 import { ExperiencePreview } from "@/components/ExperiencePreview";
 import { Spinner } from "@/components/Spinner";
 import type { ExperienceRecord } from "@/lib/types";
+import { VoiceInput } from "@/components/VoiceInput";
 
 export function QuickFlow() {
   const [text, setText] = useState("");
@@ -51,15 +52,18 @@ export function QuickFlow() {
         Turn simple words into shareable links with games, reveals, and surprises. No app download needed.
       </p>
 
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="What do you want them to discover?"
-        rows={3}
-        aria-label="Your message"
-        className="mt-8 w-full max-w-xl rounded-2xl border border-white/15 bg-white/8 px-5 py-4 text-center text-lg text-white placeholder-white/30 backdrop-blur-sm outline-none transition-all focus:border-white/30 focus:bg-white/12"
-        maxLength={520}
-      />
+      <div className="mt-8 w-full max-w-xl flex items-start gap-2">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="What do you want them to discover?"
+          rows={3}
+          aria-label="Your message"
+          className="flex-1 rounded-2xl border border-white/15 bg-white/8 px-5 py-4 text-center text-lg text-white placeholder-white/30 backdrop-blur-sm outline-none transition-all focus:border-white/30 focus:bg-white/12"
+          maxLength={520}
+        />
+        <VoiceInput onTranscript={(t) => setText((prev) => prev + t)} />
+      </div>
 
       <button
         type="button"
