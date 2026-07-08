@@ -194,3 +194,34 @@ alter table generated_experiences
 add column if not exists vibe_emoji text not null default '';
 alter table generated_experiences
 add column if not exists vibe_audio_url text not null default '';
+
+-- ─── Cross-Device Drafts (Session Resume) ───
+
+create table if not exists drafts (
+  id text primary key,
+  resume_code text unique not null,
+  template_id text not null default '',
+  form_state jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_drafts_resume_code on drafts(resume_code);
+
+alter table drafts enable row level security;
+
+drop policy if exists "Public can read drafts by resume code" on drafts;
+create policy "Public can read drafts by resume code"
+on drafts for select
+using (true);
+
+drop policy if exists "Public can upsert drafts" on drafts;
+create policy "Public can upsert drafts"
+on drafts for insert
+with check (true);
+
+drop policy if exists "Public can update drafts" on drafts;
+create policy "Public can update drafts"
+on drafts for update
+using (true)
+with check (true);

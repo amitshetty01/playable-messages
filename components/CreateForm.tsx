@@ -13,6 +13,9 @@ import { Spinner } from "@/components/Spinner";
 import { useAudio } from "@/lib/audio-engine";
 import { getTemplateConfig } from "@/lib/template-configs";
 import { ChainCreateForm } from "@/components/ChainCreateForm";
+import { QuickSnippetsManager } from "@/components/QuickSnippetsManager";
+import { QuickSnippetsDropdown } from "@/components/QuickSnippetsDropdown";
+import { AIWorkflow } from "@/components/AIWorkflow";
 import { analyzeSentiment } from "@/lib/sentiment";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { VoiceInput } from "@/components/VoiceInput";
@@ -30,6 +33,42 @@ const EXPIRY_OPTIONS = [
 ] as const;
 
 const DRAFT_KEY = "craft-message-draft";
+
+const TEASER_CAPTIONS: Record<string, string[]> = {
+  Romantic: [
+    "I have a secret to tell you... don't open this in public! 👀",
+    "This is for you. Open it when you're alone... 💌",
+    "I made something that's just for your eyes. 💕",
+    "Promise you'll open this when no one's looking. 🤫",
+  ],
+  Funny: [
+    "Okay don't laugh... actually, please laugh 😂",
+    "I made this and it's either genius or a disaster. You decide. 🔥",
+    "Open this when you need a smile (or a good roast). 😏",
+    "Warning: may cause uncontrollable laughing. 💀",
+  ],
+  Sorry: [
+    "I messed up. This is me trying to make it right. 🥺",
+    "Open this when you're ready to hear me out... 💔",
+    "I'm sorry isn't enough, but this is a start. 🤝",
+  ],
+  Birthday: [
+    "Happy birthday! Don't open this until your special day! 🎂",
+    "A little something for your birthday... hope it makes you smile! 🎉",
+    "This is your birthday surprise! Open it! 🎈",
+  ],
+  Friendship: [
+    "Made this for my favorite person. That's you. 🤝",
+    "Just a little something to remind you how awesome you are. ✨",
+    "For the best friend anyone could ask for. 💛",
+  ],
+};
+
+function generateTeaserCaption(tone: string, creatorName: string): string {
+  const captions = TEASER_CAPTIONS[tone] ?? TEASER_CAPTIONS.Romantic;
+  const caption = captions[Math.floor(Math.random() * captions.length)];
+  return `${caption} [Link] — ${creatorName || "Someone"}`;
+}
 
 function computeExpiresAt(option: string): string | undefined {
   if (!option) return undefined;
@@ -119,6 +158,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [draftChecked, setDraftChecked] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [teaserLine, setTeaserLine] = useState("");
+  const [captionCopied, setCaptionCopied] = useState(false);
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
   const [wizardStep, setWizardStep] = useState(1);
   const [isChain, setIsChain] = useState(false);
@@ -138,16 +179,63 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     return td;
   });
   const draftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const serverDraftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalMessageDirty = useRef(false);
+  const messageTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [resumeCode, setResumeCode] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [showResumeCode, setShowResumeCode] = useState(false);
   const [detectedSentiment, setDetectedSentiment] = useState<{ tone: Tone; theme: ThemeName; confidence: number } | null>(null);
   const [showSentimentBadge, setShowSentimentBadge] = useState(false);
   const manualToneSet = useRef(false);
 
-  // Remix: auto-fill tone, theme, and finalMessage from original experience
+  // Resume: cross-device draft restoration
   useEffect(() => {
     if (isEdit) return;
     const params = new URLSearchParams(window.location.search);
+    const resume = params.get("resume");
     const remixId = params.get("remix");
+
+    if (resume) {
+      fetch(`/api/drafts?code=${encodeURIComponent(resume)}`)
+        .then((r) => r.json())
+        .then((json) => {
+          const d = json.data;
+          if (!d) return;
+          const fs = d.form_state ?? {};
+          setForm((prev) => ({
+            ...prev,
+            templateId: d.template_id ?? prev.templateId,
+            category: fs.category ?? prev.category,
+            creatorName: fs.creatorName ?? prev.creatorName,
+            receiverName: fs.receiverName ?? prev.receiverName,
+            tone: fs.tone ?? prev.tone,
+            theme: fs.theme ?? prev.theme,
+            landingText: fs.landingText ?? prev.landingText,
+            buttonText: fs.buttonText ?? prev.buttonText,
+            steps: fs.steps ?? prev.steps,
+            finalMessage: fs.finalMessage ?? prev.finalMessage,
+            ctaMessage: fs.ctaMessage ?? prev.ctaMessage,
+            sceneTitles: fs.sceneTitles ?? prev.sceneTitles,
+            expiryOption: fs.expiryOption ?? prev.expiryOption,
+            relationshipTag: fs.relationshipTag ?? prev.relationshipTag,
+            showCreatorName: fs.showCreatorName ?? prev.showCreatorName,
+            customPassword: fs.customPassword ?? prev.customPassword,
+            passwordQuestion: fs.passwordQuestion ?? prev.passwordQuestion,
+            passwordAnswer: fs.passwordAnswer ?? prev.passwordAnswer,
+            togetherSince: fs.togetherSince ?? prev.togetherSince,
+          }));
+          finalMessageDirty.current = true;
+          setResumeCode(d.resume_code);
+          setDraftId(d.id);
+          localStorage.setItem("cym_resume_code", d.resume_code);
+          setDraftToast(true);
+          setTimeout(() => setDraftToast(false), 4000);
+        })
+        .catch(() => {});
+      return;
+    }
+
     if (!remixId) return;
     fetch(`/api/experiences/${remixId}`)
       .then((res) => res.json())
@@ -231,11 +319,42 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch { /* storage full */ }
   }, [form, images, templateData, isEdit]);
 
+  const saveServerDraft = useCallback(async () => {
+    if (isEdit) return;
+    try {
+      const body: Record<string, unknown> = {
+        templateId: form.templateId,
+        formState: { ...form, images, templateData },
+      };
+      if (draftId) body.draftId = draftId;
+      const res = await fetch("/api/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (json.data) {
+        if (json.data.resume_code && !resumeCode) {
+          setResumeCode(json.data.resume_code);
+          localStorage.setItem("cym_resume_code", json.data.resume_code);
+        }
+        if (json.data.id && !draftId) setDraftId(json.data.id);
+      }
+    } catch { /* server draft unavailable */ }
+  }, [form, images, templateData, isEdit, draftId, resumeCode]);
+
   useEffect(() => {
     if (isEdit) return;
     draftTimer.current = setInterval(saveDraft, 30000);
     return () => { if (draftTimer.current) clearInterval(draftTimer.current); };
   }, [saveDraft, isEdit]);
+
+  useEffect(() => {
+    if (isEdit) return;
+    serverDraftTimer.current = setInterval(saveServerDraft, 60000);
+    saveServerDraft();
+    return () => { if (serverDraftTimer.current) clearInterval(serverDraftTimer.current); };
+  }, [saveServerDraft, isEdit]);
 
   useEffect(() => {
     if (isEdit || draftChecked) return;
@@ -249,6 +368,26 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     } catch { /* invalid draft */ }
     setDraftChecked(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keyboard Dock: push form above virtual keyboard on mobile
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handler = () => {
+      const dockedEls = document.querySelectorAll<HTMLElement>("[data-mobile-dock]");
+      if (!dockedEls.length) return;
+      const keyboardHeight = window.innerHeight - vv.height;
+      if (keyboardHeight > 100) {
+        document.body.style.setProperty("--keyboard-height", `${keyboardHeight}px`);
+        document.body.classList.add("keyboard-visible");
+      } else {
+        document.body.classList.remove("keyboard-visible");
+        document.body.style.removeProperty("--keyboard-height");
+      }
+    };
+    vv.addEventListener("resize", handler);
+    return () => vv.removeEventListener("resize", handler);
+  }, []);
 
   function handleDraftChoice(choice: "continue" | "fresh") {
     if (choice === "fresh") {
@@ -391,6 +530,8 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         return;
       }
       clearDraft();
+      if (draftId) fetch("/api/drafts", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ draftId }) }).catch(() => {});
+      localStorage.removeItem("cym_resume_code");
       const targetId = json.id;
       const shareUrl = `${window.location.origin}/experience/${targetId}`;
       saveExperience({ id: targetId, templateTitle: template.title, receiverName: form.receiverName || "You", createdAt: new Date().toISOString(), creatorName: form.creatorName });
@@ -410,6 +551,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   // FP7: Fallback success screen (when Web Share API fails)
   if (createdId) {
     const shareUrl = `${window.location.origin}/experience/${createdId}`;
+    if (!teaserLine) setTeaserLine(generateTeaserCaption(form.tone, form.creatorName));
     async function copyUrl() {
       try {
         await navigator.clipboard.writeText(shareUrl);
@@ -420,6 +562,16 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
       } catch {
         /* clipboard unavailable */
       }
+    }
+    async function copyCaption() {
+      try {
+        await navigator.clipboard.writeText(teaserLine.replace("[Link]", shareUrl));
+        setCaptionCopied(true);
+        setTimeout(() => setCaptionCopied(false), 2000);
+      } catch {}
+    }
+    function regenerateCaption() {
+      setTeaserLine(generateTeaserCaption(form.tone, form.creatorName));
     }
     return (
       <div className="mx-auto max-w-lg text-center">
@@ -446,16 +598,49 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             </button>
           </div>
 
+          {/* Teaser Social Caption */}
+          <div className="mt-4 rounded-2xl border border-violet/20 bg-violet/10 p-4">
+            <p className="text-[10px] font-bold tracking-[0.08em] text-violet/60 uppercase">Teaser Caption</p>
+            <p className="mt-1 text-sm leading-relaxed text-white/80">{teaserLine}</p>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <button type="button" onClick={copyCaption}
+                className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70 hover:bg-white/20 hover:text-white transition-colors">
+                {captionCopied ? "Copied! ✅" : "Copy Caption"}
+              </button>
+              <button type="button" onClick={regenerateCaption}
+                className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70 hover:bg-white/20 hover:text-white transition-colors">
+                Regenerate 🔄
+              </button>
+            </div>
+          </div>
+
+          {/* Deep-Link SMS & Email */}
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <a href={`sms:?&body=${encodeURIComponent(`${teaserLine.replace("[Link]", shareUrl)}`)}`}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-green-500/20 px-4 py-2 text-xs font-bold text-green-300 hover:bg-green-500/30 transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Send via SMS
+            </a>
+            <a href={`mailto:?subject=${encodeURIComponent("I made something for you")}&body=${encodeURIComponent(`${teaserLine.replace("[Link]", shareUrl)}`)}`}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-500/20 px-4 py-2 text-xs font-bold text-blue-300 hover:bg-blue-500/30 transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
+              Send via Email
+            </a>
+          </div>
+
           {/* QR Code */}
-          <div className="mt-6 flex justify-center">
+          <div className="mt-4 flex justify-center">
             <QRCodeDisplay url={shareUrl} />
           </div>
 
-          <div className="mt-6 flex justify-center gap-3">
-            <button type="button" className="ghost-button" onClick={() => window.open(shareUrl, "_blank", "noopener,noreferrer")}>Preview it</button>
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            <button type="button" className="ghost-button text-xs" onClick={() => window.open(`${shareUrl}?ghost=true`, "_blank", "noopener,noreferrer")}>
+              <span className="flex items-center gap-1.5">👻 Ghost Preview</span>
+            </button>
             <button type="button" className="premium-button" onClick={() => setCreatedId(null)}>Create another</button>
           </div>
-          <div className="mt-6">
+          <p className="mt-2 text-xs text-white/40">Ghost preview lets you verify without triggering analytics.</p>
+          <div className="mt-4">
             <a className="text-sm font-bold text-blush underline underline-offset-4 transition-colors hover:text-white" href={`/my-experiences/${createdId}`}>
               Track your message&apos;s journey &rarr;
             </a>
@@ -639,12 +824,40 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             <div className="grid gap-5">
               <Field label="What's your real message?" full>
                 <div className="flex items-start gap-2">
-                  <textarea value={form.finalMessage} onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }} onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }} maxLength={520} className={`input min-h-28 py-3 flex-1 ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`} placeholder="I've been meaning to tell you..." aria-label="Your real message" />
+                  <div className="relative flex-1">
+                    <textarea
+                      ref={messageTextareaRef}
+                      value={form.finalMessage}
+                      onChange={(event) => { finalMessageDirty.current = true; setFieldErrors((prev) => { const next = { ...prev }; delete next.finalMessage; return next; }); setForm((prev) => ({ ...prev, finalMessage: event.target.value })); }}
+                      onKeyDown={(e) => { if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) { playAudio("type"); } }}
+                      maxLength={520}
+                      className={`input min-h-28 py-3 w-full mobile-keyboard-aware ${fieldErrors.finalMessage ? "border-rose-400/50" : ""}`}
+                      placeholder={
+                        template.id === "kitty-apology" || template.categorySlugs.includes("apology-fight-repair")
+                          ? "e.g. I'm so sorry I forgot our dinner, I know how much you were looking forward to it..."
+                          : template.categorySlugs.includes("love-crush")
+                          ? "e.g. I've been meaning to tell you this for a while... You're the most amazing person I've ever met."
+                          : template.categorySlugs.includes("birthday-special-days")
+                          ? "e.g. Happy birthday to the most incredible person I know! Wishing you the best day ever!"
+                          : template.categorySlugs.includes("funny-roast")
+                          ? "e.g. So I was going to roast you, but clearly nature already did its job. Just kidding... mostly."
+                          : template.categorySlugs.includes("friendship-best-friend")
+                          ? "e.g. You're not just a friend — you're family I got to choose. And I'd choose you every single time."
+                          : "Type / to insert a saved snippet... I've been meaning to tell you..."
+                      }
+                      aria-label="Your real message"
+                      data-mobile-dock
+                    />
+                    <QuickSnippetsDropdown textareaRef={messageTextareaRef} onInsert={(text) => setForm((prev) => ({ ...prev, finalMessage: prev.finalMessage + text }))} />
+                  </div>
                   <VoiceInput onTranscript={(text) => setForm((prev) => ({ ...prev, finalMessage: prev.finalMessage + text }))} />
                 </div>
                 <div className="mt-1 flex items-center justify-between">
                   {fieldErrors.finalMessage && <p className="text-xs font-bold text-rose-300">{fieldErrors.finalMessage}</p>}
                   <span className="ml-auto text-xs text-white/30">{form.finalMessage.length}/520</span>
+                </div>
+                <div className="mt-3">
+                  <QuickSnippetsManager onInsert={(text) => setForm((prev) => ({ ...prev, finalMessage: prev.finalMessage + text }))} />
                 </div>
               </Field>
 
@@ -670,6 +883,18 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                   <Field label="Scene titles (one per line, optional)" full>
                     <textarea value={form.sceneTitles} onChange={(event) => setForm((prev) => ({ ...prev, sceneTitles: event.target.value }))} className="input min-h-24 py-3" placeholder="Step 1 title&#10;Step 2 title&#10;Step 3 title" />
                   </Field>
+                </div>
+              </details>
+
+              <details className="group">
+                <summary className="cursor-pointer text-xs font-bold tracking-[0.08em] text-white/40 hover:text-white/60 transition-colors">
+                  ✨ AI-Powered Creation (Experimental) ▾
+                </summary>
+                <div className="mt-3 animate-section-fade">
+                  <AIWorkflow
+                    onUseMessage={(text) => setForm((prev) => ({ ...prev, finalMessage: text }))}
+                    currentMessage={form.finalMessage}
+                  />
                 </div>
               </details>
             </div>
@@ -817,6 +1042,26 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             {error ? <p className="mt-5 rounded-2xl border border-rose-200/30 bg-rose-300/10 p-4 text-sm font-bold text-rose-100" role="alert">{error}</p> : null}
 
             {draftToast ? <p className="mt-4 animate-section-fade rounded-2xl border border-emerald-200/30 bg-emerald-300/10 p-4 text-sm font-bold text-emerald-100" role="status">Draft restored — your unsaved work is back.</p> : null}
+
+            {resumeCode && (
+              <div className="mt-4 animate-section-fade rounded-2xl border border-violet/20 bg-violet/10 p-4">
+                <button type="button" onClick={() => setShowResumeCode(!showResumeCode)} className="flex w-full items-center justify-between text-left">
+                  <span className="text-xs font-bold tracking-[0.06em] text-violet/60 uppercase">Cross-Device Resume</span>
+                  <svg className={`h-4 w-4 text-violet/60 transition-transform ${showResumeCode ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                </button>
+                {showResumeCode && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs text-white/50">Open this experience on another device by entering this code on the create page:</p>
+                    <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 p-2">
+                      <code className="flex-1 text-center font-mono text-lg font-bold tracking-[0.15em] text-white">{resumeCode}</code>
+                      <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(resumeCode); haptic("success"); } catch {} }}
+                        className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white/70 hover:bg-white/20 hover:text-white transition-colors">Copy</button>
+                    </div>
+                    <p className="text-xs text-white/40">Open on the other device, click &quot;Create&quot;, then add <code className="rounded bg-white/10 px-1 py-0.5 font-mono text-[10px]">?resume={resumeCode}</code> to the URL.</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <button className="ghost-button" type="button" onClick={() => setShowPreview(true)}>Preview</button>

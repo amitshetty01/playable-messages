@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import { HomePageContent } from "@/components/HomePageContent";
+import { AIHomePage } from "@/components/AIHomePage";
 import { siteName, defaultDescription, jsonLd } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: `Create Interactive Messages Online | ${siteName}`,
-  description: defaultDescription,
+  title: `AI-Powered Interactive Messages | ${siteName}`,
+  description: "Describe your idea and AI will craft a beautiful interactive experience in seconds. Confessions, apologies, birthday surprises, and more.",
   alternates: { canonical: absoluteUrl("/") },
   openGraph: {
-    title: `Create Interactive Messages Online | ${siteName}`,
+    title: `Create AI-Powered Interactive Messages | ${siteName}`,
     description: defaultDescription,
     url: absoluteUrl("/"),
     siteName,
     type: "website",
-    images: [{ url: absoluteUrl("/opengraph-image"), width: 1200, height: 630, alt: `${siteName} interactive message generator` }]
+    images: [{ url: absoluteUrl("/opengraph-image"), width: 1200, height: 630, alt: `${siteName} AI message generator` }]
   },
   twitter: {
     card: "summary_large_image",
-    title: `Create Interactive Messages Online | ${siteName}`,
+    title: `Create AI-Powered Interactive Messages | ${siteName}`,
     description: defaultDescription,
     images: [absoluteUrl("/opengraph-image")]
   }
@@ -61,7 +61,7 @@ export default function Page() {
           ])
         }}
       />
-      <HomePageContent />
+      <AIHomePage />
     </>
   );
 }

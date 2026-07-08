@@ -49,8 +49,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function ExperiencePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ExperiencePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ghost?: string }> }) {
   const { id } = await params;
+  const sp = await searchParams;
+  const isGhost = sp.ghost === "true";
   const { data, error } = await getExperience(id);
 
   if (error || !data) {
@@ -85,15 +87,17 @@ export default async function ExperiencePage({ params }: { params: Promise<{ id:
 
   const isScene = SCENE_ENGINE_TEMPLATES.includes(data.templateId) || SCENE_ENGINE_TEMPLATES.includes(template.id);
 
+  const mode = isGhost ? "ghost" : "generated";
+
   if (isScene) {
     return (
-      <ExperiencePlayer experience={data} mode="generated" shareUrl={absoluteUrl(`/experience/${data.id}`)} template={template} />
+      <ExperiencePlayer experience={data} mode={mode} shareUrl={absoluteUrl(`/experience/${data.id}`)} template={template} />
     );
   }
 
   return (
     <div className="space-y-6">
-      <ExperiencePlayer experience={data} mode="generated" shareUrl={absoluteUrl(`/experience/${data.id}`)} template={template} />
+      <ExperiencePlayer experience={data} mode={mode} shareUrl={absoluteUrl(`/experience/${data.id}`)} template={template} />
       <div className="flex justify-center gap-3">
         <Link className="ghost-button" href={`/edit/${data.id}`}>Edit this message</Link>
       </div>

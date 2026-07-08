@@ -1298,3 +1298,13 @@ html.light .skeleton::after {
   40% { transform: rotate(6deg); }
   50% { transform: rotate(0deg); }
 }
+
+/* ─── Mobile Keyboard Dock ─── */
+body.keyboard-visible {
+  /* Push content above virtual keyboard */
+  padding-bottom: var(--keyboard-height, 0px);
+  transition: padding-bottom 120ms ease-out;
+}
+.mobile-keyboard-aware {
+  transition: transform 120ms ease-out;
+}

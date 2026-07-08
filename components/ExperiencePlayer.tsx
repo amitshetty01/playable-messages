@@ -58,9 +58,9 @@ const GameAdapter = dynamic(() => import("@/components/GameAdapter").then((m) =>
 const EscapeMeGame = dynamic(() => import("@/components/games/EscapeMeGame").then((m) => ({ default: m.EscapeMeGame })), { ssr: false });
 const OurMemoriesPreview = dynamic(() => import("@/components/OurMemoriesPreview").then((m) => ({ default: m.OurMemoriesPreview })), { ssr: false });
 const SorryMazePreview = dynamic(() => import("@/components/SorryMazePreview").then((m) => ({ default: m.SorryMazePreview })), { ssr: false });
-type Mode = "demo" | "generated" | "preview";
+type Mode = "demo" | "generated" | "preview" | "ghost";
 
-const FLOWS: Record<string, (props: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string }) => React.ReactNode> = {
+const FLOWS: Record<string, (props: { template: Template; experience: ExperienceRecord; mode: "demo" | "generated" | "preview"; shareUrl?: string }) => React.ReactNode> = {
   "the-last-deleted-message": (props) => <StaticFrequencyGame {...props} />,
   "the-risk-button": (props) => <FateCardsGame {...props} />,
   "glitch-truth": (props) => <FrozenInIceGame {...props} />,
@@ -116,6 +116,8 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
   const [isLateNight] = useState(calcLateNight);
   const stepTimers = useRef<Map<number, number>>(new Map());
   const stepRef = useRef(0);
+
+  const renderMode: "demo" | "generated" | "preview" = mode === "ghost" ? "generated" : mode;
 
   const [browserLang, setBrowserLang] = useState("");
   const [showTranslateBanner, setShowTranslateBanner] = useState(false);
@@ -198,7 +200,9 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
   }
 
   function handleTrack(action: string) {
-    void track(experience.id, "selected_mood_choice", template.id, action);
+    if (mode !== "ghost") {
+      void track(experience.id, "selected_mood_choice", template.id, action);
+    }
     if (mode === "generated") {
       void track(experience.id, "game_interaction", template.id, undefined, { action });
     }
@@ -216,7 +220,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
     try { localStorage.setItem(cacheKey, JSON.stringify(textsToTranslate)); } catch { /* ignore */ }
   }
 
-  if (experience.scheduledAt && mode === "generated") {
+  if (experience.scheduledAt && (mode === "generated" || mode === "ghost")) {
     const scheduledTime = new Date(experience.scheduledAt).getTime();
     const now = Date.now();
     if (scheduledTime > now) {
@@ -301,20 +305,20 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
   const content = sceneFlow ? (
     <SceneErrorBoundary>
       {mode === "demo" ? (
-        <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={mode} isLateNight={isLateNight} />
+        <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
       ) : (
         <FullscreenExperience templateId={template.id}>
-          <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={mode} isLateNight={isLateNight} />
+          <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
         </FullscreenExperience>
       )}
     </SceneErrorBoundary>
   ) : FLOWS[template.id] ? (
     <SceneErrorBoundary>
       {(template.fullscreen === false || mode === "demo") ? (
-        FLOWS[template.id]({ template, experience: translatedExperience, mode, shareUrl })
+        FLOWS[template.id]({ template, experience: translatedExperience, mode: renderMode, shareUrl })
       ) : (
         <FullscreenExperience templateId={template.id} shareUrl={shareUrl}>
-          {FLOWS[template.id]({ template, experience: translatedExperience, mode, shareUrl })}
+          {FLOWS[template.id]({ template, experience: translatedExperience, mode: renderMode, shareUrl })}
         </FullscreenExperience>
       )}
     </SceneErrorBoundary>
@@ -332,6 +336,12 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
 
   return (
     <>
+      {mode === "ghost" && (
+        <div className="flex items-center justify-center gap-2 bg-purple-600/20 py-2 text-sm font-bold text-purple-200 backdrop-blur-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v4a8 8 0 0 0 8 8 8 8 0 0 0 8-8v-4a8 8 0 0 0-8-8z"/><circle cx="12" cy="14" r="3"/></svg>
+          <span>Ghost Mode — Preview only, no analytics tracked</span>
+        </div>
+      )}
       <div className="space-y-2 px-4 pt-2">
         <TranslateBanner
           language={browserLang}
