@@ -9,16 +9,32 @@ const MUTED = "#8c7a7a";
 const HEART = "#e8a0bf";
 const GOLD = "#c9a87c";
 
-/* ─── Utilities ─── */
+/* ─── Shared scroll state (single rAF-throttled listener) ─── */
+let _scrollY = 0;
+const _scrollSubs = new Set<() => void>();
 
 function useScrollY() {
-  const [y, setY] = useState(0);
+  const [, force] = useState(0);
   useEffect(() => {
-    const onScroll = () => setY(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    if (_scrollSubs.size === 0) {
+      let ticking = false;
+      const update = () => {
+        _scrollY = window.scrollY;
+        ticking = false;
+        _scrollSubs.forEach(fn => fn());
+      };
+      window.addEventListener("scroll", () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+    }
+    const fn = () => force(n => n + 1);
+    _scrollSubs.add(fn);
+    return () => { _scrollSubs.delete(fn); };
   }, []);
-  return y;
+  return _scrollY;
 }
 
 /* ─── Paper grain overlay ─── */
@@ -179,17 +195,17 @@ function GrandFinale() {
     return () => o.disconnect();
   }, []);
   const COLORS = ["#d4899e", "#c9a87c", "#b56576", "#e8a0bf", "#f4c7d4", "#e8d5b7", "#a67c52", "#d4a0b4"];
-  const burstParticles = Array.from({ length: 60 }, (_, i) => ({
+  const burstParticles = Array.from({ length: 25 }, (_, i) => ({
     id: i,
-    angle: (i / 60) * 360,
+    angle: (i / 25) * 360,
     distance: 30 + Math.random() * 70,
     size: 4 + Math.random() * 10,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     delay: Math.random() * 0.5,
     duration: 2 + Math.random() * 3,
   }));
-  const fallParticles = Array.from({ length: 40 }, (_, i) => ({
-    id: i + 60,
+  const fallParticles = Array.from({ length: 15 }, (_, i) => ({
+    id: i + 25,
     left: Math.random() * 100,
     delay: 0.5 + Math.random() * 3,
     duration: 4 + Math.random() * 5,
@@ -216,6 +232,7 @@ function GrandFinale() {
             animation: `grand-burst ${p.duration}s ease-out ${p.delay}s forwards`,
             "--tx": `${tx}vw`,
             "--ty": `${ty}vh`,
+            willChange: "transform, opacity",
           } as React.CSSProperties} />
         );
       })}
@@ -228,6 +245,7 @@ function GrandFinale() {
             height: p.size * 1.2,
             opacity: 0,
             animation: `petal-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+            willChange: "transform, opacity",
           }}>
             <svg viewBox="0 0 24 24" fill={p.color} className="h-full w-full">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -244,6 +262,7 @@ function GrandFinale() {
             opacity: 0,
             transform: `rotate(${p.rotation}deg)`,
             animation: `petal-fall ${p.duration}s ease-in ${p.delay}s forwards`,
+            willChange: "transform, opacity",
           }} />
         )
       )}
@@ -304,10 +323,10 @@ function useAmbientPad() {
       const gain = ctx.createGain();
       const lfo = ctx.createOscillator();
       const lfoGain = ctx.createGain();
-      osc1.type = "sine"; osc1.frequency.value = 196;
-      osc2.type = "sine"; osc2.frequency.value = 293.66;
+      osc1.type = "sine"; osc1.frequency.value = 523;
+      osc2.type = "sine"; osc2.frequency.value = 659.25;
       osc2.detune.value = -5;
-      gain.gain.value = 0.06;
+      gain.gain.value = 0.03;
       lfo.type = "sine"; lfo.frequency.value = 0.15;
       lfoGain.gain.value = 0.03;
       lfo.connect(lfoGain); lfoGain.connect(gain.gain);
@@ -793,7 +812,7 @@ main#content { max-width: 100% !important; padding: 0 !important; margin: 0 !imp
                       ))}
                     </div>
                     {/* ─── Flip card ─── */}
-                    <div onClick={() => handlePhotoClick(pics[i], i)} className="relative cursor-pointer" style={{ perspective: "1200px" }}>
+                    <div onClick={() => handlePhotoClick(pics[i], i)} className="relative" style={{ perspective: "1200px", cursor: isCustomImage(pics[i]) ? "pointer" : "default" }}>
                       <div className="relative transition-all duration-700" style={{
                         transform: flippedIndex === i ? "rotateY(180deg)" : "rotateY(0deg)",
                         transformStyle: "preserve-3d",

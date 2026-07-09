@@ -1568,7 +1568,7 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
           </div>
         ) : (
           <div className="relative z-10 flex flex-1 flex-col items-center overflow-y-auto px-5 pb-4 pt-4 sm:px-6">
-            <SceneProp scene={current!} />
+            <SceneProp scene={current!} theme={theme} />
             {current?.reaction && <ReactionEmoji emoji={current.reaction} step={step} />}
 
             {current?.dodge ? (

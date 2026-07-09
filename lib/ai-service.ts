@@ -10,7 +10,17 @@ import type {
   AISurpriseResponse,
   AIRegenerateResponse,
   AIConcept,
+  FeedbackHint,
 } from "./ai-types";
+import { getWorstTemplateTypes, getTopTemplateTypes } from "./ai-feedback";
+
+function buildFeedbackHint(): FeedbackHint | undefined {
+  if (typeof window === "undefined") return undefined;
+  const avoid = getWorstTemplateTypes(3);
+  const preferred = getTopTemplateTypes(3);
+  if (avoid.length === 0 && preferred.length === 0) return undefined;
+  return { preferredTypes: preferred.length > 0 ? preferred : undefined, avoidTypes: avoid.length > 0 ? avoid : undefined };
+}
 
 async function callAI(request: AIRequest): Promise<AIResponse> {
   const res = await fetch("/api/ai", {
@@ -40,6 +50,7 @@ export async function messageAssist(
     mode: "message_assist",
     roughPoints,
     tone: tone as AIAssistantRequest["tone"],
+    feedbackHint: buildFeedbackHint(),
   };
   return callAI(req) as Promise<AIAssistantResponse>;
 }
@@ -56,12 +67,16 @@ export async function gameBuilder(
     occasion: occasion as AIGameBuilderRequest["occasion"],
     recipient: recipient as AIGameBuilderRequest["recipient"],
     tone: tone as AIGameBuilderRequest["tone"],
+    feedbackHint: buildFeedbackHint(),
   };
   return callAI(req) as Promise<AIGameBuilderResponse>;
 }
 
 export async function surpriseMe(): Promise<AISurpriseResponse> {
-  return callAI({ mode: "surprise_me" }) as Promise<AISurpriseResponse>;
+  return callAI({
+    mode: "surprise_me",
+    feedbackHint: buildFeedbackHint(),
+  }) as Promise<AISurpriseResponse>;
 }
 
 export async function regenerateConcept(
@@ -72,5 +87,6 @@ export async function regenerateConcept(
     mode: "regenerate_concept",
     concept,
     instruction,
+    feedbackHint: buildFeedbackHint(),
   }) as Promise<AIRegenerateResponse>;
 }

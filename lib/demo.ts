@@ -1,115 +1,89 @@
 import { defaultFinalMessage, getTemplateCategory } from "@/lib/data";
 import type { ExperienceRecord, Template } from "@/lib/types";
 
-const DEMO_STEPS: Record<string, [string, string, string]> = {
-  "the-final-button": [
-    "I made this because a normal text felt too easy to ignore.",
-    "I don't always know how to say this directly.",
-    "But this moment deserves better than a plain message."
-  ],
-  "the-last-deleted-message": [
-    "I typed something for you... then deleted it.",
-    "Four versions existed. Only the last one was honest.",
-    "The deleted message wasn't wrong — it was just vulnerable."
-  ],
-  "the-risk-button": [
-    "Every risk reveals something true.",
-    "The boldest choice leads to the real message.",
-    "You picked a level. Now see what it unlocks."
-  ],
-  "glitch-truth": [
-    "This page seems normal. But something is breaking through.",
-    "The glitch keeps replacing the text with truth.",
-    "System restored. The truth stayed."
-  ],
-  "dont-smile-challenge": [
-    "Your challenge is simple. Don't smile.",
-    "Still holding strong? I have more material.",
-    "You smiled. I win. Now read the message."
-  ],
-  "choose-my-punishment": [
-    "Pick how I make it up to you.",
-    "Okay, you chose. Now I get to say the real part.",
-    "I'm sorry. Truly."
-  ],
-  "mood-repair-machine": [
-    "Machine started. Select the mood that needs repairing.",
-    "Scan complete. Human attention required.",
-    "The best repair is a real message."
-  ],
-  "the-secret-room": [
-    "A secret room. But the password is something honest.",
-    "Box 1: What I noticed about you.",
-    "Box 3: What I want you to know."
-  ],
-  "memory-maze": [
-    "You are inside a memory. Find the exit.",
-    "Each door is a moment we shared.",
-    "You found the exit. But this memory stayed."
-  ],
-  "roast-to-respect": [
-    "I will roast you first. Then say the truth.",
-    "Your texting style needs a parental advisory label.",
-    "Alright. Jokes aside."
-  ],
-  "type-or-else": [
-    "This message only reveals itself one keystroke at a time.",
-    "Every correct letter advances the reveal.",
-    "If you stop typing, the text starts fading back."
-  ],
-  "the-trust-scale": [
-    "Drag the slider to reveal the hidden message.",
-    "The higher you go, the more you see.",
-    "Let go and the text slowly fades back."
-  ],
-  "inkblot": [
-    "The message is hidden in the ink.",
-    "Drag across the canvas to develop it.",
-    "The full message appears at 70% coverage."
-  ],
-  "two-lies-one-truth": [
-    "I have never told you a lie.",
-    "I once ate your last snack and blamed the cat.",
-    "I think about you more than I admit."
-  ],
-  "the-closer-you-get": [
-    "The message is hidden in plain sight.",
-    "Click or scroll to zoom in closer.",
-    "At full zoom, every word becomes clear."
-  ],
-  "come-closer": [
-    "The screen looks serious\u2026 almost suspicious.",
-    "You get told to go to a dark room alone. Obviously you go.",
-    "3\u2026 2\u2026 1\u2026 BOOM. Full brightness flash. You just got pranked."
-  ],
-  "spin-to-reveal": [
-    "Spin the wheel to see what fate chooses.",
-    "Each segment unlocks a different theme.",
-    "The real message awaits after the spin."
-  ],
-  "love-contract": [
-    "This contract is made between two hearts who chose each other.",
-    "On these pages, parties agree to be ridiculous together.",
-    "Signed and sealed — this love is legally unofficial."
-  ],
-  "our-memories": [
-    "Every smile, every quiet moment, every laugh we shared\u2014I kept them all right here for you.",
-    "Some memories don't fade. They stay in your chest and breathe with you. These are the ones I'll carry forever.",
-    "I don't want to live in the past. I want every sunrise, every sunset, every breath in between\u2014with you."
-  ]
+const CATEGORY_DEMO: Record<string, { landing: string; steps: [string, string, string]; cta: string }> = {
+  confession: {
+    landing: "Some words are harder to say than type. This one was written twice — deleted once, sent once.",
+    steps: [
+      "I've been carrying this sentence in my chest for weeks. It's heavier than it looks.",
+      "The screen feels warm, almost like it knows what's about to happen.",
+      "There. I said it. Not out loud — but it's yours now. Be gentle with it."
+    ],
+    cta: "Send your own confession with the same weight."
+  },
+  apology: {
+    landing: "An apology shouldn't look like a text message. It should look like effort. This is mine.",
+    steps: [
+      "'Sorry' never felt like enough. So I built a moment that holds as much weight as I feel right now.",
+      "Every word here was chosen slowly, carefully — the way I should have chosen mine back then.",
+      "I can't undo what happened. But I can promise this: I'll carry the lesson, not the excuse."
+    ],
+    cta: "Make your apology unforgettable."
+  },
+  celebration: {
+    landing: "Some moments deserve a standing ovation. This one gets a whole interactive experience.",
+    steps: [
+      "You made it. Through everything — the late nights, the doubts, the hard parts nobody saw. You made it.",
+      "I built this because 'congratulations' felt too small for what you've done.",
+      "Here's to you. Not just for reaching the destination — but for how you walked the whole way."
+    ],
+    cta: "Celebrate someone with the experience they deserve."
+  },
+  love: {
+    landing: "Not a love letter — those feel too formal. This is closer to what I actually feel. A little messy, a lot honest.",
+    steps: [
+      "I don't have a single favorite memory of us. I have hundreds, and they keep multiplying.",
+      "It's the small things — the way you say my name, the sound you make when you laugh at your own jokes.",
+      "I don't know what forever looks like. But I know I want you in every version of it."
+    ],
+    cta: "Create a love message that feels like you."
+  },
+  funny: {
+    landing: "Warning: this message contains sarcasm, mild exaggeration, and at least one factually questionable claim about you.",
+    steps: [
+      "If you were a vegetable, you'd be a 'cute-cumber'. I spent way too long thinking about that sentence.",
+      "I like you more than pizza. That's serious. I once cried over a burnt pizza.",
+      "Alright, jokes aside — you're genuinely the best thing that's happened to me. And I mean that. You're welcome."
+    ],
+    cta: "Send a playful message that makes them smile."
+  },
+  memory: {
+    landing: "They say memories fade. I don't believe that. Some of them stay sharp enough to cut through any distance.",
+    steps: [
+      "I still remember the exact look on your face when you first realized something special was happening.",
+      "Time passes. Seasons change. But certain moments don't belong to the past — they live inside you.",
+      "This isn't nostalgia. It's proof that some things are worth remembering forever."
+    ],
+    cta: "Turn your favorite memory into an experience."
+  },
+  mystery: {
+    landing: "Not everything needs to be said directly. Some things feel better when they're uncovered, one layer at a time.",
+    steps: [
+      "Look closer. The answer isn't hiding — it's waiting for you to be ready.",
+      "Every message has a shadow version. The one you read and the one underneath.",
+      "You found it. I knew you would. Now you know what I couldn't say out loud."
+    ],
+    cta: "Create a mysterious message that intrigues."
+  },
+  prank: {
+    landing: "You're about to get got. Fair warning. (Also, I love you — which is why this is going to be good.)",
+    steps: [
+      "The setup: a mysterious screen. The stakes: your dignity. The payoff: absolutely worth it.",
+      "You're still reading. That's either bravery or poor decision-making. Both are admirable.",
+      "BOOM. Got you. And now that I have your attention — here's the real message."
+    ],
+    cta: "Prank someone with style (and affection)."
+  }
 };
 
 export function createDemoExperience(template: Template): ExperienceRecord {
-  const steps = DEMO_STEPS[template.id] ?? [
-    "Welcome to this interactive experience.",
-    "Each step brings you closer to the message.",
-    "The final reveal is worth the wait."
-  ];
+  const cat = getTemplateCategory(template).slug;
+  const demo = CATEGORY_DEMO[cat] ?? CATEGORY_DEMO.confession;
 
   return {
     id: "demo",
     templateId: template.id,
-    category: getTemplateCategory(template).slug,
+    category: cat,
     creatorName: "Someone kind",
     receiverName: "You",
     relationshipTag: "",
@@ -117,10 +91,10 @@ export function createDemoExperience(template: Template): ExperienceRecord {
     tone: template.tone,
     theme: template.theme,
     customMessages: {
-      landingText: template.hook,
+      landingText: demo.landing,
       buttonText: "Begin",
-      steps,
-      ctaMessage: "Create your own interactive message."
+      steps: [template.hook, ...demo.steps],
+      ctaMessage: demo.cta
     },
     finalMessage: defaultFinalMessage,
     createdAt: new Date().toISOString(),

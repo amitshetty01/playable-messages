@@ -1,9 +1,40 @@
 ========================================
 CRAFT YOUR MESSAGE - FULL CODEBASE DUMP
-Generated: 2026-07-06 14:42
+Generated: 2026-07-09
 ========================================
 
-==============================================
+⚠️ IMPORTANT — ONLY THESE 12 TEMPLATES EXIST
+===============================================================
+The `templates` array in lib/data.ts ONLY contains these 12 templates (status: "full").
+All "coming-soon" templates have been REMOVED from the array and moved to separate `comingSoonTemplates` array.
+NEVER suggest any template outside of these 12.
+
+ACTIVE TEMPLATES (12):
+
+[Love/Crush]
+1. Moving Button (the-final-button) — Emotional, catch the button to reveal the message
+2. Catch My Heart (love-chase) — Romantic, two buttons, one runs, catch the truth
+3. Escape Me — Mystery, heart of arrows, tap to clear path, reveal message
+4. Our Memories — Romantic, interactive scrapbook with memories & promises
+5. Love Contract — Romantic, relationship contract with funny rules and signatures
+
+[Friendship]
+6. Heart Vault (memory-maze) — Emotional, touch beating heart, enter password, unlock memory world
+
+[Apology]
+7. Kitty Apology — Sorry, cute kitty reveals an apology letter
+
+[Birthday]
+8. Blow Out the Candles (birthday-surprise-journey) — Birthday, blow out candles, message in icing
+9. Birthday Journey — Birthday, dark room, balloons, blow candles, message revealed
+
+[Funny]
+10. Come Closer Prank (come-closer) — Funny, dark room, 3-2-1 countdown, flash prank reveal
+11. Sorry Maze — Funny, navigate glowing maze, collect gems, reach the heart
+12. Escape Me — also fits Funny (funny-roast category)
+
+===============================================================
+
 FILE: package.json
 ==============================================
 

@@ -2,6 +2,11 @@
 
 export type AIMode = "message_assist" | "game_builder" | "surprise_me" | "regenerate_concept";
 
+export type FeedbackHint = {
+  preferredTypes?: string[];
+  avoidTypes?: string[];
+};
+
 export type AssistTone = "Romantic" | "Sorry" | "Cute" | "Emotional" | "Funny" | "Premium";
 
 export type GameOccasion =
@@ -44,6 +49,7 @@ export interface AIAssistantRequest {
   mode: "message_assist";
   roughPoints: string;
   tone: AssistTone;
+  feedbackHint?: FeedbackHint;
 }
 
 export interface AIGameBuilderRequest {
@@ -52,16 +58,19 @@ export interface AIGameBuilderRequest {
   occasion: GameOccasion;
   recipient: GameRecipient;
   tone: GameTone;
+  feedbackHint?: FeedbackHint;
 }
 
 export interface AISurpriseRequest {
   mode: "surprise_me";
+  feedbackHint?: FeedbackHint;
 }
 
 export interface AIRegenerateRequest {
   mode: "regenerate_concept";
   concept: AIConcept;
   instruction: string;
+  feedbackHint?: FeedbackHint;
 }
 
 export type AIRequest = AIAssistantRequest | AIGameBuilderRequest | AISurpriseRequest | AIRegenerateRequest;

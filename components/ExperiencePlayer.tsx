@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { getSceneFlow, buildSceneContext } from "@/lib/scene-registry";
 import { SceneErrorBoundary } from "@/components/SceneErrorBoundary";
@@ -13,7 +13,9 @@ import { VibeCapture } from "@/components/VibeCapture";
 import { ChainMessageFlow } from "@/components/ChainMessageFlow";
 import { TranslateBanner } from "@/components/TranslateBanner";
 import { detectBrowserLanguage, translateText } from "@/lib/translator";
+import { detectDeviceCapability, type DeviceTier } from "@/lib/device-capability";
 import type { AnalyticsEventType, ExperienceRecord, Template } from "@/lib/types";
+import type { SceneFlow, SceneStep } from "@/lib/scene-types";
 
 function calcLateNight(): boolean {
   if (typeof window === "undefined") return false;
@@ -22,6 +24,8 @@ function calcLateNight(): boolean {
 }
 
 const SceneEngine = dynamic(() => import("@/components/SceneEngine").then((m) => ({ default: m.SceneEngine })), { ssr: false });
+const Fallback2DScene = dynamic(() => import("@/components/Fallback2DScene").then((m) => ({ default: m.Fallback2DScene })), { ssr: false });
+const TweakEditor = dynamic(() => import("@/components/TweakEditor").then((m) => ({ default: m.TweakEditor })), { ssr: false });
 const StaticFrequencyGame = dynamic(() => import("@/components/games/StaticFrequencyGame").then((m) => ({ default: m.StaticFrequencyGame })), { ssr: false });
 const FateCardsGame = dynamic(() => import("@/components/games/FateCardsGame").then((m) => ({ default: m.FateCardsGame })), { ssr: false });
 const FrozenInIceGame = dynamic(() => import("@/components/games/FrozenInIceGame").then((m) => ({ default: m.FrozenInIceGame })), { ssr: false });
@@ -107,13 +111,18 @@ const FLOWS: Record<string, (props: { template: Template; experience: Experience
   "sorry-maze": () => <SorryMazePreview />,
 };
 
-export function ExperiencePlayer({ template, experience, mode, shareUrl, isPaused, onDemoClimax }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string; isPaused?: boolean; onDemoClimax?: () => void }) {
+export function ExperiencePlayer({ template, experience, mode, shareUrl, isPaused, onDemoClimax, onComplete: onCompleteExternal }: { template: Template; experience: ExperienceRecord; mode: Mode; shareUrl?: string; isPaused?: boolean; onDemoClimax?: () => void; onComplete?: () => void }) {
   const [unlocked, setUnlocked] = useState(!experience.lockType);
   const [chainComplete, setChainComplete] = useState(!experience.isChain || !!experience.chainCompleted);
   const [showReaction, setShowReaction] = useState(false);
   const [reactionSent, setReactionSent] = useState(false);
   const [ended, setEnded] = useState(false);
   const [isLateNight] = useState(calcLateNight);
+  const [deviceTier, setDeviceTier] = useState<DeviceTier | null>(null);
+
+  useEffect(() => {
+    setDeviceTier(detectDeviceCapability().tier);
+  }, []);
   const stepTimers = useRef<Map<number, number>>(new Map());
   const stepRef = useRef(0);
 
@@ -159,7 +168,31 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
     };
   }, [translatedTexts, experience]);
 
-  const sceneFlow = getSceneFlow(template.id, translatedExperience);
+  const baseSceneFlow = getSceneFlow(template.id, translatedExperience);
+  const [tweakedScenes, setTweakedScenes] = useState<Record<number, { title: string; body?: string }>>({});
+
+  const handleTweak = useCallback((stepIndex: number, newTitle: string, newBody?: string) => {
+    setTweakedScenes(prev => ({ ...prev, [stepIndex]: { title: newTitle, body: newBody } }));
+  }, []);
+
+  const sceneFlow: SceneFlow | null = useMemo(() => {
+    if (!baseSceneFlow) return null;
+    const tweakKeys = Object.keys(tweakedScenes);
+    if (tweakKeys.length === 0) return baseSceneFlow;
+    const scenes = baseSceneFlow.scenes.map((scene, i) => {
+      const tweak = tweakedScenes[i];
+      if (!tweak) return scene;
+      return {
+        ...scene,
+        content: {
+          ...scene.content,
+          title: tweak.title,
+          body: tweak.body !== undefined ? tweak.body : scene.content.body,
+        },
+      };
+    });
+    return { ...baseSceneFlow, scenes };
+  }, [baseSceneFlow, tweakedScenes]);
 
   useEffect(() => {
     if (!sceneFlow || mode !== "generated") return;
@@ -197,6 +230,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
     }
     setEnded(true);
     setShowReaction(true);
+    onCompleteExternal?.();
   }
 
   function handleTrack(action: string) {
@@ -302,16 +336,40 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
     );
   }
 
+  const isEditable = mode === "demo" || mode === "preview";
+
   const content = sceneFlow ? (
-    <SceneErrorBoundary>
-      {mode === "demo" ? (
-        <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
-      ) : (
+    isEditable ? (
+      <TweakEditor flow={sceneFlow} tone={translatedExperience.tone} theme={translatedExperience.theme} currentStep={0} onTweak={handleTweak}>
+        <SceneErrorBoundary>
+          {mode === "demo" ? (
+            deviceTier === "low" ? (
+              <Fallback2DScene flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} />
+            ) : (
+              <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
+            )
+          ) : (
+            <FullscreenExperience templateId={template.id}>
+              {deviceTier === "low" ? (
+                <Fallback2DScene flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} />
+              ) : (
+                <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
+              )}
+            </FullscreenExperience>
+          )}
+        </SceneErrorBoundary>
+      </TweakEditor>
+    ) : (
+      <SceneErrorBoundary>
         <FullscreenExperience templateId={template.id}>
-          <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
+          {deviceTier === "low" ? (
+            <Fallback2DScene flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} />
+          ) : (
+            <SceneEngine flow={sceneFlow} context={buildSceneContext(translatedExperience, handleComplete, handleTrack)} theme={translatedExperience.theme} mode={renderMode} isLateNight={isLateNight} />
+          )}
         </FullscreenExperience>
-      )}
-    </SceneErrorBoundary>
+      </SceneErrorBoundary>
+    )
   ) : FLOWS[template.id] ? (
     <SceneErrorBoundary>
       {(template.fullscreen === false || mode === "demo") ? (

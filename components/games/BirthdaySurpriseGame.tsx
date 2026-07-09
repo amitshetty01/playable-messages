@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { FinalScreen } from "@/components/FinalScreen";
+import { ConfettiEffect } from "@/components/scenes/ConfettiEffect";
 import type { ExperienceRecord, Template } from "@/lib/types";
 
 type Props = { template: Template; experience: ExperienceRecord; mode: "demo" | "generated" | "preview"; shareUrl?: string };
@@ -208,7 +209,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
   const [decorated, setDecorated] = useState(false);
   const [floatBalloons, setFloatBalloons] = useState<FloatBalloon[]>([]);
   const [cutCount, setCutCount] = useState(0);
-  const [knifePos, setKnifePos] = useState({ x: 50, y: 50 });
+  const knifeRef = useRef<HTMLDivElement>(null);
   const [ribbons, setRibbons] = useState<{ id: number; x: number; y: number; c: string; d: number }[]>([]);
   const [showCakeBtn, setShowCakeBtn] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
@@ -385,12 +386,20 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     const r = cakeRef.current.getBoundingClientRect();
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-    setKnifePos({ x: Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)), y: Math.max(5, Math.min(95, ((clientY - r.top) / r.height) * 100)) });
+    const x = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+    const y = Math.max(5, Math.min(95, ((clientY - r.top) / r.height) * 100));
+    if (knifeRef.current) {
+      knifeRef.current.style.left = `${x}%`;
+      knifeRef.current.style.top = `${y}%`;
+    }
   }, [cutDone]);
+
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const hCut = useCallback(() => {
     if (cutDone || cutCount >= 7) return;
-    const newLines = [...cutLines, knifePos.x];
+    const kx = knifeRef.current ? parseFloat(knifeRef.current.style.left) || 50 : 50;
+    const newLines = [...cutLines, kx];
     newLines.sort((a, b) => a - b);
     setCutLines(newLines);
     const next = cutCount + 1;
@@ -399,9 +408,11 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
     if (ctx) { try { playSparkle(ctx); } catch {} }
     if (next >= MIN_SLICES) {
       setCutDone(true);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
       setTimeout(() => { setStep(8); }, 1000);
     }
-  }, [cutCount, cutLines, knifePos.x, cutDone]);
+  }, [cutCount, cutLines, cutDone]);
 
   const slices = cutLines.length + 1;
 
@@ -656,7 +667,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
               <div className="absolute top-2 right-2 rounded-full bg-white/30 backdrop-blur-sm px-2.5 py-0.5 text-xs font-bold text-amber-900/80 z-30">{slices} slice{slices > 1 ? "s" : ""}</div>
             )}
             {cakeAnim >= 4 && !cutDone && (
-              <div className="absolute z-20 pointer-events-none transition-all duration-75" style={{ left: `${knifePos.x}%`, top: `${knifePos.y}%`, transform: "translate(-50%,-50%) rotate(12deg)" }}>
+              <div ref={knifeRef} className="absolute z-20 pointer-events-none transition-all duration-75" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%) rotate(12deg)" }}>
                 <KnifeSVG />
               </div>
             )}
@@ -810,6 +821,7 @@ export function BirthdaySurpriseGame({ template, experience, mode, shareUrl }: P
         </div>
       )}
 
+      <ConfettiEffect active={showConfetti} duration={3000} />
       <style>{`
         @keyframes cgIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes cgUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

@@ -95,11 +95,11 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
   const t = (base: number) => getAnimationDuration(tone, base);
   const longT = (base: number) => getAnimationDuration(tone, base * 1.5);
 
-  const [screen, setScreen] = useState<"intro" | "framing" | "suspense" | "wish" | "cake" | "holdReveal" | "final">("intro");
+  const [screen, setScreen] = useState<"intro" | "framing" | "wish" | "cake" | "holdReveal" | "final">("intro");
   const [candles, setCandles] = useState<boolean[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [revealedWords, setRevealedWords] = useState<string[]>([]);
-  const [lightProgress, setLightProgress] = useState(0);
+  const [candleLightUp, setCandleLightUp] = useState(0);
   const [selectedWish, setSelectedWish] = useState<string | null>(null);
   const [musicStarted, setMusicStarted] = useState(false);
   const [showSparkle, setShowSparkle] = useState(false);
@@ -160,26 +160,14 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
 
   const handleFramingResponse = useCallback(() => {
     playToneSound("whoosh", tone);
-    setScreen("suspense");
-    setLightProgress(0);
     if (!musicStarted) {
       playMusic(experience.theme);
       setMusicStarted(true);
     }
-    let p = 0;
-    const li = setInterval(() => {
-      p += 0.06;
-      setLightProgress(Math.min(p, 1));
-      if (p >= 1) {
-        clearInterval(li);
-        playSound("click");
-        setTimeout(() => {
-          initCandles();
-          setScreen("wish");
-        }, t(300));
-      }
-    }, t(60));
-  }, [tone, musicStarted, experience.theme, t]);
+    initCandles();
+    setCandleLightUp(0);
+    setScreen("wish");
+  }, [tone, musicStarted, experience.theme]);
 
   const handleWish = useCallback((wish: string) => {
     setSelectedWish(wish);
@@ -223,6 +211,18 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
 
   useEffect(() => { return () => { cleanupHold(); stopMusic(); }; }, []);
 
+  useEffect(() => {
+    if (screen !== "wish" || candleLightUp >= 1) return;
+    const li = setInterval(() => {
+      setCandleLightUp(prev => {
+        const next = Math.min(prev + 0.08, 1);
+        if (next >= 1) clearInterval(li);
+        return next;
+      });
+    }, 80);
+    return () => clearInterval(li);
+  }, [screen, candleLightUp]);
+
   useAutoAdvance({
     active: mode === "demo" && screen === "intro",
     onAdvance: () => { playSound("click"); setScreen("framing"); },
@@ -262,7 +262,6 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
       {screen === "framing" ? (
         <StepTransition step={1}>
           <PlayerCard>
-            <BackButton onBack={() => setScreen("intro")} disabled={mode === "demo"} />
             <ProgressBar current={2} total={totalSteps} theme={experience.theme} />
             <p className="text-xs font-bold tracking-[0.08em] text-white/50">A celebration awaits</p>
             <h2 className="display-title mt-4 text-3xl font-bold leading-tight sm:text-5xl">{greeting}.</h2>
@@ -279,40 +278,24 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
         </StepTransition>
       ) : null}
 
-      {screen === "suspense" ? (
-        <StepTransition step={2}>
-          <PlayerCard>
-            <BackButton onBack={() => setScreen("framing")} disabled={mode === "demo"} />
-            <ProgressBar current={3} total={totalSteps} theme={experience.theme} />
-            <p className="text-xs font-bold tracking-[0.08em] text-white/50">Lighting candles...</p>
-            <div className="mt-12 flex flex-col items-center gap-6">
-              <div className="flex items-end justify-center gap-2">
-                {Array.from({ length: candleCount }).map((_, i) => (
-                  <div key={i} className="flex flex-col items-center transition-all duration-300" style={{
-                    opacity: i / candleCount < lightProgress ? 1 : 0,
-                    transform: `translateY(${i / candleCount < lightProgress ? 0 : 20}px)`,
-                  }}>
-                    <Flame blown={false} color={CANDLE_COLORS[i % CANDLE_COLORS.length]} />
-                    <div className="h-12 w-1.5 rounded-full" style={{ background: "linear-gradient(to right, #f5e6cc, #fff5e6, #f5e6cc)" }} />
-                  </div>
-                ))}
-              </div>
-              <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-400 transition-all duration-200" style={{ width: `${lightProgress * 100}%` }} />
-              </div>
-              <p className="text-sm text-white/60 animate-pulse">
-                {lightProgress < 0.5 ? "Striking the match..." : "Each candle carries a word..."}
-              </p>
-            </div>
-          </PlayerCard>
-        </StepTransition>
-      ) : null}
-
       {screen === "wish" ? (
         <StepTransition step={3}>
           <PlayerCard>
-            <BackButton onBack={() => setScreen("suspense")} disabled={mode === "demo"} />
-            <ProgressBar current={4} total={totalSteps} theme={experience.theme} />
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+              <div className="flex items-end justify-center gap-2 pt-4">
+                {Array.from({ length: candleCount }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center transition-all duration-500" style={{
+                    opacity: i / candleCount < candleLightUp ? 0.25 : 0,
+                    transform: `translateY(${i / candleCount < candleLightUp ? 0 : 12}px)`,
+                  }}>
+                    <Flame blown={false} color={CANDLE_COLORS[i % CANDLE_COLORS.length]} />
+                    <div className="h-8 w-1 rounded-full" style={{ background: "linear-gradient(to right, #f5e6cc, #fff5e6, #f5e6cc)" }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <BackButton onBack={() => setScreen("intro")} disabled={mode === "demo"} />
+            <ProgressBar current={3} total={totalSteps} theme={experience.theme} />
             <p className="text-xs font-bold tracking-[0.08em] text-white/50">Make a wish</p>
             <h2 className="display-title mt-4 text-3xl font-bold leading-tight sm:text-5xl">What do you wish for?</h2>
             <p className="mt-5 text-white/75">{receiverName ? `${receiverName}, ` : ""}before you blow out the candles, pick a wish. The candles will reveal your message.</p>
@@ -346,7 +329,7 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
                   {Array.from({ length: candleCount }).map((_, i) => (
                     <button key={i} type="button" onClick={() => blowCandle(i)} disabled={candles[i]}
                       className="flex flex-col items-center gap-0.5 transition-all duration-200 hover:scale-110 disabled:scale-100 disabled:opacity-60">
-                      {candles[i] ? <span className="text-sm leading-none">💨</span> : <Flame blown={false} color={CANDLE_COLORS[i % CANDLE_COLORS.length]} />}
+                      {candles[i] ? <span className="text-sm leading-none">✨</span> : <Flame blown={false} color={CANDLE_COLORS[i % CANDLE_COLORS.length]} />}
                       <div className="h-14 w-1.5 rounded-full" style={{ background: "linear-gradient(to right, #f5e6cc, #fff5e6, #f5e6cc)" }} />
                     </button>
                   ))}
@@ -371,7 +354,7 @@ export function CandleCountdown({ template, experience, mode, shareUrl }: Props)
                   {revealedWords.filter(Boolean).length < candleCount ? <span className="inline-block h-5 w-2 animate-pulse rounded-full bg-amber-400/60" /> : null}
                 </div>
               ) : (
-                <p className="text-sm text-white/50">Tap each candle to blow it out</p>
+                <p className="text-sm text-white/50">Pop the flames to reveal your message</p>
               )}
               {showSparkle ? <p className="text-lg font-bold text-amber-300 animate-pulse">✨ All candles out! ✨</p> : null}
             </div>

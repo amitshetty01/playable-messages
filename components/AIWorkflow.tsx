@@ -7,6 +7,7 @@ import { AIMessageAssistant } from "@/components/AIMessageAssistant";
 import { AIConceptCard } from "@/components/AIConceptCard";
 import { AIMediaUploads } from "@/components/AIMediaUploads";
 import { surpriseMe } from "@/lib/ai-service";
+import { recordFeedback } from "@/lib/ai-feedback";
 import type { AIConcept } from "@/lib/ai-types";
 
 type Tab = "assist" | "builder" | "surprise";
@@ -25,6 +26,9 @@ export function AIWorkflow({ onUseMessage, onUseConcept, currentMessage = "" }: 
   const [surpriseLoading, setSurpriseLoading] = useState(false);
   const [surpriseError, setSurpriseError] = useState<string | null>(null);
   const [previewConcept, setPreviewConcept] = useState<AIConcept | null>(null);
+  const [showFeedbackPrompt, setShowFeedbackPrompt] = useState(false);
+  const [lastPreviewedConcept, setLastPreviewedConcept] = useState<AIConcept | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const tabs: { id: Tab; label: string; icon: string }[] = useMemo(() => [
     { id: "assist", label: "Message Assist", icon: "✍️" },
@@ -39,6 +43,36 @@ export function AIWorkflow({ onUseMessage, onUseConcept, currentMessage = "" }: 
 
   const handlePlayDemo = useCallback((concept: AIConcept) => {
     setPreviewConcept(concept);
+    setShowFeedbackPrompt(false);
+    setFeedbackSubmitted(false);
+  }, []);
+
+  const handleClosePreview = useCallback(() => {
+    if (previewConcept) {
+      setLastPreviewedConcept(previewConcept);
+      setShowFeedbackPrompt(true);
+    }
+    setPreviewConcept(null);
+  }, [previewConcept]);
+
+  const handleFeedback = useCallback((type: "positive" | "negative") => {
+    if (!lastPreviewedConcept || feedbackSubmitted) return;
+    recordFeedback({
+      conceptId: lastPreviewedConcept.id,
+      conceptTitle: lastPreviewedConcept.title,
+      templateType: lastPreviewedConcept.templateType,
+      vibe: lastPreviewedConcept.vibe,
+      visualStyle: lastPreviewedConcept.visualStyle,
+      feedbackType: type,
+      source: "explicit",
+      timestamp: Date.now(),
+    });
+    setFeedbackSubmitted(true);
+    setShowFeedbackPrompt(false);
+  }, [lastPreviewedConcept, feedbackSubmitted]);
+
+  const handleDismissFeedback = useCallback(() => {
+    setShowFeedbackPrompt(false);
   }, []);
 
   const handleMediaComplete = useCallback((files: Record<string, string>) => {
@@ -68,6 +102,24 @@ export function AIWorkflow({ onUseMessage, onUseConcept, currentMessage = "" }: 
       setSurpriseLoading(false);
     }
   }, []);
+
+  const handleRegenerateSurprise = useCallback(async () => {
+    if (surpriseConcepts) {
+      for (const c of surpriseConcepts) {
+        recordFeedback({
+          conceptId: c.id,
+          conceptTitle: c.title,
+          templateType: c.templateType,
+          vibe: c.vibe,
+          visualStyle: c.visualStyle,
+          feedbackType: "negative",
+          source: "implicit_regenerate",
+          timestamp: Date.now(),
+        });
+      }
+    }
+    handleSurprise();
+  }, [surpriseConcepts, handleSurprise]);
 
   if (showMediaUploads && selectedConcept) {
     return (
@@ -175,6 +227,7 @@ export function AIWorkflow({ onUseMessage, onUseConcept, currentMessage = "" }: 
                   index={idx}
                   onCustomize={() => handleCustomize(concept)}
                   onPlayDemo={() => handlePlayDemo(concept)}
+                  onRegenerate={handleRegenerateSurprise}
                 />
               ))}
             </div>
@@ -190,7 +243,7 @@ export function AIWorkflow({ onUseMessage, onUseConcept, currentMessage = "" }: 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-            onClick={() => setPreviewConcept(null)}
+            onClick={handleClosePreview}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -240,12 +293,64 @@ export function AIWorkflow({ onUseMessage, onUseConcept, currentMessage = "" }: 
 
               <button
                 type="button"
-                onClick={() => setPreviewConcept(null)}
+                onClick={handleClosePreview}
                 className="mx-auto mt-4 block rounded-xl bg-white/10 px-6 py-2 text-xs font-bold text-white/60 hover:bg-white/20 hover:text-white transition-colors"
               >
                 Close Preview
               </button>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Explicit feedback prompt */}
+      <AnimatePresence>
+        {showFeedbackPrompt && lastPreviewedConcept && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur-xl"
+          >
+            <p className="text-sm text-white/70">
+              How did this concept feel?
+            </p>
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleFeedback("positive")}
+                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                  feedbackSubmitted
+                    ? "bg-emerald-500/20 text-emerald-300"
+                    : "bg-white/10 text-white/70 hover:bg-emerald-500/20 hover:text-emerald-300 active:scale-95"
+                }`}
+              >
+                👍 Perfect
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFeedback("negative")}
+                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold transition-all ${
+                  feedbackSubmitted
+                    ? "bg-rose-500/20 text-rose-300"
+                    : "bg-white/10 text-white/70 hover:bg-rose-500/20 hover:text-rose-300 active:scale-95"
+                }`}
+              >
+                👎 Not my vibe
+              </button>
+              {!feedbackSubmitted && (
+                <button
+                  type="button"
+                  onClick={handleDismissFeedback}
+                  className="rounded-xl px-3 py-2 text-xs text-white/30 hover:text-white/50 transition-colors"
+                >
+                  Skip
+                </button>
+              )}
+            </div>
+            {feedbackSubmitted && (
+              <p className="mt-2 text-xs text-white/40">Thanks for the feedback! 🙏</p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

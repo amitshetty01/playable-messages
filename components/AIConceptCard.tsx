@@ -1,7 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useCallback } from "react";
 import type { AIConcept } from "@/lib/ai-types";
+import { recordFeedback } from "@/lib/ai-feedback";
 
 const VIBE_COLORS: Record<string, string> = {
   Romantic: "from-pink-500/20 to-rose-500/10 border-pink-500/30",
@@ -42,11 +44,26 @@ type Props = {
   index: number;
   onCustomize: () => void;
   onPlayDemo: () => void;
+  onRegenerate?: () => void;
 };
 
-export function AIConceptCard({ concept, index, onCustomize, onPlayDemo }: Props) {
+export function AIConceptCard({ concept, index, onCustomize, onPlayDemo, onRegenerate }: Props) {
   const colorStyle = getColorStyle(concept);
   const emoji = getDefaultEmoji(concept.templateType);
+
+  const handleCustomize = useCallback(() => {
+    recordFeedback({
+      conceptId: concept.id,
+      conceptTitle: concept.title,
+      templateType: concept.templateType,
+      vibe: concept.vibe,
+      visualStyle: concept.visualStyle,
+      feedbackType: "positive",
+      source: "implicit_customize",
+      timestamp: Date.now(),
+    });
+    onCustomize();
+  }, [concept, onCustomize]);
 
   return (
     <motion.div
@@ -109,10 +126,17 @@ export function AIConceptCard({ concept, index, onCustomize, onPlayDemo }: Props
           className="flex-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white/70 hover:bg-white/20 hover:text-white transition-all active:scale-95">
           Play Demo ▶
         </button>
-        <button type="button" onClick={onCustomize}
+        <button type="button" onClick={handleCustomize}
           className="flex-1 rounded-xl bg-gradient-to-r from-blush to-violet px-3 py-2 text-xs font-bold text-white shadow-[0_0_12px_rgba(236,72,153,0.2)] hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all active:scale-95">
           Customize ✨
         </button>
+        {onRegenerate && (
+          <button type="button" onClick={onRegenerate}
+            className="flex items-center justify-center rounded-xl bg-white/[0.06] px-3 py-2 text-xs font-bold text-white/50 hover:bg-white/10 hover:text-white/80 transition-all active:scale-95"
+            title="Not my vibe — try different">
+            🔄
+          </button>
+        )}
       </div>
     </motion.div>
   );

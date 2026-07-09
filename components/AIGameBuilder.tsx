@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { gameBuilder } from "@/lib/ai-service";
 import { VoiceInput } from "@/components/VoiceInput";
 import { AIConceptCard } from "@/components/AIConceptCard";
+import { recordFeedback } from "@/lib/ai-feedback";
 import type { GameOccasion, GameRecipient, GameTone, AIConcept } from "@/lib/ai-types";
 
 const OCCASIONS: GameOccasion[] = ["Confession", "Apology", "Birthday", "Anniversary", "Proposal", "Just Because"];
@@ -57,8 +58,27 @@ export function AIGameBuilder({ onCustomize, onPlayDemo }: Props) {
     return () => stopLoadingTexts();
   }, [stopLoadingTexts]);
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async (isRegenerate?: boolean) => {
     if (!story.trim()) return;
+
+    if (isRegenerate && concepts) {
+      for (const c of concepts) {
+        recordFeedback({
+          conceptId: c.id,
+          conceptTitle: c.title,
+          templateType: c.templateType,
+          vibe: c.vibe,
+          visualStyle: c.visualStyle,
+          feedbackType: "negative",
+          source: "implicit_regenerate",
+          timestamp: Date.now(),
+          tone,
+          occasion,
+          recipient,
+        });
+      }
+    }
+
     setLoading(true);
     setError(null);
     setConcepts(null);
@@ -73,7 +93,7 @@ export function AIGameBuilder({ onCustomize, onPlayDemo }: Props) {
       stopLoadingTexts();
       setLoading(false);
     }
-  }, [story, occasion, recipient, tone, startLoadingTexts, stopLoadingTexts]);
+  }, [story, occasion, recipient, tone, concepts, startLoadingTexts, stopLoadingTexts]);
 
   return (
     <div className="space-y-4">
@@ -117,7 +137,7 @@ export function AIGameBuilder({ onCustomize, onPlayDemo }: Props) {
 
       <button
         type="button"
-        onClick={handleGenerate}
+        onClick={() => void handleGenerate(!!concepts)}
         disabled={loading || !story.trim()}
         className="premium-button w-full disabled:opacity-40"
       >
@@ -135,7 +155,7 @@ export function AIGameBuilder({ onCustomize, onPlayDemo }: Props) {
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
-            Generate 3 Concepts ✨
+            {concepts ? "Regenerate 3 Concepts 🔄" : "Generate 3 Concepts ✨"}
           </span>
         )}
       </button>
@@ -149,7 +169,7 @@ export function AIGameBuilder({ onCustomize, onPlayDemo }: Props) {
             className="rounded-xl border border-rose-200/20 bg-rose-500/10 p-4"
           >
             <p className="text-sm text-rose-200">{error}</p>
-            <button type="button" onClick={handleGenerate}
+            <button type="button" onClick={() => void handleGenerate()}
               className="mt-2 text-xs font-bold text-rose-300 underline underline-offset-2 hover:text-rose-200">
               Retry
             </button>
@@ -175,6 +195,7 @@ export function AIGameBuilder({ onCustomize, onPlayDemo }: Props) {
                   index={idx}
                   onCustomize={() => onCustomize?.(concept)}
                   onPlayDemo={() => onPlayDemo?.(concept)}
+                  onRegenerate={() => { void handleGenerate(true); }}
                 />
               ))}
             </div>

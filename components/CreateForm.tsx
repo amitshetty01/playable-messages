@@ -16,6 +16,7 @@ import { ChainCreateForm } from "@/components/ChainCreateForm";
 import { QuickSnippetsManager } from "@/components/QuickSnippetsManager";
 import { QuickSnippetsDropdown } from "@/components/QuickSnippetsDropdown";
 import { AIWorkflow } from "@/components/AIWorkflow";
+import { AICreationWindow } from "@/components/AICreationWindow";
 import { analyzeSentiment } from "@/lib/sentiment";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { VoiceInput } from "@/components/VoiceInput";
@@ -163,6 +164,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
   const [images, setImages] = useState<string[]>(existingExperience?.images ?? []);
   const [wizardStep, setWizardStep] = useState(1);
   const [isChain, setIsChain] = useState(false);
+  const [showAIWindow, setShowAIWindow] = useState(false);
   let generateButtonStyle = 'premium-button';
   try { generateButtonStyle = getVariant('create-button-style') || 'premium-button'; } catch { /* SSR guard */ }
   const [chainTarget, setChainTarget] = useState(3);
@@ -737,6 +739,50 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
         <div className="space-y-8">
 
         {wizardStep === 1 && (<>
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => setShowAIWindow(true)}
+              className="group relative w-full overflow-hidden rounded-2xl border border-violet/30 bg-gradient-to-br from-violet/20 to-blush/10 p-5 text-left transition-all hover:from-violet/30 hover:to-blush/20 hover:shadow-[0_0_30px_rgba(184,165,255,0.15)]"
+            >
+              <div className="flex items-center gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blush to-violet text-xl shadow-lg">
+                  ✨
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-white">Create with AI</p>
+                  <p className="mt-0.5 text-xs text-white/50">Answer a few questions and I'll build the perfect experience for you</p>
+                </div>
+                <svg className="h-5 w-5 text-white/30 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </button>
+          </div>
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
+            <div className="relative flex justify-center"><span className="bg-[#1a1325] px-3 text-xs text-white/30">or pick manually</span></div>
+          </div>
+          <AICreationWindow
+            isOpen={showAIWindow}
+            onClose={() => setShowAIWindow(false)}
+            onComplete={(templateId, data) => {
+              const next = templates.find((item) => item.id === templateId) ?? template;
+              setForm((prev) => ({
+                ...prev, templateId: next.id, category: getTemplateCategory(next).slug, tone: next.tone, theme: next.theme, landingText: next.hook, buttonText: "Begin",
+                finalMessage: data.finalMessage || prev.finalMessage,
+                creatorName: data.creatorName || prev.creatorName,
+                receiverName: data.receiverName || prev.receiverName,
+                customPassword: data.password || "",
+                passwordQuestion: data.passwordQuestion || "",
+                passwordAnswer: data.passwordAnswer || "",
+              }));
+              if (data.passwordAddOn || data.photoAddOn) {
+                setTemplateData((prev) => ({ ...prev, ...data }));
+              }
+              if (data.photos) setImages(data.photos);
+              setWizardStep(2);
+              setShowAIWindow(false);
+            }}
+          />
           <Field label="Pick a template" full htmlFor="template-select">
             <select id="template-select" value={form.templateId} onChange={(event) => {
               const next = templates.find((item) => item.id === event.target.value) ?? template;

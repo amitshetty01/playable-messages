@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getPlaceholderForIndex } from "@/lib/empty-state-healing";
 import type { SceneStep } from "@/lib/scene-types";
 
 function anim(a: string | undefined): string {
@@ -164,8 +165,9 @@ function Box3D({ label, animation, index = 0 }: { label?: string; animation?: st
   );
 }
 
-function PhotoCard3D({ animation, index = 0, image }: { animation?: string; index?: number; image?: string }) {
+function PhotoCard3D({ animation, index = 0, image, theme = "Dark Romantic" }: { animation?: string; index?: number; image?: string; theme?: string }) {
   const rots = [-6, 3, -2, 5];
+  const placeholder = !image ? getPlaceholderForIndex(theme, index) : null;
   return (
     <div className={anim(animation)} style={{ perspective: "600px", animationDelay: `${index * 0.25}s` }}>
       <div
@@ -178,6 +180,13 @@ function PhotoCard3D({ animation, index = 0, image }: { animation?: string; inde
         {image ? (
           <div className="relative h-48 w-full overflow-hidden rounded-xl" style={{ transform: "translateZ(5px)" }}>
             <Image src={image} alt="memory" fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" unoptimized />
+          </div>
+        ) : placeholder ? (
+          <div
+            className="flex h-48 w-full items-center justify-center rounded-xl"
+            style={{ background: placeholder.gradient, transform: "translateZ(5px)" }}
+          >
+            <span className="text-4xl opacity-60">{placeholder.emoji}</span>
           </div>
         ) : (
           <div className="h-48 w-full rounded-xl bg-white/10" style={{ transform: "translateZ(5px)" }} />
@@ -290,8 +299,9 @@ function Mirror3D() {
   );
 }
 
-function Polaroid3D({ animation, image, index = 0 }: { animation?: string; image?: string; index?: number }) {
+function Polaroid3D({ animation, image, index = 0, theme = "Dark Romantic" }: { animation?: string; image?: string; index?: number; theme?: string }) {
   const rots = [-8, 4, -3, 6];
+  const placeholder = !image ? getPlaceholderForIndex(theme, index) : null;
   return (
     <div className={anim(animation)} style={{ perspective: "600px", animationDelay: `${index * 0.25}s` }}>
       <div
@@ -305,6 +315,13 @@ function Polaroid3D({ animation, image, index = 0 }: { animation?: string; image
           <div className="relative h-44 w-full overflow-hidden rounded-xl" style={{ transform: "translateZ(5px)" }}>
             <Image src={image} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" unoptimized />
           </div>
+        ) : placeholder ? (
+          <div
+            className="flex h-44 w-full items-center justify-center rounded-xl"
+            style={{ background: placeholder.gradient, transform: "translateZ(5px)" }}
+          >
+            <span className="text-3xl opacity-50">{placeholder.emoji}</span>
+          </div>
         ) : (
           <div className="h-44 w-full rounded-xl bg-gradient-to-br from-amber-100 to-amber-200" style={{ transform: "translateZ(5px)" }} />
         )}
@@ -313,7 +330,7 @@ function Polaroid3D({ animation, image, index = 0 }: { animation?: string; image
   );
 }
 
-export function SceneProp({ scene }: { scene: SceneStep }) {
+export function SceneProp({ scene, theme = "Dark Romantic" }: { scene: SceneStep; theme?: string }) {
   const { type, animation, label, config } = scene.prop;
   if (type === "none") return null;
 
@@ -328,14 +345,14 @@ export function SceneProp({ scene }: { scene: SceneStep }) {
       {type === "cake" && <Cake3D />}
       {type === "banner" && <Banner3D />}
       {type === "box" && <Box3D label={label} animation={animation} index={typeof config?.index === "number" ? config.index : 0} />}
-      {type === "photo-card" && <PhotoCard3D animation={animation} index={typeof config?.index === "number" ? config.index : 0} image={typeof config?.image === "string" ? config.image : undefined} />}
+      {type === "photo-card" && <PhotoCard3D animation={animation} index={typeof config?.index === "number" ? config.index : 0} image={typeof config?.image === "string" ? config.image : undefined} theme={theme} />}
       {type === "chat-bubble" && <ChatBubble3D label={label} align={config?.align as "left" | "right" | undefined} />}
       {type === "seal" && <Seal3D label={label} index={typeof config?.index === "number" ? config.index : 0} />}
       {type === "roast-card" && <RoastCard3D label={label} animation={animation} />}
       {type === "emoji-face" && <Emoji3D animation={animation} />}
       {type === "sparkle" && <Sparkle3D />}
       {type === "mirror" && <Mirror3D />}
-      {type === "polaroid" && <Polaroid3D animation={animation} image={typeof config?.image === "string" ? config.image : undefined} index={typeof config?.index === "number" ? config.index : 0} />}
+      {type === "polaroid" && <Polaroid3D animation={animation} image={typeof config?.image === "string" ? config.image : undefined} index={typeof config?.index === "number" ? config.index : 0} theme={theme} />}
     </div>
   );
 }

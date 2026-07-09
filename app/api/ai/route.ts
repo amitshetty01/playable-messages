@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSchemaForMode } from "@/lib/ai-validate";
+import { ZodError } from "zod";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "deepseek/deepseek-chat";
+const MAX_RETRIES = 2;
 
 const VALID_ASSIST_TONES = ["Romantic", "Sorry", "Cute", "Emotional", "Funny", "Premium"] as const;
 const VALID_OCCASIONS = ["Confession", "Apology", "Birthday", "Anniversary", "Proposal", "Just Because"] as const;
@@ -9,14 +12,26 @@ const VALID_RECIPIENTS = ["Partner", "Crush", "Friend", "Family"] as const;
 const VALID_GAME_TONES = ["Romantic", "Cute", "Emotional", "Funny", "Premium"] as const;
 const VALID_MODES = ["message_assist", "game_builder", "surprise_me", "regenerate_concept"] as const;
 
-function buildSystemPrompt(mode: string): string {
+function buildFeedbackHint(preferredTypes?: string[], avoidTypes?: string[]): string {
+  const parts: string[] = [];
+  if (preferredTypes && preferredTypes.length > 0) {
+    parts.push(`Users have historically preferred these template types: ${preferredTypes.join(", ")}. Consider using or adapting them.`);
+  }
+  if (avoidTypes && avoidTypes.length > 0) {
+    parts.push(`Users have historically disliked these template types: ${avoidTypes.join(", ")}. AVOID using these exact types.`);
+  }
+  return parts.length > 0 ? "\n\n" + parts.join("\n") : "";
+}
+
+function buildSystemPrompt(mode: string, feedbackHint?: { preferredTypes?: string[]; avoidTypes?: string[] }): string {
   const base = "You are a creative AI assistant for Craft Your Message, an app that creates beautiful interactive messages. Respond in strict JSON only, no markdown, no code fences.";
+  const feedbackStr = buildFeedbackHint(feedbackHint?.preferredTypes, feedbackHint?.avoidTypes);
   switch (mode) {
     case "message_assist":
       return `${base}
 Given rough points and a desired tone, rewrite them into a beautiful short message (max 200 words). Return JSON: { "rewritten": "..." }`;
     case "game_builder":
-      return `${base}
+      return `${base}${feedbackStr}
 Given a user's story, occasion, recipient, and tone, generate 3 distinct interactive experience concepts. Return JSON:
 {
   "concepts": [
@@ -47,7 +62,7 @@ Given a user's story, occasion, recipient, and tone, generate 3 distinct interac
 }
 Make each concept truly distinct in format, vibe, and approach. Use 2-4 scenes per concept.`;
     case "surprise_me":
-      return `${base}
+      return `${base}${feedbackStr}
 Generate a random delightful demo concept for an interactive message experience. Return JSON:
 {
   "concepts": [
@@ -165,6 +180,47 @@ async function callOpenRouter(systemPrompt: string, userMessage: string): Promis
   return content;
 }
 
+function cleanAndParse(raw: string): unknown {
+  const cleaned = raw
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*$/g, "")
+    .trim();
+  return JSON.parse(cleaned);
+}
+
+function buildRetryPrompt(mode: string, originalUserMessage: string, zodError: ZodError): string {
+  const issues = zodError.issues.map(i => `- ${i.path.join(".")}: ${i.message}`).join("\n");
+  return `${originalUserMessage}\n\nYour previous response was invalid JSON that failed validation. Fix these specific errors:\n${issues}\n\nReturn ONLY valid JSON matching the required format.`;
+}
+
+async function callWithRetry(mode: string, systemPrompt: string, userMessage: string, attempt: number = 0): Promise<unknown> {
+  const rawContent = await callOpenRouter(systemPrompt, userMessage);
+  let parsed: unknown;
+
+  try {
+    parsed = cleanAndParse(rawContent);
+  } catch {
+    if (attempt < MAX_RETRIES) {
+      const retryMsg = `Your previous response was not valid JSON. Parse error: The JSON was malformed. Return ONLY valid JSON with no markdown, no code fences, no explanations.`;
+      return callWithRetry(mode, systemPrompt, `${userMessage}\n\n${retryMsg}`, attempt + 1);
+    }
+    throw new Error(`AI returned invalid JSON after ${MAX_RETRIES + 1} attempts`);
+  }
+
+  const schema = getSchemaForMode(mode);
+  const result = schema.safeParse(parsed);
+
+  if (!result.success) {
+    if (attempt < MAX_RETRIES) {
+      const retryMessage = buildRetryPrompt(mode, userMessage, result.error);
+      return callWithRetry(mode, systemPrompt, retryMessage, attempt + 1);
+    }
+    throw new Error(`AI response failed validation after ${MAX_RETRIES + 1} attempts: ${result.error.issues.map(i => i.message).join("; ")}`);
+  }
+
+  return result.data;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -175,7 +231,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
-    const systemPrompt = buildSystemPrompt(mode);
+    const feedbackHint = (body as any).feedbackHint as { preferredTypes?: string[]; avoidTypes?: string[] } | undefined;
+    const systemPrompt = buildSystemPrompt(mode, feedbackHint);
 
     let userMessage = "";
     switch (mode) {
@@ -201,16 +258,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `Unhandled mode: ${mode}` }, { status: 400 });
     }
 
-    const rawContent = await callOpenRouter(systemPrompt, userMessage);
-
-    const cleaned = rawContent
-      .replace(/```json\s*/gi, "")
-      .replace(/```\s*$/g, "")
-      .trim();
-
-    const parsed = JSON.parse(cleaned);
-
-    return NextResponse.json({ data: parsed });
+    const data = await callWithRetry(mode, systemPrompt, userMessage);
+    return NextResponse.json({ data });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal server error";
     console.error("[AI Route Error]", message);
