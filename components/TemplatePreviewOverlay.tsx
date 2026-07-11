@@ -128,14 +128,14 @@ function PhoneFrame({ children, style }: { children: React.ReactNode, style?: Re
   );
 }
 
-/* ─── Preview Coming Soon ─── */
+/* ─── Preview Unavailable ─── */
 function PreviewComingSoon() {
   return (
     <div className="flex h-full w-full items-center justify-center bg-zinc-950 p-6 text-center">
       <div>
-        <p className="text-4xl mb-3">✨</p>
-        <p className="text-sm font-bold text-white/60">Preview coming soon</p>
-        <p className="mt-1 text-xs text-white/30">This template is being prepared.</p>
+        <p className="text-4xl mb-3">🎨</p>
+        <p className="text-sm font-bold text-white/60">Preview loading</p>
+        <p className="mt-1 text-xs text-white/30">Set up your message to see the live preview.</p>
       </div>
     </div>
   );

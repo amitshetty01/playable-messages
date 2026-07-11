@@ -12,9 +12,6 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default function TemplatesPage() {
-  const liveTemplates = templates.filter((t) => t.status === "full");
-  const comingSoon = templates.filter((t) => t.status === "coming-soon");
-
   return (
     <div className="space-y-6 sm:space-y-8">
       <section className="glass rounded-[2rem] p-5 sm:p-8">
@@ -23,20 +20,7 @@ export default function TemplatesPage() {
         <p className="mt-5 max-w-3xl text-white/70">Pick a template, customize your message, and share a link. Each one is a mini interactive experience.</p>
       </section>
 
-      <TemplatesGrid templates={liveTemplates} />
-
-      {comingSoon.length > 0 && (
-        <details className="group">
-          <summary className="cursor-pointer text-sm font-bold text-white/30 hover:text-white/50 transition-colors">
-            {comingSoon.length} more templates in development →
-          </summary>
-          <div className="mt-4 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {comingSoon.map((template) => (
-              <TemplateCard key={template.id} template={template} />
-            ))}
-          </div>
-        </details>
-      )}
+      <TemplatesGrid templates={templates} />
 
       <div className="mt-10 flex flex-col items-center gap-4">
         <AdsterraAd type="rectangle" />

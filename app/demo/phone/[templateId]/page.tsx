@@ -24,16 +24,5 @@ export default async function PhoneDemoPage({ params }: { params: Promise<{ temp
   const { templateId } = await params;
   const template = getTemplate(templateId);
   if (!template) notFound();
-  if (template.status === "coming-soon") {
-    return (
-      <div className="flex min-h-[50dvh] flex-col items-center justify-center text-center px-4">
-        <div className="rounded-[2rem] border border-white/15 bg-white/10 p-10 backdrop-blur-2xl">
-          <h1 className="text-2xl font-bold text-white">{template.title}</h1>
-          <p className="mt-3 text-white/60">This template is coming soon.</p>
-          <Link className="premium-button mt-6 inline-flex" href="/templates">Browse available templates</Link>
-        </div>
-      </div>
-    );
-  }
   return <PhoneDemoView template={template} />;
 }

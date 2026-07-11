@@ -100,9 +100,7 @@ export default async function TemplateSeoPage({ params }: { params: Promise<{ sl
         {template.formula.map((item) => <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-sm font-bold text-white/70" key={item}>{item}</span>)}
       </div>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        {template.status === "full" ? (
-          <Link className="ghost-button" href={`/demo/${template.id}`}>Preview template</Link>
-        ) : null}
+              <Link className="ghost-button" href={`/demo/${template.id}`}>Preview template</Link>
         <Link className="premium-button" href={`/create/${template.id}`}>Create Your Own</Link>
         <Link className="ghost-button" href="/templates">Browse templates</Link>
       </div>
@@ -127,18 +125,6 @@ export default async function TemplateSeoPage({ params }: { params: Promise<{ sl
       </SeoArticle>
     </>
   );
-
-  if (template.status === "coming-soon") {
-    return (
-      <>
-        <div className="mb-6 rounded-[2rem] border border-amber-500/30 bg-amber-500/10 p-6 text-center backdrop-blur-2xl">
-          <p className="text-lg font-bold text-amber-300">Coming Soon</p>
-          <p className="mt-1 text-white/60">This template is in development. The interactive experience is not yet available, but you can still customize and create your own message using similar templates below.</p>
-        </div>
-        {pageContent}
-      </>
-    );
-  }
 
   return pageContent;
 }

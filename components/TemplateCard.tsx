@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import Link from "next/link";
-import { categories, getTemplateSeoSlug } from "@/lib/data";
+import { motion, useMotionValue } from "framer-motion";
+import { categories } from "@/lib/data";
 import type { Template } from "@/lib/types";
 import { TemplatePreviewOverlay } from "./TemplatePreviewOverlay";
 
@@ -106,7 +105,6 @@ const defaultVisual: ThumbVisual = {
 };
 
 export function TemplateCard({ template }: { template: Template }) {
-  const isLocked = template.status === "coming-soon";
   const categoryNames = template.categorySlugs.map((slug) => categories.find((category) => category.slug === slug)?.name).filter(Boolean).join(", ");
   const v = thumbVisuals[template.id] || defaultVisual;
 
@@ -118,7 +116,6 @@ export function TemplateCard({ template }: { template: Template }) {
   const rotateY = useMotionValue(0);
 
   const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (isLocked) return;
     if (cardRef.current) {
       setCardRect(cardRef.current.getBoundingClientRect());
       setShowPreviewOverlay(true);
@@ -153,7 +150,7 @@ export function TemplateCard({ template }: { template: Template }) {
         tabIndex={0}
         aria-label={template.title}
         data-glow-color={template.categorySlugs.includes("love-crush") ? "blush" : template.categorySlugs.includes("apology-fight-repair") ? "violet" : template.categorySlugs.includes("funny-roast") ? "rose" : template.categorySlugs.includes("birthday-special-days") ? "amber" : template.categorySlugs.includes("friendship-best-friend") ? "neon" : "violet"}
-        className={`card-sheen glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] cursor-pointer ${isLocked ? "opacity-50" : ""}`}
+        className="card-sheen glass group relative overflow-hidden rounded-[1.6rem] sm:rounded-[1.8rem] cursor-pointer"
         onClick={handleCardClick}
         onKeyDown={handleCardKeyDown}
         onHoverStart={() => setIsHovered(true)}
@@ -238,37 +235,27 @@ export function TemplateCard({ template }: { template: Template }) {
         {/* Badges */}
         <div className="absolute bottom-2 left-3 flex flex-wrap gap-1.5 z-10">
           <span className="rounded-full bg-black/50 px-2.5 py-0.5 text-[10px] font-bold text-white-static backdrop-blur-sm ring-1 ring-white/10">{template.length}</span>
-          {!isLocked && <span className="rounded-full bg-emerald-500/25 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 backdrop-blur-sm ring-1 ring-emerald-400/20">Live</span>}
+          <span className="rounded-full bg-emerald-500/25 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 backdrop-blur-sm ring-1 ring-emerald-400/20">Live</span>
         </div>
       </div>
       <div className="p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.08em] text-white/50">
-          <span className={isLocked ? "" : "pulse-dot"} />
-          {isLocked ? "Coming soon" : "Ready to play"}
+          <span className="pulse-dot" />
+          Ready to play
         </span>
       </div>
           <h3 className="mt-4 text-xl font-extrabold tracking-[-0.03em] sm:text-2xl">
-            {isLocked ? (
-              <span className="text-white/50">{template.title}</span>
-            ) : (
-              <span className="transition duration-200 group-hover:text-blush">{template.title}</span>
-            )}
+            <span className="transition duration-200 group-hover:text-blush">{template.title}</span>
           </h3>
       <div className="mt-3 flex flex-wrap gap-2">
         <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/50">Best for: {template.bestFor}</span>
         {template.categorySlugs.length > 0 ? <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/50">{categoryNames}</span> : null}
       </div>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            {isLocked ? (
-              <div className="flex w-full items-center justify-center py-4">
-                <span className="inline-block text-4xl animate-lock-shake select-none">🔒</span>
-              </div>
-            ) : (
-              <div className="flex w-full items-center justify-center py-4 text-sm font-bold text-white/50">
-                Click to preview
-              </div>
-            )}
+            <div className="flex w-full items-center justify-center py-4 text-sm font-bold text-white/50">
+              Click to preview
+            </div>
           </div>
       </div>
       </motion.article>

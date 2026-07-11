@@ -7,8 +7,6 @@ import Script from "next/script";
 import { motion, useInView, useSpring, useMotionValue } from "framer-motion";
 import { getVariant } from "@/lib/ab-testing";
 import { QuickFlow } from "@/components/QuickFlow";
-import { GuidedFlow } from "@/components/GuidedFlow";
-import { BrowseFlow } from "@/components/BrowseFlow";
 import { TrendingTemplates } from "@/components/TrendingTemplates";
 import { ConfettiEffect } from "@/components/scenes/ConfettiEffect";
 import { DailyPrompt } from "@/components/DailyPrompt";
@@ -176,8 +174,6 @@ function SectionHeader({ eyebrow, title, lead, center = true }: { eyebrow?: stri
 }
 
 export function HomePageContent() {
-  const [showGuided, setShowGuided] = useState(false);
-  const [showBrowse, setShowBrowse] = useState(false);
   const [preview, setPreview] = useState<{ id: string; rect: DOMRect } | null>(null);
   const heroCtaText = getVariant('hero-cta-text') || "Create an Experience";
 
@@ -806,38 +802,6 @@ export function HomePageContent() {
           </div>
         </div>
       </section>
-
-      {/* ════════════════════════════════════════
-          ESCAPE HATCHES
-          ════════════════════════════════════════ */}
-      <div className="mt-16 flex flex-col items-center gap-3 text-center">
-        <button
-          type="button"
-          onClick={() => { setShowGuided(!showGuided); if (!showGuided) setShowBrowse(false); }}
-          className="text-sm text-white/55 underline underline-offset-4 transition-colors hover:text-white/70"
-        >
-          {showGuided ? "− Close guided mode" : "Not sure what to say? Let us guide you"}
-        </button>
-        <button
-          type="button"
-          onClick={() => { setShowBrowse(!showBrowse); if (!showBrowse) setShowGuided(false); }}
-          className="text-sm text-white/55 underline underline-offset-4 transition-colors hover:text-white/70"
-        >
-          {showBrowse ? "− Close" : "See what's coming soon →"}
-        </button>
-      </div>
-
-      {showGuided && (
-        <section className="section-fade mt-12">
-          <GuidedFlow />
-        </section>
-      )}
-
-      {showBrowse && (
-        <section className="section-fade mt-12">
-          <BrowseFlow />
-        </section>
-      )}
 
       {/* ════════════════════════════════════════
           FOOTER NAV LINKS
