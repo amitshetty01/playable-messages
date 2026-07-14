@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CreateForm } from "@/components/CreateForm";
-import { AdsterraAd } from "@/components/AdsterraAd";
-import { ResponsiveBannerAd } from "@/components/ResponsiveBannerAd";
-import { getTemplate, templates } from "@/lib/data";
+import { getTemplate } from "@/lib/data";
 import { getExperience } from "@/lib/experiences";
 import { buildMetadata } from "@/lib/seo";
+import EditorPage from "@/components/EditorPage";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -26,17 +24,5 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const template = getTemplate(data.templateId);
   if (!template) notFound();
 
-  return (
-    <>
-      <div className="mb-8 mt-4 flex justify-center">
-        <ResponsiveBannerAd />
-      </div>
-      <CreateForm existingExperience={data} initialTemplate={template} templates={templates} />
-      <div className="mt-10 flex flex-col items-center gap-4">
-        <AdsterraAd type="rectangle" />
-        <AdsterraAd type="rectangle" />
-        <AdsterraAd type="rectangle" />
-      </div>
-    </>
-  );
+  return <EditorPage experience={data} template={template} />;
 }
