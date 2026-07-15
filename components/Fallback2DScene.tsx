@@ -89,7 +89,7 @@ export function Fallback2DScene({ flow, context, theme, mode }: Props) {
   if (step >= total && !showFinal) return null;
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full flex-col overflow-hidden">
+    <div className={`relative flex w-full flex-col overflow-hidden ${mode !== "generated" ? "min-h-full" : "min-h-[100dvh]"}`}>
       {palette && <GradientPlaceholder palette={palette} index={step} />}
       <FloatingOrbs count={4} />
 

@@ -1496,7 +1496,7 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
       <div className={`fixed left-0 right-0 top-0 bg-black z-50 pointer-events-none transition-all duration-700 ease-out ${suspense ? "h-[15vh]" : "h-0"}`} />
       <div className={`fixed left-0 right-0 bottom-0 bg-black z-50 pointer-events-none transition-all duration-700 ease-out ${suspense ? "h-[15vh]" : "h-0"}`} />
 
-      <div className={`relative flex w-full flex-col ${mode === "preview" ? "min-h-full" : "min-h-[100dvh] overflow-hidden"}`} style={isLateNight ? { filter: "brightness(0.8) saturate(0.9)", transition: "filter 0.6s ease" } : undefined}>
+      <div className={`relative flex w-full flex-col ${mode !== "generated" ? "min-h-full overflow-hidden" : "min-h-[100dvh] overflow-hidden"}`} style={isLateNight ? { filter: "brightness(0.8) saturate(0.9)", transition: "filter 0.6s ease" } : undefined}>
         <SceneBackground scene={current!} />
         {mode === "generated" && <FloatingParticles />}
 

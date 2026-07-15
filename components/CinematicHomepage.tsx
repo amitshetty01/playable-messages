@@ -7,6 +7,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getAllTemplates } from "@/lib/data";
 import { createDemoExperience } from "@/lib/demo";
+import { ScaledPhonePreview } from "@/components/ScaledPhonePreview";
 import type { Template } from "@/lib/types";
 
 const ExperiencePlayer = dynamic(
@@ -648,11 +649,13 @@ function DemoPhoneDisplay({ template, onBack }: { template: Template; onBack: ()
         {/* Demo content */}
         <div className="relative w-full pt-4 sm:pt-5 bg-zinc-950">
           <div className="aspect-[9/16] w-full max-h-[460px] sm:max-h-[520px]">
-            <ExperiencePlayer
-              template={template}
-              experience={experience}
-              mode="demo"
-            />
+            <ScaledPhonePreview>
+              <ExperiencePlayer
+                template={template}
+                experience={experience}
+                mode="demo"
+              />
+            </ScaledPhonePreview>
           </div>
         </div>
 

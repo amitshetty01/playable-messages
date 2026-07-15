@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { Template } from "@/lib/types";
 import { createDemoExperience } from "@/lib/demo";
+import { ScaledPhonePreview } from "@/components/ScaledPhonePreview";
 
 const ExperiencePlayer = dynamic(
   () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
@@ -74,13 +75,15 @@ export function PhoneDemoView({ template }: { template: Template }) {
                   </div>
 
                   {/* Screen */}
-                  <div className="relative aspect-[9/16] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
-                    <ExperiencePlayer
-                      key={previewKey}
-                      template={template}
-                      experience={experience}
-                      mode="demo"
-                    />
+                  <div className="relative aspect-[9/16] w-full bg-zinc-950" style={{ transform: "translateZ(0)" }}>
+                    <ScaledPhonePreview>
+                      <ExperiencePlayer
+                        key={previewKey}
+                        template={template}
+                        experience={experience}
+                        mode="demo"
+                      />
+                    </ScaledPhonePreview>
                   </div>
 
                   {/* Bottom edge - home indicator */}
