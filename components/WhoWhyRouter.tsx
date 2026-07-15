@@ -179,7 +179,7 @@ export function WhoWhyRouter({ onCreateClick }: WhoWhyRouterProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5 text-left transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_20px_50px_rgba(184,165,255,0.12)] flex-1 max-w-[220px] mx-auto sm:mx-0"
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5 text-left transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_20px_50px_rgba(201,168,204,0.12)] flex-1 max-w-[220px] mx-auto sm:mx-0"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] text-lg ring-1 ring-white/10">

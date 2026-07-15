@@ -1,13 +1,13 @@
 import type { ThemeName } from "@/lib/types";
 
 export const themeClasses: Record<ThemeName, string> = {
-  "Dark Romantic": "from-[#241426] via-[#2d2142] to-[#171323] text-white",
-  "Soft Pastel": "from-[#44304d] via-[#7b6488] to-[#2f3747] text-white",
-  "Minimal Black": "from-[#16131d] via-[#23202d] to-[#101018] text-white",
+  "Dark Romantic": "from-[#2a1824] via-[#3d2140] to-[#1a1018] text-white",
+  "Soft Pastel": "from-[#3d2a38] via-[#7a5a72] to-[#2a1a28] text-white",
+  "Minimal Black": "from-[#1a1218] via-[#241a22] to-[#120e14] text-white",
   "Cute Pink": "from-[#321826] via-[#8c4b6d] to-[#241426] text-white",
-  "Neon Glitch": "from-[#101924] via-[#173244] to-[#24172f] text-white",
+  "Neon Glitch": "from-[#1a1418] via-[#2f1e28] to-[#20141c] text-white",
   "Cinematic Purple": "from-[#1c1530] via-[#3a2a74] to-[#171323] text-white",
-  "Clean White": "from-[#273246] via-[#3f5269] to-[#1b2231] text-white"
+  "Clean White": "from-[#2a1a24] via-[#4a3a52] to-[#1a121c] text-white"
 };
 
 export const themePanelClasses: Record<ThemeName, string> = {

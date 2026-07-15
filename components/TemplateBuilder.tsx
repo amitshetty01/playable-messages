@@ -249,7 +249,7 @@ export function TemplateBuilder() {
                         onClick={() => setTheme(th.value)}
                         className={`relative h-8 w-8 rounded-full bg-gradient-to-br ${th.gradient} transition-all duration-200 ${
                           theme === th.value
-                            ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110'
+                            ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-[#1a1018] scale-110'
                             : 'opacity-50 hover:opacity-100 hover:scale-105'
                         }`}
                         title={th.value}

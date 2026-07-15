@@ -17,36 +17,36 @@ export const categories: Category[] = [
     slug: "love-crush",
     name: "Love & Crush",
     icon: "LC",
-    accent: "#ff5fb7",
+    accent: "#e85a7a",
     description: "For romantic, crush, confession, missing someone, or relationship messages."
   },
   {
     slug: "apology-fight-repair",
     name: "Apology & Fight Repair",
     icon: "AF",
-    accent: "#7c5cff",
-    description: "For saying sorry, fixing mood, calming anger, or restarting a conversation."
+    accent: "#8c5a7c",
+        description: "For saying sorry, fixing mood, calming anger, or restarting a conversation."
   },
   {
     slug: "friendship-best-friend",
     name: "Friendship & Best Friend",
     icon: "BF",
-    accent: "#23d3ee",
-    description: "For best friends, inside jokes, teasing, appreciation, emotional friendship messages, and funny moments."
+    accent: "#d4a080",
+        description: "For best friends, inside jokes, teasing, appreciation, emotional friendship messages, and funny moments."
   },
   {
     slug: "birthday-special-days",
     name: "Birthday & Special Days",
     icon: "BD",
-    accent: "#ffd166",
-    description: "For birthdays, anniversaries, congratulations, achievements, and special memories."
+    accent: "#d4b060",
+        description: "For birthdays, anniversaries, congratulations, achievements, and special memories."
   },
   {
     slug: "funny-roast",
     name: "Funny & Roast",
     icon: "FR",
-    accent: "#ff6b8a",
-    description: "For playful roasts, attitude jokes, dramatic reactions, and shareable fun."
+    accent: "#e0706a",
+        description: "For playful roasts, attitude jokes, dramatic reactions, and shareable fun."
   }
 ];
 
@@ -265,6 +265,10 @@ export function getTemplatesByCategory(slug: string) {
 
 export function getTemplateCategory(template: Template) {
   return categories.find((category) => template.categorySlugs.includes(category.slug)) ?? categories[0];
+}
+
+export function getAllTemplates(): Template[] {
+  return templates;
 }
 
 export const defaultCustomMessages = {

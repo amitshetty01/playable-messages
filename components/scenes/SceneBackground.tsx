@@ -186,8 +186,8 @@ function ChatDarkBg() {
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at 30% 20%, rgba(35,211,238,0.03), transparent 50%),
-                       radial-gradient(circle at 70% 80%, rgba(184,165,255,0.03), transparent 50%)`,
+          background: `radial-gradient(circle at 30% 20%, rgba(212,160,128,0.03), transparent 50%),
+                       radial-gradient(circle at 70% 80%, rgba(201,168,204,0.03), transparent 50%)`,
         }}
       />
       <div

@@ -14,8 +14,8 @@ export default function Image() {
       <div
         style={{
           alignItems: "center",
-          background: "linear-gradient(135deg,#15101f 0%,#312345 52%,#f6b1c9 100%)",
-          color: "#fff8f1",
+          background: "linear-gradient(135deg,#1a1018 0%,#3d2140 52%,#e89ab5 100%)",
+          color: "#faf3ed",
           display: "flex",
           flexDirection: "column",
           fontFamily: "Arial, sans-serif",

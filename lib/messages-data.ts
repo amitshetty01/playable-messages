@@ -538,20 +538,20 @@ export function getMessagesByAudience(audience: string): MessageItem[] {
 }
 
 export const categoryDisplay: Record<string, { name: string; description: string; icon: string; color: string }> = {
-  romantic: { name: "Romantic Messages", description: "Express your love with heartfelt romantic words.", icon: "💖", color: "#ff5fb7" },
-  birthday: { name: "Birthday Wishes", description: "Make birthdays special with personalized wishes.", icon: "🎂", color: "#ffd166" },
-  anniversary: { name: "Anniversary Messages", description: "Celebrate your journey together with love.", icon: "💍", color: "#ff6b8a" },
-  apology: { name: "Apology Messages", description: "Say sorry from the heart and make things right.", icon: "💔", color: "#7c5cff" },
-  goodmorning: { name: "Good Morning Messages", description: "Start someone's day with warmth and love.", icon: "🌅", color: "#f9a825" },
-  goodnight: { name: "Good Night Messages", description: "End the day with sweet dreams and love.", icon: "🌙", color: "#5c5cff" },
-  friendship: { name: "Friendship Messages", description: "Celebrate the bond of true friendship.", icon: "🤝", color: "#23d3ee" },
-  loveletter: { name: "Love Letters", description: "Pour your heart out in a beautiful love letter.", icon: "💌", color: "#ff5fb7" },
-  sorry: { name: "Sorry Messages", description: "Express your regret with sincere words.", icon: "😢", color: "#7c5cff" },
+  romantic: { name: "Romantic Messages", description: "Express your love with heartfelt romantic words.", icon: "💖", color: "#e85a7a" },
+  birthday: { name: "Birthday Wishes", description: "Make birthdays special with personalized wishes.", icon: "🎂", color: "#d4b060" },
+  anniversary: { name: "Anniversary Messages", description: "Celebrate your journey together with love.", icon: "💍", color: "#e0706a" },
+  apology: { name: "Apology Messages", description: "Say sorry from the heart and make things right.", icon: "💔", color: "#8c5a7c" },
+  goodmorning: { name: "Good Morning Messages", description: "Start someone's day with warmth and love.", icon: "🌅", color: "#d4b060" },
+  goodnight: { name: "Good Night Messages", description: "End the day with sweet dreams and love.", icon: "🌙", color: "#8c5a7c" },
+  friendship: { name: "Friendship Messages", description: "Celebrate the bond of true friendship.", icon: "🤝", color: "#d4a080" },
+  loveletter: { name: "Love Letters", description: "Pour your heart out in a beautiful love letter.", icon: "💌", color: "#e85a7a" },
+  sorry: { name: "Sorry Messages", description: "Express your regret with sincere words.", icon: "😢", color: "#8c5a7c" },
   farewell: { name: "Farewell Messages", description: "Say goodbye with grace and gratitude.", icon: "👋", color: "#888" },
-  proposal: { name: "Proposal Messages", description: "Ask the biggest question with beautiful words.", icon: "💍", color: "#ff6b8a" },
-  longdistance: { name: "Long Distance Messages", description: "Close the distance with heartfelt words.", icon: "🌍", color: "#5c5cff" },
+  proposal: { name: "Proposal Messages", description: "Ask the biggest question with beautiful words.", icon: "💍", color: "#e0706a" },
+  longdistance: { name: "Long Distance Messages", description: "Close the distance with heartfelt words.", icon: "🌍", color: "#8c5a7c" },
   breakup: { name: "Breakup Messages", description: "End things honestly and with respect.", icon: "💔", color: "#888" },
-  thankYou: { name: "Thank You Messages", description: "Show your gratitude with thoughtful words.", icon: "🙏", color: "#23d3ee" },
+  thankYou: { name: "Thank You Messages", description: "Show your gratitude with thoughtful words.", icon: "🙏", color: "#d4a080" },
 };
 
 export const generators: GeneratorItem[] = [

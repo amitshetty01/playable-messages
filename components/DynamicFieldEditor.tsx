@@ -164,12 +164,12 @@ function FieldRenderer({
           <div className="flex items-center gap-3">
             <input
               type="color"
-              value={value ?? "#ff5fb7"}
+              value={value ?? "#e85a7a"}
               onChange={(e) => onChange(e.target.value)}
               className="h-10 w-16 cursor-pointer rounded-xl border border-white/15 bg-transparent"
             />
             <span className="text-sm text-white/60">
-              {value ?? "#ff5fb7"}
+              {value ?? "#e85a7a"}
             </span>
           </div>
           {field.helpText && (

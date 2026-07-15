@@ -281,7 +281,7 @@ export function TemplatePreviewOverlay({
               width: pw * 1.8, height: pw * 1.8,
               left: isMobile ? mLeftPhone - pw * 0.4 : leftPhone - pw * 0.4,
               top: isMobile ? mTopPhone - pw * 0.4 : topPhone - pw * 0.4,
-              background: `radial-gradient(circle at center, rgba(184,165,255,0.15), rgba(255,107,157,0.05), transparent 70%)`,
+              background: `radial-gradient(circle at center, rgba(201,168,204,0.15), rgba(224,112,106,0.05), transparent 70%)`,
             }}
           />
         )}
@@ -371,7 +371,7 @@ export function TemplatePreviewOverlay({
               left: isMobile ? mLeftPhone : leftPhone,
               top: isMobile ? mTopPhone : topPhone,
               borderRadius: "36px",
-              boxShadow: "inset 0 0 30px rgba(184,165,255,0.10), 0 0 40px rgba(184,165,255,0.06)",
+              boxShadow: "inset 0 0 30px rgba(201,168,204,0.10), 0 0 40px rgba(201,168,204,0.06)",
             }}
           />
         )}

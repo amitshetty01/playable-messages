@@ -10,5 +10,5 @@ export const metadata: Metadata = buildMetadata({
 
 export default async function ReportPage({ searchParams }: { searchParams: Promise<{ experience?: string }> }) {
   const params = await searchParams;
-  return <ReportForm initialExperience={params.experience || ""} />;
+  return <div className="mx-auto max-w-4xl px-6"><ReportForm initialExperience={params.experience || ""} /></div>;
 }

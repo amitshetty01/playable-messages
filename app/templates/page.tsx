@@ -13,7 +13,7 @@ export const metadata: Metadata = buildMetadata({
 
 export default function TemplatesPage() {
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-6 sm:space-y-8">
       <section className="glass rounded-[2rem] p-5 sm:p-8">
         <p className="text-xs font-bold tracking-[0.08em] text-white/50">Templates</p>
         <h1 className="display-title mt-3 text-4xl font-bold leading-tight sm:text-6xl">Choose your interactive message style.</h1>

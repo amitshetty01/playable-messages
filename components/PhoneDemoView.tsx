@@ -52,7 +52,7 @@ export function PhoneDemoView({ template }: { template: Template }) {
           {/* Phone frame */}
           <div className="relative z-10">
             {/* Metallic frame */}
-            <div className="overflow-hidden rounded-[2.8rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[4px] shadow-[0_0_80px_rgba(0,0,0,0.6),0_0_40px_rgba(184,165,255,0.08)]">
+            <div className="overflow-hidden rounded-[2.8rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[4px] shadow-[0_0_80px_rgba(0,0,0,0.6),0_0_40px_rgba(201,168,204,0.08)]">
               {/* Inner black border for depth */}
               <div className="overflow-hidden rounded-[2.6rem] bg-black">
                 {/* Glass body */}
@@ -74,7 +74,7 @@ export function PhoneDemoView({ template }: { template: Template }) {
                   </div>
 
                   {/* Screen */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
+                  <div className="relative aspect-[9/16] w-full overflow-hidden bg-zinc-950" style={{ transform: "translateZ(0)" }}>
                     <ExperiencePlayer
                       key={previewKey}
                       template={template}

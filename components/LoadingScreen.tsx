@@ -38,7 +38,7 @@ export function LoadingScreen({ name = "", message = "Creating something", onCom
   }, [duration, onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#15101f]">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#1a1018]">
       <div className="relative mb-8 flex items-center justify-center">
         <div className="absolute h-24 w-24 animate-ping rounded-full bg-pink-500/20" />
         <div className="absolute h-20 w-20 animate-pulse rounded-full bg-fuchsia-500/30" />

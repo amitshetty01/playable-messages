@@ -51,7 +51,7 @@ function FloatingParticles() {
 function EggBanner({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-full border border-[#97dadf]/30 bg-black/80 px-6 py-3 text-sm font-bold text-[#97dadf] shadow-lg backdrop-blur-xl">
+    <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-full border border-[#d4a080]/30 bg-black/80 px-6 py-3 text-sm font-bold text-[#d4a080] shadow-lg backdrop-blur-xl">
       {message}
     </div>
   );

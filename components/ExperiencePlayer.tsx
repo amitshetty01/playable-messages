@@ -11,7 +11,7 @@ import { ReactionCapture } from "@/components/ReactionCapture";
 import { ReplyScreen } from "@/components/ReplyScreen";
 import { VibeCapture } from "@/components/VibeCapture";
 import { ChainMessageFlow } from "@/components/ChainMessageFlow";
-import { TranslateBanner } from "@/components/TranslateBanner";
+
 import { detectBrowserLanguage, translateText } from "@/lib/translator";
 import { detectDeviceCapability, type DeviceTier } from "@/lib/device-capability";
 import type { AnalyticsEventType, ExperienceRecord, Template } from "@/lib/types";
@@ -129,23 +129,18 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
   const renderMode: "demo" | "generated" | "preview" = mode === "ghost" ? "generated" : mode;
 
   const [browserLang, setBrowserLang] = useState("");
-  const [showTranslateBanner, setShowTranslateBanner] = useState(false);
   const [translatedTexts, setTranslatedTexts] = useState<Record<string, string>>({});
-  const translateShown = useRef(false);
 
   useEffect(() => {
     const lang = detectBrowserLanguage();
     setBrowserLang(lang);
-    if (lang !== "en" && !translateShown.current) {
+    if (lang !== "en") {
       const cacheKey = `translation-${experience.id}-${lang}`;
       const cached = (() => { try { return localStorage.getItem(cacheKey); } catch { return null; } })();
       if (cached) {
         try { setTranslatedTexts(JSON.parse(cached)); } catch { /* ignore */ }
-      } else {
-        setShowTranslateBanner(true);
       }
     }
-    translateShown.current = true;
   }, [experience.id]);
 
   useEffect(() => {
@@ -240,18 +235,6 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
     if (mode === "generated") {
       void track(experience.id, "game_interaction", template.id, undefined, { action });
     }
-  }
-
-  async function handleTranslate() {
-    setShowTranslateBanner(false);
-    const textsToTranslate: Record<string, string> = {};
-    if (experience.finalMessage) textsToTranslate["finalMessage"] = await translateText(experience.finalMessage, browserLang);
-    for (let i = 0; i < (experience.customMessages?.steps?.length || 0); i++) {
-      textsToTranslate[`step-${i}`] = await translateText(experience.customMessages.steps[i], browserLang);
-    }
-    setTranslatedTexts(textsToTranslate);
-    const cacheKey = `translation-${experience.id}-${browserLang}`;
-    try { localStorage.setItem(cacheKey, JSON.stringify(textsToTranslate)); } catch { /* ignore */ }
   }
 
   if (experience.scheduledAt && (mode === "generated" || mode === "ghost")) {
@@ -400,19 +383,7 @@ export function ExperiencePlayer({ template, experience, mode, shareUrl, isPause
           <span>Ghost Mode — Preview only, no analytics tracked</span>
         </div>
       )}
-      <div className="space-y-2 px-4 pt-2">
-        <TranslateBanner
-          language={browserLang}
-          onTranslate={handleTranslate}
-          onDismiss={() => setShowTranslateBanner(false)}
-        />
-        {Object.keys(translatedTexts).length > 0 && (
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-            Translated
-          </div>
-        )}
-      </div>
+
       {content}
       {showReaction && !reactionSent && (
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4">

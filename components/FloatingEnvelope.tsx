@@ -6,7 +6,7 @@ import { ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 
 const PARTICLE_COUNT = 80;
-const COLORS = ["#ff6b8a", "#ffd166", "#97dadf", "#b8a5ff", "#ff5fb7", "#7c5cff"];
+const COLORS = ["#e0706a", "#d4b060", "#d4a080", "#c9a8cc", "#e85a7a", "#8c5a7c"];
 
 type Particle = {
   pos: THREE.Vector3;
@@ -98,8 +98,8 @@ function EnvelopeBody() {
       <mesh ref={flapRef} position={[0, 0.4, 0]} rotation={[0.5, 0, 0]}>
         <planeGeometry args={[1.2, 0.5]} />
         <meshPhysicalMaterial
-          color="#ff5fb7"
-          emissive="#ff3b6a"
+          color="#e85a7a"
+          emissive="#d0405a"
           emissiveIntensity={0.4}
           roughness={0.3}
           metalness={0.05}
@@ -189,7 +189,7 @@ export default function FloatingEnvelope({ className }: { className?: string }) 
     >
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} intensity={0.8} />
-      <pointLight position={[-5, -5, 5]} intensity={0.3} color="#b8a5ff" />
+      <pointLight position={[-5, -5, 5]} intensity={0.3} color="#c9a8cc" />
       <FloatingEnvelopeInner />
       <ContactShadows position={[0, -1.2, 0]} opacity={0.3} scale={3} blur={2} far={3} />
     </Canvas>

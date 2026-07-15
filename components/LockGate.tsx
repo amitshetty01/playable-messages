@@ -106,7 +106,7 @@ export function LockGate({ lockType, lockValue, receiverName, creatorName, toget
   const prompt = prompts[lockType];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#15101f]/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1018]/95 backdrop-blur-sm">
       <div className="glass mx-4 w-full max-w-md rounded-[2rem] p-6 sm:p-8 text-center">
         <p className="text-4xl mb-3">
           {lockType === "password" ? "🔒" : lockType === "nickname" ? "💕" : lockType === "date" ? "📅" : "🧩"}

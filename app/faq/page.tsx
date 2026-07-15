@@ -27,7 +27,7 @@ export default function FAQPage() {
   };
 
   return (
-    <article className="space-y-8">
+    <article className="mx-auto max-w-4xl space-y-8 px-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }} />
       <section className="glass rounded-[2rem] p-5 sm:p-8 lg:p-10">
         <p className="text-xs font-bold tracking-[0.08em] text-white/50">FAQ</p>

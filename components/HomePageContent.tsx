@@ -442,7 +442,7 @@ export function HomePageContent() {
               <Link
                 key={o.label}
                 href={`/mood/${o.slug}`}
-                className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(184,165,255,0.15)] active:scale-95"
+                className="glass group flex flex-col items-center gap-2 rounded-xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(201,168,204,0.15)] active:scale-95"
               >
                 <span className="text-xl transition-transform duration-300 ease-out group-hover:scale-125 group-active:scale-110" aria-hidden="true">{o.icon}</span>
                 <span className="text-[10px] font-extrabold text-white/70 transition-colors duration-200 group-hover:text-white text-center leading-tight">{o.label}</span>

@@ -106,7 +106,7 @@ export function CinematicDemo({ template }: { template: Template }) {
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-1000"
         style={{
-          background: `radial-gradient(circle at ${glowPos.x}% ${glowPos.y}%, rgba(184,165,255,0.08), rgba(255,107,157,0.04), transparent 60%)`,
+          background: `radial-gradient(circle at ${glowPos.x}% ${glowPos.y}%, rgba(201,168,204,0.08), rgba(224,112,106,0.04), transparent 60%)`,
           opacity: phase === "loading" ? 0 : 1,
         }}
       />
@@ -200,7 +200,7 @@ export function CinematicDemo({ template }: { template: Template }) {
               <div
                 className="pointer-events-none absolute -inset-16 rounded-full opacity-40 blur-3xl transition-all duration-1000"
                 style={{
-                  background: `radial-gradient(circle at center, rgba(184,165,255,0.15), transparent 70%)`,
+                  background: `radial-gradient(circle at center, rgba(201,168,204,0.15), transparent 70%)`,
                 }}
               />
 

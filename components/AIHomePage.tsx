@@ -371,7 +371,7 @@ function AIPresenceDot({ size = "sm" }: { size?: "sm" | "xs" }) {
   return (
     <motion.div
       className={`${sizeClass} shrink-0 rounded-full bg-violet`}
-      style={{ boxShadow: "0 0 28px rgba(184,165,255,0.7)" }}
+      style={{ boxShadow: "0 0 28px rgba(201,168,204,0.7)" }}
       animate={{ scale: [1, 1.35, 1], opacity: [0.55, 1, 0.55] }}
       transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
     />
@@ -684,6 +684,7 @@ export function AIHomePage() {
   const [selectedExperience, setSelectedExperience] = useState<Template | null>(null);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [mood, setMood] = useState<"default" | "apology" | "birthday" | "confession" | "missing">("default");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -728,6 +729,11 @@ export function AIHomePage() {
   const processUserInput = useCallback((text: string) => {
     if (!text.trim()) return;
     const trimmed = text.trim();
+    if (isMinimal(trimmed)) {
+      setValidationError("Please share a bit more detail so I can help craft your message.");
+      return;
+    }
+    setValidationError(null);
     setPrompt("");
     setMood(detectMood(trimmed));
 
@@ -788,6 +794,11 @@ export function AIHomePage() {
   const handleInitialSubmit = useCallback(() => {
     const text = prompt.trim();
     if (!text) return;
+    if (isMinimal(text)) {
+      setValidationError("Please share a bit more detail so I can help craft your message.");
+      return;
+    }
+    setValidationError(null);
     setPrompt("");
     setMood(detectMood(text));
 
@@ -1050,7 +1061,7 @@ export function AIHomePage() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="relative w-full rounded-[32px] border border-white/[0.07] bg-white/[0.035] px-7 py-6 shadow-[0_30px_100px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 focus-within:border-violet/30 focus-within:shadow-[0_30px_100px_rgba(184,165,255,0.14)]"
+                className="relative w-full rounded-[32px] border border-white/[0.07] bg-white/[0.035] px-7 py-6 shadow-[0_30px_100px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 focus-within:border-violet/30 focus-within:shadow-[0_30px_100px_rgba(201,168,204,0.14)]"
               >
                 <textarea
                   ref={textareaRef}
@@ -1075,7 +1086,7 @@ export function AIHomePage() {
                       type="button"
                       onClick={handleInitialSubmit}
                       disabled={!prompt.trim()}
-                      className="premium-button !min-h-[46px] !rounded-xl !px-6 !py-2.5 text-sm disabled:opacity-30 disabled:grayscale-[0.6] enabled:shadow-[0_0_35px_rgba(184,165,255,0.12)]"
+                      className="premium-button !min-h-[46px] !rounded-xl !px-6 !py-2.5 text-sm disabled:opacity-30 disabled:grayscale-[0.6] enabled:shadow-[0_0_35px_rgba(201,168,204,0.12)]"
                       whileTap={{ scale: 0.96 }}
                     >
                       ✨ Craft it
@@ -1181,7 +1192,7 @@ export function AIHomePage() {
                               layout
                               initial={{ opacity: 0, y: 16 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="w-full rounded-[32px] border border-white/[0.07] bg-white/[0.035] px-7 py-6 shadow-[0_30px_100px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 focus-within:border-violet/30 focus-within:shadow-[0_30px_100px_rgba(184,165,255,0.14)]"
+                              className="w-full rounded-[32px] border border-white/[0.07] bg-white/[0.035] px-7 py-6 shadow-[0_30px_100px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300 focus-within:border-violet/30 focus-within:shadow-[0_30px_100px_rgba(201,168,204,0.14)]"
                             >
                               <textarea
                                 ref={textareaRef}
@@ -1201,7 +1212,7 @@ export function AIHomePage() {
                                   type="button"
                                   onClick={processConversationInput}
                                   disabled={!prompt.trim()}
-                                  className="premium-button !min-h-[42px] !rounded-xl !px-5 !py-2 text-sm disabled:opacity-30 disabled:grayscale-[0.6] enabled:shadow-[0_0_30px_rgba(184,165,255,0.12)]"
+                                  className="premium-button !min-h-[42px] !rounded-xl !px-5 !py-2 text-sm disabled:opacity-30 disabled:grayscale-[0.6] enabled:shadow-[0_0_30px_rgba(201,168,204,0.12)]"
                                   whileTap={{ scale: 0.96 }}
                                 >
                                   ✨ Send

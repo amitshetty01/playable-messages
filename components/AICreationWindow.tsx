@@ -169,7 +169,7 @@ export function AICreationWindow({ isOpen, onClose, onComplete }: AICreationWind
       onClick={onClose}
     >
       <motion.div
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-white/10 bg-gradient-to-b from-[#1a1325] to-[#120d1c] shadow-[0_0_80px_rgba(184,165,255,0.12)] backdrop-blur-2xl"
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] border border-white/10 bg-gradient-to-b from-[#1a1325] to-[#120d1c] shadow-[0_0_80px_rgba(201,168,204,0.12)] backdrop-blur-2xl"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -243,7 +243,7 @@ export function AICreationWindow({ isOpen, onClose, onComplete }: AICreationWind
                       onClick={() => handleUseCase(uc.value)}
                       className={`group relative overflow-hidden rounded-xl border p-4 text-left transition-all ${
                         input.useCase === uc.value
-                          ? "border-violet/40 bg-violet/20 shadow-[0_0_20px_rgba(184,165,255,0.1)]"
+                          ? "border-violet/40 bg-violet/20 shadow-[0_0_20px_rgba(201,168,204,0.1)]"
                           : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
                       }`}
                     >
@@ -546,7 +546,7 @@ export function AICreationWindow({ isOpen, onClose, onComplete }: AICreationWind
                       onClick={() => { handleSelectConcept(i); setStep("preview"); }}
                       className={`w-full rounded-2xl border p-5 text-left transition-all ${
                         selectedConcept === i
-                          ? "border-violet/40 bg-violet/15 shadow-[0_0_20px_rgba(184,165,255,0.1)]"
+                          ? "border-violet/40 bg-violet/15 shadow-[0_0_20px_rgba(201,168,204,0.1)]"
                           : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
                       }`}
                     >

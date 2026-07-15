@@ -67,7 +67,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#18122b"
+  themeColor: "#160f19"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -99,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AmbientGlow />
         <Header />
         <ResponsiveBannerAd />
-        <main id="content" className="mx-auto min-h-[calc(100svh-220px)] w-full max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <main id="content" className="min-h-[calc(100svh-220px)] w-full">
           {children}
         </main>
         <Footer />

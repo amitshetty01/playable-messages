@@ -45,9 +45,9 @@ function FloatingOrbs() {
       y: 10 + Math.random() * 80,
       delay: Math.random() * 3,
       dur: 12 + Math.random() * 10,
-      color: i % 3 === 0 ? "rgba(184,165,255,0.06)"
-           : i % 3 === 1 ? "rgba(255,107,157,0.05)"
-           : "rgba(151,218,223,0.05)",
+      color: i % 3 === 0 ? "rgba(201,168,204,0.06)"
+           : i % 3 === 1 ? "rgba(224,112,106,0.05)"
+           : "rgba(212,160,128,0.05)",
     })), []);
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">

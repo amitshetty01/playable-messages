@@ -63,7 +63,7 @@ function ParticleField() {
         size={0.025}
         transparent
         opacity={0.35}
-        color="#b8a5ff"
+        color="#c9a8cc"
         sizeAttenuation
         blending={2}
         depthWrite={false}

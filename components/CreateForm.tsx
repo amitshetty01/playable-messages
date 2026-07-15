@@ -743,7 +743,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
             <button
               type="button"
               onClick={() => setShowAIWindow(true)}
-              className="group relative w-full overflow-hidden rounded-2xl border border-violet/30 bg-gradient-to-br from-violet/20 to-blush/10 p-5 text-left transition-all hover:from-violet/30 hover:to-blush/20 hover:shadow-[0_0_30px_rgba(184,165,255,0.15)]"
+              className="group relative w-full overflow-hidden rounded-2xl border border-violet/30 bg-gradient-to-br from-violet/20 to-blush/10 p-5 text-left transition-all hover:from-violet/30 hover:to-blush/20 hover:shadow-[0_0_30px_rgba(201,168,204,0.15)]"
             >
               <div className="flex items-center gap-4">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blush to-violet text-xl shadow-lg">
@@ -826,7 +826,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                   onClick={() => { manualToneSet.current = true; finalMessageDirty.current = false; setShowSentimentBadge(false); setForm((prev) => ({ ...prev, tone: toneOpt.value, finalMessage: "" })); }}
                   className={`relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${toneOpt.gradient} text-sm transition-all duration-200 ${
                     form.tone === toneOpt.value
-                      ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                      ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#1a1018] scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                       : "opacity-60 hover:opacity-100 hover:scale-105"
                   }`}
                   title={toneOpt.value}
@@ -854,7 +854,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
                   onClick={() => setForm((prev) => ({ ...prev, theme: themeOpt.value }))}
                   className={`relative h-8 w-8 rounded-full bg-gradient-to-br ${themeOpt.gradient} transition-all duration-200 ${
                     form.theme === themeOpt.value
-                      ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#15101f] scale-110"
+                      ? "ring-2 ring-white/60 ring-offset-2 ring-offset-[#1a1018] scale-110"
                       : "opacity-50 hover:opacity-100 hover:scale-105"
                   }`}
                   title={themeOpt.value}
@@ -1148,7 +1148,7 @@ export function CreateForm({ templates, initialTemplate, existingExperience }: {
     <aside className="hidden lg:block sticky top-4 self-start w-[45%] shrink-0">
       <div className="relative">
         <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-b from-violet/20 via-blush/10 to-neon/10 blur-3xl opacity-40" />
-        <div className="relative overflow-hidden rounded-[2.6rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_80px_rgba(0,0,0,0.5),0_0_40px_rgba(184,165,255,0.08)]">
+        <div className="relative overflow-hidden rounded-[2.6rem] bg-gradient-to-b from-zinc-500 via-zinc-400 to-zinc-600 p-[3px] shadow-[0_0_80px_rgba(0,0,0,0.5),0_0_40px_rgba(201,168,204,0.08)]">
           <div className="relative overflow-hidden rounded-[2.4rem] bg-black">
             <div className="pointer-events-none absolute inset-0 z-30 rounded-[2.4rem] bg-gradient-to-br from-white/[0.06] via-transparent to-transparent" />
             <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden rounded-[2.4rem]">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AIHomePage } from "@/components/AIHomePage";
+import CinematicHomepage from "@/components/CinematicHomepage";
 import { siteName, defaultDescription, jsonLd } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -61,7 +61,7 @@ export default function Page() {
           ])
         }}
       />
-      <AIHomePage />
+      <CinematicHomepage />
     </>
   );
 }

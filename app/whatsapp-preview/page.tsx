@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function WhatsAppPreviewPage() {
   const [message, setMessage] = useState("Happy Birthday! 🎂");
   const [sender, setSender] = useState("Your Name");
-  const [bgColor, setBgColor] = useState("#15101f");
+  const [bgColor, setBgColor] = useState("#1a1018");
   const [accentColor, setAccentColor] = useState("#f472b6");
 
   const previewStyle = {

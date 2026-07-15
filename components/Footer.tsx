@@ -7,11 +7,11 @@ export function Footer() {
   const { t } = useTranslation();
 
   return (
-    <footer className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 pb-8 pt-6 text-sm leading-6 text-white/60 sm:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between">
+    <footer className="mx-auto flex w-full max-w-7xl flex-col gap-5 border-t border-[var(--border-subtle)] px-4 pb-8 pt-6 text-sm leading-6 text-[var(--text-muted)] sm:px-6 lg:px-8 xl:flex-row xl:items-center xl:justify-between">
       <p className="max-w-3xl">
         {t("footer.disclaimer")}
       </p>
-      <div className="flex flex-wrap gap-4 font-bold text-white/75 max-sm:w-full max-sm:justify-between">
+      <div className="flex flex-wrap gap-4 font-bold text-[var(--text-secondary)] max-sm:w-full max-sm:justify-between">
         <Link href="/about">{t("footer.about")}</Link>
         <Link href="/faq">{t("footer.faq")}</Link>
         <Link href="/privacy">{t("footer.privacy")}</Link>

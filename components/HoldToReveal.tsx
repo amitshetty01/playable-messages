@@ -129,9 +129,9 @@ export function HoldToReveal({
         <svg width="136" height="136" className="-rotate-90 relative z-10">
           <defs>
             <linearGradient id="holdGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f6b1c9" />
-              <stop offset="50%" stopColor="#b8a5ff" />
-              <stop offset="100%" stopColor="#97dadf" />
+              <stop offset="0%" stopColor="#e89ab5" />
+              <stop offset="50%" stopColor="#c9a8cc" />
+              <stop offset="100%" stopColor="#d4a080" />
             </linearGradient>
           </defs>
           <circle
@@ -160,7 +160,7 @@ export function HoldToReveal({
             <motion.div
               key="ripple"
               className="absolute inset-0 z-10 rounded-full border-2"
-              style={{ borderColor: "rgba(184, 165, 255, 0.3)" }}
+              style={{ borderColor: "rgba(201, 168, 204, 0.3)" }}
               initial={{ scale: 1, opacity: 0.6 }}
               animate={{ scale: 2.2, opacity: 0 }}
               exit={{ opacity: 0 }}
@@ -188,7 +188,7 @@ export function HoldToReveal({
                   height="36"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#97dadf"
+                  stroke="#d4a080"
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
