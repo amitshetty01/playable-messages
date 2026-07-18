@@ -50,6 +50,12 @@
 
   --color-white: 255 250 248;
   --color-ink: 42 22 51;
+
+  /* ── Phone frame (premium rose gold) ── */
+  --phone-border: #d0a898;
+  --phone-body: #fdf6f2;
+  --phone-home: rgba(208, 168, 152, 0.45);
+  --phone-camera-dot: #b08078;
 }
 
 /* ── Dark mode ── */
@@ -96,6 +102,12 @@
 
   --color-white: 255 255 255;
   --color-ink: 22 15 25;
+
+  /* ── Phone frame (premium dark rose gold) ── */
+  --phone-border: #6a3840;
+  --phone-body: #1a1018;
+  --phone-home: rgba(106, 56, 64, 0.5);
+  --phone-camera-dot: #4a2830;
 }
 
 * {
@@ -945,6 +957,90 @@ html.light .skeleton::after { background: linear-gradient(110deg, transparent 30
 }
 
 /* ========== Our Story Universe ========== */
+
+/* ═══════════════════════════════════════════════
+   LOVE-CHASE EXPERIENCE THEME
+   ═══════════════════════════════════════════════ */
+.experience-love-chase {
+  --experience-bg: #fff8f7;
+  --experience-surface: rgba(255,255,255,0.68);
+  --experience-heading: #321c3a;
+  --experience-text: #765f79;
+  --experience-muted: #927f94;
+  --experience-primary: #ed7f9d;
+  --experience-secondary: #d8c8f3;
+  --experience-border: rgba(70,40,72,0.09);
+
+  --experience-bg-gradient:
+    radial-gradient(circle at 22% 18%, rgba(255, 189, 207, 0.34), transparent 32%),
+    radial-gradient(circle at 82% 28%, rgba(216, 200, 243, 0.34), transparent 38%),
+    radial-gradient(circle at 60% 82%, rgba(255, 224, 233, 0.42), transparent 36%),
+    linear-gradient(150deg, #fffaf9 0%, #fff4f6 52%, #f8f2ff 100%);
+
+  --experience-phone-frame: linear-gradient(145deg, #3a303d, #171319);
+  --no-btn-bg: rgba(255,255,255,0.62);
+  --no-btn-color: #5c405f;
+  --no-btn-border: rgba(82,50,85,0.10);
+  --no-btn-shadow: 0 12px 28px rgba(67,37,65,0.08);
+  --yes-btn-text: #321c3a;
+  --yes-btn-border: rgba(255,255,255,0.55);
+  --yes-btn-glow: 0 14px 30px rgba(200,79,120,0.22);
+  --yes-btn-inset: inset 0 1px 0 rgba(255,255,255,0.42);
+  --reaction-ring: rgba(237,127,157,0.25);
+  --final-bg: rgba(255,255,255,0.68);
+  --final-border: rgba(70,40,72,0.09);
+  --final-icon-border: rgba(70,40,72,0.12);
+  --celebration-overlay: radial-gradient(ellipse at 50% 50%, rgba(237,127,157,0.25) 0%, rgba(216,200,243,0.18) 40%, rgba(255,248,247,0.85) 100%);
+  --sample-badge-bg: rgba(50,28,58,0.08);
+  --sample-badge-color: rgba(50,28,58,0.52);
+  --sample-badge-border: rgba(50,28,58,0.08);
+}
+
+.dark .experience-love-chase {
+  --experience-bg: #1b101e;
+  --experience-surface: rgba(45,25,50,0.72);
+  --experience-heading: #fff8fa;
+  --experience-text: #cbbbc9;
+  --experience-muted: #9e899c;
+  --experience-primary: #f39ab3;
+  --experience-secondary: #cdb7ee;
+  --experience-border: rgba(255,255,255,0.08);
+
+  --experience-bg-gradient:
+    radial-gradient(circle at 22% 18%, rgba(239, 126, 160, 0.13), transparent 34%),
+    radial-gradient(circle at 82% 28%, rgba(182, 151, 235, 0.14), transparent 38%),
+    linear-gradient(150deg, #1b101e 0%, #241429 52%, #1d1525 100%);
+
+  --experience-phone-frame: linear-gradient(145deg, #252027, #0f0d10);
+  --no-btn-bg: rgba(255,255,255,0.06);
+  --no-btn-color: #f5eaf2;
+  --no-btn-border: rgba(255,255,255,0.10);
+  --no-btn-shadow: none;
+  --yes-btn-text: #321c3a;
+  --yes-btn-border: rgba(255,255,255,0.55);
+  --yes-btn-glow: 0 14px 30px rgba(200,79,120,0.22);
+  --yes-btn-inset: inset 0 1px 0 rgba(255,255,255,0.42);
+  --reaction-ring: rgba(237,127,157,0.25);
+  --final-bg: rgba(45,25,50,0.72);
+  --final-border: rgba(255,255,255,0.08);
+  --final-icon-border: rgba(255,255,255,0.15);
+  --celebration-overlay: radial-gradient(ellipse at 50% 50%, rgba(237,127,157,0.20) 0%, rgba(216,200,243,0.15) 40%, rgba(27,16,30,0.85) 100%);
+  --sample-badge-bg: rgba(255,255,255,0.05);
+  --sample-badge-color: rgba(255,248,250,0.48);
+  --sample-badge-border: rgba(255,255,255,0.07);
+}
+
+/* ─── Love-chase premium button override ─── */
+.experience-love-chase .premium-button {
+  background: linear-gradient(135deg, #f6a6bb 0%, #ed7f9d 52%, #d8658d 100%) !important;
+  color: #321c3a !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 0 14px 30px rgba(200, 79, 120, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
+.experience-love-chase .premium-button:hover {
+  background: linear-gradient(135deg, #f6b3c6 0%, #ed8ba6 52%, #d87098 100%) !important;
+  box-shadow: 0 18px 36px rgba(200, 79, 120, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
 
 /* ═══════════════════════════════════════════════
    PREMIUM UI ENHANCEMENTS

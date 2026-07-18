@@ -27,27 +27,6 @@ type Props = {
 
 const REACTION_EMOJIS = ["💖", "✨", "🔥", "💫", "🎉", "💗", "⭐", "🌸"];
 
-function FloatingParticles() {
-  return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {Array.from({ length: 12 }).map((_, i) => (
-        <span
-          key={i}
-          className="absolute rounded-full bg-white/10"
-          style={{
-            width: `${2 + (i % 3) * 2}px`,
-            height: `${2 + (i % 3) * 2}px`,
-            left: `${(i * 8.3 + 3.7) % 100}%`,
-            bottom: `${(i * 7.1 + 1.9) % 40}%`,
-            animation: `float-particle ${4 + (i % 5) * 2}s ease-in-out ${i * 0.6}s infinite`,
-            opacity: 0.15 + (i % 4) * 0.1,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 function EggBanner({ message }: { message: string | null }) {
   if (!message) return null;
   return (
@@ -103,10 +82,15 @@ function SceneProgress({ current, total }: { current: number; total: number }) {
 function TitleText({ text, align }: { text: string; align?: "center" | "left" }) {
   return (
     <h1
-      className={`font-display font-bold leading-[1.1] tracking-tight text-white animate-text-glow ${
+      className={`font-display font-medium leading-[0.94] tracking-[-0.045em] ${
         align === "left" ? "text-left" : "text-center"
       }`}
-      style={{ fontSize: "clamp(1.5rem, 5.5vw, 3.5rem)" }}
+      style={{
+        fontSize: "clamp(1.8rem, 8vw, 2.8rem)",
+        color: "var(--experience-heading, #321c3a)",
+        maxWidth: "340px",
+        margin: "0 auto",
+      }}
     >
       {text.split(" ").map((word, i) => (
         <span key={i} className="inline-block" style={{ overflow: "hidden", verticalAlign: "bottom" }}>
@@ -122,7 +106,7 @@ function TitleText({ text, align }: { text: string; align?: "center" | "left" })
 
 function BodyText({ text }: { text: string }) {
   return (
-    <AnimatedText as="p" delay={400} distance={25} className="max-w-md text-white/60 animate-body-breathe" style={{ fontSize: "clamp(0.875rem, 2.2vw, 1.125rem)", lineHeight: 1.6 }}>
+    <AnimatedText as="p" delay={400} distance={25} className="max-w-[280px] text-center" style={{ fontSize: "clamp(0.9rem, 3.5vw, 1.1rem)", lineHeight: 1.6, fontWeight: 400, color: "var(--experience-muted, #927f94)" }}>
       {text}
     </AnimatedText>
   );
@@ -183,20 +167,20 @@ function ChaseTitle({ text, attempts, onCaught, tone }: { text: string; attempts
             top: pos.top,
             transform: "translate(-50%, -50%)",
             background: flash === "dodge"
-              ? "rgba(255,80,80,0.2)"
-                              : "rgba(255,255,255,0.08)",
+              ? "rgba(237,127,157,0.15)"
+                              : "var(--no-btn-bg, rgba(255,255,255,0.62))",
             border: flash === "dodge"
-              ? "2px solid rgba(255,80,80,0.5)"
-              : "2px solid rgba(255,255,255,0.2)",
-            color: flash === "dodge" ? "#ff6b8a" : "white",
+              ? "1px solid rgba(237,127,157,0.4)"
+              : "1px solid var(--no-btn-border, rgba(82,50,85,0.10))",
+            color: flash === "dodge" ? "#c84f78" : "var(--no-btn-color, #5c405f)",
           }}
         >
           <span className="text-base sm:text-lg">{teaseText}</span>
         </button>
       ) : (
         <h1
-          className="pointer-events-auto font-display font-bold leading-[1.1] tracking-tight text-white animate-reveal-scale-3d"
-          style={{ fontSize: "clamp(1.5rem, 5.5vw, 3.5rem)" }}
+          className="pointer-events-auto font-display font-bold leading-[1.1] tracking-tight animate-reveal-scale-3d"
+          style={{ fontSize: "clamp(1.5rem, 5.5vw, 3.5rem)", color: "var(--experience-heading, #321c3a)" }}
         >
           {text}
         </h1>
@@ -206,34 +190,38 @@ function ChaseTitle({ text, attempts, onCaught, tone }: { text: string; attempts
 }
 
 const LOVE_DODGE_TEXTS = [
-  ["Not you 💔",        "rgba(255,107,157,0.8)"],
-  ["Keep chasing 🌪️",  "rgba(255,209,102,0.8)"],
-  ["Not meant for you 😏","rgba(196,77,255,0.8)"],
-  ["This one runs forever 🏃","rgba(255,107,157,0.9)"],
-  ["Can't catch this one ✨","rgba(151,218,223,0.8)"],
-  ["Wrong path 💨",     "rgba(255,95,183,0.8)"],
-  ["Some things never stop 👀","rgba(180,130,255,0.9)"],
-  ["It's already gone 😘","rgba(255,107,157,1)"],
-  ["Giving up yet? 🫣", "rgba(255,50,50,0.9)"],
-  ["Almost… 😈",        "rgba(196,77,255,1)"],
-  ["Too fast! 😰",      "rgba(255,50,50,0.9)"],
-  ["Calm down! 💦",     "rgba(100,180,255,0.8)"],
-  ["Are you even trying? 🥱","rgba(200,200,100,0.8)"],
-  ["Hello? 👀",         "rgba(180,130,255,0.9)"],
-  ["Don't look at me! 😳","rgba(255,150,150,0.9)"],
+  ["Not you 💔",        "rgba(237,127,157,0.7)"],
+  ["Keep chasing 🌪️",  "rgba(216,200,243,0.7)"],
+  ["Not meant for you 😏","rgba(200,79,120,0.7)"],
+  ["This one runs forever 🏃","rgba(237,127,157,0.8)"],
+  ["Can't catch this one ✨","rgba(165,190,200,0.7)"],
+  ["Wrong path 💨",     "rgba(214,108,145,0.7)"],
+  ["Some things never stop 👀","rgba(182,151,235,0.8)"],
+  ["It's already gone 😘","rgba(237,127,157,0.9)"],
+  ["Giving up yet? 🫣", "rgba(200,79,120,0.8)"],
+  ["Almost… 😈",        "rgba(200,79,120,0.9)"],
+  ["Too fast! 😰",      "rgba(200,79,120,0.8)"],
+  ["Calm down! 💦",     "rgba(165,190,200,0.7)"],
+  ["Are you even trying? 🥱","rgba(216,200,243,0.7)"],
+  ["Hello? 👀",         "rgba(182,151,235,0.8)"],
+  ["Don't look at me! 😳","rgba(237,127,157,0.8)"],
 ];
 
 const CLONE_PANIC_TEXTS = ["No! 😵", "Me too! 🏃", "Split! 💫", "Run! 💨", "Bye! 👋", "Nope! 🙈"];
 
+const HEART_COLORS = ["#ED7F9D", "#F5A4BA", "#D8A1BD", "#CDB7EE", "#ED7F9D"];
+const HEART_SYMBOLS = ["♥", "♥", "♥", "♥", "♥"];
+
 function FallingHearts({ speedBoost = 1, dizzy = 0 }: { speedBoost?: number; dizzy?: number }) {
   const hearts = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => ({
+    Array.from({ length: 5 }, (_, i) => ({
       id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 12,
-      dur: (8 + Math.random() * 7) / speedBoost,
-      size: 14 + Math.random() * 18,
-      drift: (Math.random() - 0.5) * 80,
+      left: 10 + Math.random() * 75,
+      delay: Math.random() * 15,
+      dur: (18 + Math.random() * 12) / speedBoost,
+      size: 16 + Math.random() * 12,
+      drift: (Math.random() - 0.5) * 40,
+      color: HEART_COLORS[i % HEART_COLORS.length],
     })), [speedBoost]);
   return (
     <div
@@ -247,13 +235,15 @@ function FallingHearts({ speedBoost = 1, dizzy = 0 }: { speedBoost?: number; diz
           className="absolute"
           style={{
             left: `${h.left}%`,
-            top: "-30px",
-            fontSize: h.size,
-            opacity: 0.5,
-            animation: `heart-fall ${h.dur}s ease-in ${h.delay}s infinite`,
+            top: "-40px",
+            fontSize: `${h.size}px`,
+            color: h.color,
+            opacity: 0.3 + (h.id * 0.08),
+            filter: `drop-shadow(0 8px 18px rgba(200, 79, 120, 0.12))`,
+            animation: `heart-fall ${h.dur}s ease-in-out ${h.delay}s infinite`,
             "--drift": `${h.drift}px`,
           } as React.CSSProperties}
-        >💕</div>
+        >♥</div>
       ))}
     </div>
   );
@@ -534,10 +524,10 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
 
   // Yes button glow/scale evolution
   const yesGlow = dodgeCount >= 5
-    ? "0 0 60px rgba(255,107,157,0.7), 0 0 100px rgba(196,77,255,0.4), 0 4px 20px rgba(0,0,0,0.3)"
+    ? "var(--yes-btn-glow, 0 14px 30px rgba(200,79,120,0.28)), var(--yes-btn-inset, inset 0 1px 0 rgba(255,255,255,0.42))"
     : dodgeCount >= 3
-    ? "0 0 50px rgba(196,77,255,0.6), 0 0 80px rgba(196,77,255,0.3), 0 4px 20px rgba(0,0,0,0.3)"
-    : "0 0 40px rgba(255,107,157,0.5), 0 0 80px rgba(196,77,255,0.2), 0 4px 20px rgba(0,0,0,0.3)";
+    ? "var(--yes-btn-glow, 0 14px 30px rgba(200,79,120,0.22)), var(--yes-btn-inset, inset 0 1px 0 rgba(255,255,255,0.42))"
+    : "var(--yes-btn-glow, 0 14px 30px rgba(200,79,120,0.18)), var(--yes-btn-inset, inset 0 1px 0 rgba(255,255,255,0.42))";
 
   const yesScale = dodgeCount >= 5 ? [1.05, 1.08, 1.05] : [1, 1.03, 1];
   const yesLabel = dodgeCount >= 5 ? "Yes please! 💖" : label;
@@ -598,23 +588,28 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
       <div className="relative shrink-0">
         {dodgeCount >= 5 && (
           <motion.div
-            className="pointer-events-none absolute -inset-3 rounded-2xl border-2 border-pink-400/40"
-            animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute -inset-3 rounded-2xl"
+            style={{
+              border: "1px solid var(--reaction-ring, rgba(237,127,157,0.25))",
+            }}
+            animate={{ scale: [1, 1.06, 1], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
         <motion.button
           type="button"
           onClick={handleTruth}
-          className={`z-20 overflow-hidden rounded-2xl border border-white/20 px-7 py-4 text-sm font-extrabold tracking-wider text-white shadow-lg hover:scale-105 active:scale-95 ${
+          className={`z-20 overflow-hidden rounded-2xl px-7 py-4 text-sm font-extrabold tracking-wider shadow-lg hover:scale-105 active:scale-95 ${
             burst ? "scale-125 opacity-0" : ""
           }`}
           style={{
             background: burst
               ? "transparent"
-              : "linear-gradient(135deg, #ff6b9d, #c44dff)",
+              : "linear-gradient(135deg, #f6a6bb 0%, #ed7f9d 52%, #d8658d 100%)",
             boxShadow: burst ? "none" : yesGlow,
             pointerEvents: victorySlam ? "none" : "auto",
+            color: "var(--yes-btn-text, #321c3a)",
+            border: "var(--yes-btn-border, 1px solid rgba(255,255,255,0.55))",
           }}
           animate={victorySlam ? { scale: [1, 1.3, 0.9, 1] } : { scale: yesScale }}
           transition={victorySlam ? { duration: 0.5, ease: "easeOut" } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -666,9 +661,10 @@ function LoveChaseInteraction({ label, tone, onTruth }: { label: string; tone: T
                 boxShadow: fakeOut ? "none" : `0 0 25px ${currentColor}44, inset 0 0 30px ${currentColor}22`,
               }
             : {
-                background: "rgba(255,255,255,0.05)",
-                border: "1px dashed rgba(255,255,255,0.15)",
-                color: "rgba(255,255,255,0.5)",
+                background: "var(--no-btn-bg, rgba(255,255,255,0.62))",
+                border: "1px solid var(--no-btn-border, rgba(82,50,85,0.10))",
+                color: "var(--no-btn-color, #5c405f)",
+                boxShadow: "var(--no-btn-shadow, 0 12px 28px rgba(67,37,65,0.08))",
                 cursor: "pointer",
                 transform: "rotate(-2deg)",
               }
@@ -827,8 +823,8 @@ function SmashEmoji({ count = 5, onComplete, tone }: { count?: number; onComplet
         <span className="animate-reveal-scale-3d text-5xl">💥</span>
       )}
       <div className="absolute bottom-3 left-0 right-0 text-center">
-        <div className="mx-auto h-1.5 w-32 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#ff6b9d] to-[#c44dff] transition-all duration-300" style={{ width: `${(smashed / count) * 100}%` }} />
+          <div className="mx-auto h-1.5 w-32 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+            <div className="h-full rounded-full transition-all duration-300" style={{ width: `${(smashed / count) * 100}%`, background: "linear-gradient(135deg, #f6a6bb 0%, #ed7f9d 52%, #d8658d 100%)" }} />
         </div>
         <p className="mt-1 text-xs text-white/40">{smashed}/{count}</p>
       </div>
@@ -1081,8 +1077,8 @@ function DragBox({ onComplete, tone }: { onComplete: () => void; tone: Tone }) {
       >
         <div className="absolute inset-0 flex items-center justify-center text-3xl">🎁</div>
         <div
-          className="absolute inset-y-0 left-0 rounded-2xl bg-gradient-to-r from-[#ff6b9d]/30 to-[#c44dff]/30 transition-all"
-          style={{ width: `${progress}%` }}
+          className="absolute inset-y-0 left-0 rounded-2xl transition-all"
+          style={{ width: `${progress}%`, background: "linear-gradient(to right, rgba(237,127,157,0.30), rgba(216,200,243,0.30))" }}
         />
         <div
           className="absolute inset-y-0 flex w-12 items-center justify-center text-lg"
@@ -1106,10 +1102,10 @@ function RippleButton({ interaction, onClick }: { interaction: NonNullable<Scene
     interaction.variant === "ghost"
       ? "border border-white/20 bg-white/10 text-white/90 backdrop-blur-md hover:bg-white/15"
       : interaction.variant === "danger"
-        ? "border-2 border-[#ff6b8a]/40 bg-gradient-to-r from-[#ff6b8a]/20 to-[#ff3355]/10 text-[#ff6b8a] backdrop-blur-md hover:from-[#ff6b8a]/30 hover:to-[#ff3355]/20"
+        ? "border-2 border-[#c84f78]/40 bg-gradient-to-r from-[#c84f78]/20 to-[#ed7f9d]/10 text-[#c84f78] backdrop-blur-md hover:from-[#c84f78]/30 hover:to-[#ed7f9d]/20"
         : interaction.variant === "escape"
           ? "border-2 border-white/25 bg-white/[0.08] text-white/80 backdrop-blur-md hover:border-white/40 hover:bg-white/15"
-          : "bg-gradient-to-r from-white via-[#ffddec] to-[#d9f7f7] text-[#21172c] shadow-[0_8px_30px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_40px_rgba(255,255,255,0.2)]";
+          : "bg-gradient-to-r from-[#f6a6bb] via-[#ed7f9d] to-[#d8658d] text-[#321c3a] shadow-[0_14px_30px_rgba(200,79,120,0.22)] hover:shadow-[0_18px_36px_rgba(200,79,120,0.30)]";
 
   const animClass =
     interaction.animation === "pulse" ? "animate-pulse-glow" : "";
@@ -1409,6 +1405,7 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
   }, [showFinalScreen, showFullscreenCelebration]);
   const totalScenes = flow.scenes.length;
   const templateId = flow.templateId;
+  const templateClass = flow.templateId === "love-chase" ? "experience-love-chase" : "";
 
   const fillScene = useCallback((scene: SceneStep): SceneStep => {
     const filled = { ...scene };
@@ -1496,9 +1493,8 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
       <div className={`fixed left-0 right-0 top-0 bg-black z-50 pointer-events-none transition-all duration-700 ease-out ${suspense ? "h-[15vh]" : "h-0"}`} />
       <div className={`fixed left-0 right-0 bottom-0 bg-black z-50 pointer-events-none transition-all duration-700 ease-out ${suspense ? "h-[15vh]" : "h-0"}`} />
 
-      <div className={`relative flex w-full flex-col ${mode !== "generated" ? "min-h-full overflow-hidden" : "min-h-[100dvh] overflow-hidden"}`} style={isLateNight ? { filter: "brightness(0.8) saturate(0.9)", transition: "filter 0.6s ease" } : undefined}>
+      <div className={`${templateClass} relative flex w-full flex-col ${mode !== "generated" ? "min-h-full overflow-hidden" : "min-h-[100dvh] overflow-hidden"}`} style={isLateNight ? { filter: "brightness(0.8) saturate(0.9)", transition: "filter 0.6s ease" } : undefined}>
         <SceneBackground scene={current!} />
-        {mode === "generated" && <FloatingParticles />}
 
         <motion.div
           className="relative z-10 flex w-full flex-1 flex-col"
@@ -1522,10 +1518,10 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
         {showFinalScreen ? (
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8">
             <div className="animate-reveal-scale-3d mx-auto w-full max-w-lg text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-md">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ border: "2px solid var(--final-icon-border, rgba(70,40,72,0.12))", background: "var(--final-bg, rgba(255,255,255,0.68))", backdropFilter: "blur(12px)" }}>
                 <span className="text-4xl">💖</span>
               </div>
-              <h2 className="font-display font-bold leading-tight text-white" style={{ fontSize: "clamp(1.25rem, 5vw, 2.5rem)" }}>
+              <h2 className="font-display font-bold leading-tight" style={{ fontSize: "clamp(1.25rem, 5vw, 2.5rem)", color: "var(--experience-heading, #321c3a)" }}>
                 {finalMessage}
               </h2>
               <div className="mt-8 space-y-3" style={{ opacity: showCTA ? 1 : 0, transform: showCTA ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease, transform 0.5s ease" }}>
@@ -1538,15 +1534,27 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
                       setTimeout(() => setCopied(false), 2000);
                     } catch {}
                   }}
-                  className="inline-flex min-h-[56px] w-full max-w-xs items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-8 text-base font-extrabold text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
+                  className="inline-flex min-h-[56px] w-full max-w-xs items-center justify-center gap-2 rounded-full px-8 text-base font-extrabold transition-all active:scale-95"
+                  style={{
+                    border: "1px solid var(--experience-border, rgba(70,40,72,0.09))",
+                    background: "var(--experience-surface, rgba(255,255,255,0.68))",
+                    color: "var(--experience-text, #765f79)",
+                    backdropFilter: "blur(12px)",
+                  }}
                 >
                   {copied ? "✅ Copied!" : "🔗 Share this moment"}
                 </button>
                 {(mode === "demo" || mode === "preview") && (
                   <div>
-                    <p className="mb-3 text-sm text-white/40">Make someone's heart skip a beat.</p>
+                    <p className="mb-3 text-sm" style={{ color: "var(--experience-muted, #927f94)" }}>Make someone's heart skip a beat.</p>
                     <Link
-                      className="inline-flex min-h-[56px] items-center gap-2 rounded-full bg-gradient-to-r from-white via-[#ffddec] to-[#d9f7f7] px-10 text-base font-extrabold text-[#21172c] shadow-[0_8px_30px_rgba(255,255,255,0.15)] transition-all hover:shadow-[0_12px_40px_rgba(255,255,255,0.2)] active:scale-95"
+                      className="inline-flex min-h-[56px] items-center gap-2 rounded-full px-10 text-base font-extrabold transition-all active:scale-95"
+                      style={{
+                        background: "linear-gradient(135deg, #f6a6bb 0%, #ed7f9d 52%, #d8658d 100%)",
+                        color: "#321c3a",
+                        border: "1px solid rgba(255,255,255,0.55)",
+                        boxShadow: "0 14px 30px rgba(200,79,120,0.22), inset 0 1px 0 rgba(255,255,255,0.42)",
+                      }}
                       href={`/create/${templateId}`}
                     >
                       Create for someone 💕
@@ -1633,15 +1641,23 @@ export function SceneEngine({ flow, context, theme, mode, isLateNight = false }:
       {/* Fullscreen celebration overlay */}
       {showFullscreenCelebration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{
-          background: "radial-gradient(ellipse at 50% 50%, rgba(255,107,157,0.35) 0%, rgba(196,77,255,0.25) 40%, rgba(0,0,0,0.6) 100%)",
+          background: "var(--celebration-overlay, radial-gradient(ellipse at 50% 50%, rgba(237,127,157,0.25) 0%, rgba(216,200,243,0.18) 40%, rgba(255,248,247,0.85) 100%))",
           backdropFilter: "blur(4px)",
         }}>
           <EmojiBurst active={true} />
           <div className="animate-reveal-scale-3d mx-auto w-full max-w-2xl px-8 text-center">
-            <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border-2 border-white/30 bg-white/15 backdrop-blur-md shadow-[0_0_60px_rgba(255,255,255,0.15)]">
-              <span className="text-6xl animate-pulse">💖</span>
+            <div className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full" style={{
+              border: "2px solid var(--final-icon-border, rgba(70,40,72,0.12))",
+              background: "var(--final-bg, rgba(255,255,255,0.68))",
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 0 60px rgba(237,127,157,0.15)",
+            }}>
+              <span className="text-6xl" style={{ animation: "heartbeat 1.4s ease-in-out infinite" }}>💖</span>
             </div>
-            <h1 className="font-display font-bold leading-tight text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]" style={{ fontSize: "clamp(2rem, 7vw, 4.5rem)" }}>
+            <h1 className="font-display font-bold leading-tight" style={{
+              fontSize: "clamp(2rem, 7vw, 4.5rem)",
+              color: "var(--experience-heading, #321c3a)",
+            }}>
               {finalMessage}
             </h1>
           </div>

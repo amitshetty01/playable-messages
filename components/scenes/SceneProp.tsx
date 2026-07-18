@@ -265,17 +265,17 @@ function Sparkle3D() {
             key={i}
             className="absolute h-2 w-2 rounded-full"
             style={{
-              background: "#ffd166",
-              boxShadow: "0 0 6px rgba(255,209,102,0.6)",
+              background: "#E89AB2",
+              boxShadow: "0 0 6px rgba(232,154,178,0.4)",
               transform: `rotate(${angle}deg) translateY(-24px)`,
-              opacity: 0.7 + Math.random() * 0.3,
+              opacity: 0.5 + Math.random() * 0.25,
               animation: "star-twinkle 2s ease-in-out infinite",
               animationDelay: `${i * 0.3}s`,
             }}
           />
         ))}
-        <svg className="relative h-16 w-16 text-[#ffd166]/60" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2l1.5 6.5L20 12l-6.5 1.5L12 20l-1.5-6.5L4 12l6.5-1.5z" />
+        <svg className="relative h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="#E89AB2" strokeWidth="1.5" style={{ filter: "drop-shadow(0 0 18px rgba(232,154,178,0.28))", opacity: 0.7 }}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l1.5 6.5L20 12l-6.5 1.5L12 20l-1.5-6.5L4 12l6.5-1.5z" />
         </svg>
       </div>
     </div>

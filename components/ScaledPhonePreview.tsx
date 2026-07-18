@@ -49,8 +49,12 @@ export function ScaledPhonePreview({ children }: { children: ReactNode }) {
           {children}
         </div>
       </DemoProvider>
-      <div className="pointer-events-none absolute bottom-2 left-1/2 z-50 -translate-x-1/2">
-        <span className="inline-block rounded-full border border-white/[0.06] bg-black/40 px-2.5 py-0.5 text-[9px] font-bold tracking-widest text-white/30 backdrop-blur-md uppercase">
+      <div className="pointer-events-none absolute bottom-4 left-1/2 z-50 -translate-x-1/2">
+        <span className="inline-block rounded-full px-2.5 py-0.5 text-[9px] font-bold tracking-[0.14em] uppercase backdrop-blur-[12px]" style={{
+          background: "var(--sample-badge-bg, rgba(50,28,58,0.08))",
+          color: "var(--sample-badge-color, rgba(50,28,58,0.52))",
+          border: "1px solid var(--sample-badge-border, rgba(50,28,58,0.08))",
+        }}>
           Sample Experience
         </span>
       </div>

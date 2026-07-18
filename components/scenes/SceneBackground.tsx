@@ -12,7 +12,7 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedGradientMesh({ colors }: { colors: string[] }) {
-  const c = colors || ["rgba(246,177,201,0.12)", "rgba(184,165,255,0.08)", "rgba(151,218,223,0.06)"];
+  const c = colors || ["rgba(237,127,157,0.07)", "rgba(216,200,243,0.05)", "rgba(255,224,233,0.06)"];
   return (
     <>
       {c.map((color, i) => (
@@ -162,18 +162,18 @@ function RomanticGlow() {
   return (
     <>
       <div
-        className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(246,177,201,0.2), transparent 60%)",
-          animation: "romantic-pulse 4s ease-in-out infinite",
+          background: "radial-gradient(circle, rgba(237,127,157,0.12), transparent 60%)",
+          animation: "romantic-pulse 5s ease-in-out infinite",
         }}
       />
       <div
-        className="absolute left-1/3 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full"
+        className="absolute right-1/4 top-2/3 h-48 w-48 rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(255,95,183,0.1), transparent 60%)",
-          animation: "romantic-pulse 5s ease-in-out infinite",
-          animationDelay: "1s",
+          background: "radial-gradient(circle, rgba(216,200,243,0.10), transparent 60%)",
+          animation: "romantic-pulse 6s ease-in-out infinite",
+          animationDelay: "1.5s",
         }}
       />
     </>
@@ -234,20 +234,18 @@ function RoomLitScene({ color = "#120e1a" }: { color?: string }) {
 
 export function SceneBackground({ scene }: { scene: SceneStep }) {
   const { type, gradient, color, imageUrl } = scene.background;
-  const baseGradient = gradient || "from-[#120e1a] via-[#1a1430] to-[#0d0a15]";
-
   return (
     <>
       {imageUrl && (
         <Image src={imageUrl} alt="" fill className="object-cover" sizes="100vw" unoptimized />
       )}
-      <div className={`absolute inset-0 ${imageUrl ? "bg-gradient-to-br from-black/60 via-black/40 to-black/60" : `bg-gradient-to-br ${baseGradient}`}`} />
+      <div className="absolute inset-0" style={{ background: "var(--experience-bg-gradient, linear-gradient(150deg, #fefaf8 0%, #fff4f6 52%, #f8f2ff 100%))" }} />
 
       {/* Always-on base layers */}
       <AnimatedGradientMesh colors={[
-        color || "rgba(246,177,201,0.1)",
-        "rgba(184,165,255,0.07)",
-        "rgba(151,218,223,0.05)"
+        color || "rgba(237,127,157,0.07)",
+        "rgba(216,200,243,0.05)",
+        "rgba(255,224,233,0.06)"
       ]} />
       <VignetteOverlay intensity={0.5} />
 

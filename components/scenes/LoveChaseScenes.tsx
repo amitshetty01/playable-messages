@@ -7,7 +7,7 @@ function build(experience: ExperienceRecord): SceneFlow {
   const scenes: SceneStep[] = [
     {
       id: "mind-read",
-      background: { type: "pulse-glow", gradient: "from-[#0d0d1a] via-[#1a102e] to-[#0a0512]", color: "rgba(180,130,255,0.15)" },
+      background: { type: "pulse-glow", gradient: "", color: "rgba(237,127,157,0.08)" },
       prop: { type: "sparkle", animation: "float" },
       content: { title: "I can read your mind… 🔮", body: "Are you ready? Let me show you what I see…" },
       interaction: { type: "auto", action: "next", label: "", delay: 2600 },
@@ -15,7 +15,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
     {
       id: "reveal-vision",
-      background: { type: "pulse-glow", gradient: "from-[#1c0824] via-[#2d1040] to-[#14041a]", color: "rgba(180,130,255,0.15)" },
+      background: { type: "pulse-glow", gradient: "", color: "rgba(216,200,243,0.08)" },
       prop: { type: "sparkle", animation: "float" },
       content: {
         title: "I see two paths…",
@@ -26,7 +26,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
     {
       id: "yes-no",
-      background: { type: "particles", gradient: "from-[#1c0824] via-[#2d1040] to-[#14041a]", color: "rgba(255,95,183,0.25)" },
+      background: { type: "particles", gradient: "", color: "rgba(237,127,157,0.06)" },
       prop: { type: "sparkle", animation: "pulse" },
       content: {
         title: "You love me? 💕",
@@ -42,7 +42,7 @@ function build(experience: ExperienceRecord): SceneFlow {
     },
     {
       id: "reveal",
-      background: { type: "pulse-glow", gradient: "from-[#1c0824] via-[#2d1040] to-[#14041a]", color: "rgba(255,95,183,0.35)" },
+      background: { type: "pulse-glow", gradient: "", color: "rgba(237,127,157,0.10)" },
       prop: { type: "sparkle", animation: "reveal-scale" },
       content: { title: f },
       interaction: { type: "button", variant: "premium", label: "Keep this forever 💗", action: "complete" },

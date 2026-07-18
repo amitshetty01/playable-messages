@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowRight, X, RotateCcw } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getAllTemplates } from "@/lib/data";
@@ -164,6 +164,9 @@ export default function CinematicHomepage() {
   const [heroTemplateIdx, setHeroTemplateIdx] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
+  const [previewedTemplate, setPreviewedTemplate] = useState<Template | null>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (selectedTemplate) return;
@@ -192,9 +195,22 @@ export default function CinematicHomepage() {
     [templates],
   );
 
-  const currentHero = ROTATING_TEMPLATES[heroTemplateIdx];
+  const handlePreview = useCallback((template: Template) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setPreviewedTemplate(template);
+  }, []);
+
+  const handlePreviewEnd = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setPreviewedTemplate(null);
+    }, 400);
+  }, []);
 
   const handleSelectTemplate = useCallback((template: Template) => {
+    setHasInteracted(true);
+    setPreviewedTemplate(template);
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
     setSelectedTemplate(template);
     setPreviewKey((prev) => prev + 1);
   }, []);
@@ -203,26 +219,28 @@ export default function CinematicHomepage() {
     setSelectedTemplate(null);
   }, []);
 
+  const showWelcome = previewedTemplate === null && selectedTemplate === null;
+
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden text-[var(--text-primary)]"
     >
 
-      {/* Ambient glow changes with selected template */}
+      {/* Ambient glow — blush/pink default, adjusts per template tone */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className={`absolute top-[-10%] left-[20%] w-[600px] h-[600px] rounded-full blur-[120px] transition-colors duration-1000 ${
-          selectedTemplate?.tone === "Romantic" ? "bg-pink-900/10" :
-          selectedTemplate?.tone === "Birthday" ? "bg-amber-900/10" :
-          selectedTemplate?.tone === "Funny" ? "bg-orange-900/10" :
-          selectedTemplate?.tone === "Emotional" ? "bg-teal-900/10" :
-          "bg-purple-900/10"
-        }`} />
-        <div className={`absolute bottom-[-10%] right-[20%] w-[600px] h-[600px] rounded-full blur-[120px] transition-colors duration-1000 ${
-          selectedTemplate?.tone === "Romantic" ? "bg-rose-900/10" :
-          selectedTemplate?.tone === "Birthday" ? "bg-violet-900/10" :
-          selectedTemplate?.tone === "Funny" ? "bg-red-900/10" :
-          selectedTemplate?.tone === "Emotional" ? "bg-cyan-900/10" :
-          "bg-rose-900/10"
-        }`} />
+        <div className="absolute top-[-10%] left-[20%] w-[700px] h-[700px] rounded-full blur-[150px] transition-all duration-1000" style={{
+          background: selectedTemplate?.tone === "Romantic" ? "radial-gradient(circle, rgba(233,87,145,0.18), transparent)" :
+            selectedTemplate?.tone === "Birthday" ? "radial-gradient(circle, rgba(232,168,63,0.15), transparent)" :
+            selectedTemplate?.tone === "Funny" ? "radial-gradient(circle, rgba(255,159,67,0.15), transparent)" :
+            selectedTemplate?.tone === "Emotional" ? "radial-gradient(circle, rgba(64,200,180,0.12), transparent)" :
+            "radial-gradient(circle, rgba(233,87,145,0.14), transparent)"
+        }} />
+        <div className="absolute bottom-[-10%] right-[20%] w-[700px] h-[700px] rounded-full blur-[150px] transition-all duration-1000" style={{
+          background: selectedTemplate?.tone === "Romantic" ? "radial-gradient(circle, rgba(201,107,255,0.15), transparent)" :
+            selectedTemplate?.tone === "Birthday" ? "radial-gradient(circle, rgba(180,130,255,0.12), transparent)" :
+            selectedTemplate?.tone === "Funny" ? "radial-gradient(circle, rgba(255,80,100,0.12), transparent)" :
+            selectedTemplate?.tone === "Emotional" ? "radial-gradient(circle, rgba(0,200,220,0.10), transparent)" :
+            "radial-gradient(circle, rgba(201,107,255,0.12), transparent)"
+        }} />
       </div>
 
       {/* ─── HERO ─── */}
@@ -232,48 +250,69 @@ export default function CinematicHomepage() {
           onBack={handleBack}
         />
 
-        <AnimatePresence mode="wait">
-          {selectedTemplate ? (
-            <motion.div
-              key={selectedTemplate.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-              className="relative flex-1 flex items-center justify-center w-full max-w-[420px] mx-auto"
-            >
-              <DemoPhoneDisplay
-                key={`demo-${previewKey}`}
-                template={selectedTemplate}
-                onBack={handleBack}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="holographic"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
-              className="relative flex-1 flex flex-col items-center justify-center w-full"
-            >
-              <HolographicPhone demoKey={demoKey} />
-              <AnimatePresence mode="wait">
+        <div className="relative flex-1 flex flex-col items-center justify-center w-full max-w-[420px] mx-auto">
+          <div className="relative w-full">
+            <AnimatePresence mode="wait">
+              {selectedTemplate ? (
                 <motion.div
-                  key={currentHero.id + "-badge"}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.4 }}
-                  className="mt-4 sm:mt-6 flex items-center gap-3 text-xs sm:text-sm text-white/50"
+                  key={`selected-${selectedTemplate.id}`}
+                  initial={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
                 >
-                  <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse shrink-0 shadow-[0_0_16px_var(--accent)]" />
-                  <span>Now Playing: <span className="text-white/80 font-semibold">{currentHero.title}</span></span>
+                  <DemoPhoneDisplay
+                    key={`demo-${previewKey}`}
+                    template={selectedTemplate}
+                    onBack={handleBack}
+                  />
                 </motion.div>
-              </AnimatePresence>
+              ) : previewedTemplate ? (
+                <motion.div
+                  key={`preview-${previewedTemplate.id}`}
+                  initial={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
+                >
+                  <PreviewPhoneDisplay template={previewedTemplate} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="welcome"
+                  initial={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.985, filter: "blur(6px)" }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <WelcomePhoneState />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={showWelcome ? "status-welcome" : "status-preview"}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4 sm:mt-6 flex items-center gap-3 text-xs sm:text-sm"
+              style={{ color: "var(--text-secondary, rgba(255,255,255,0.5))" }}
+            >
+              <span className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{
+                background: "#E95791",
+                boxShadow: "0 0 14px rgba(233, 87, 145, 0.38)",
+              }} />
+              {showWelcome ? (
+                <span>Choose a template to preview</span>
+              ) : (
+                <span>Previewing: <span className="font-semibold" style={{ color: "var(--text-primary, rgba(255,255,255,0.8))" }}>{(selectedTemplate || previewedTemplate)?.title}</span></span>
+              )}
             </motion.div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
       </section>
 
       {/* ─── CATEGORY ROWS ─── */}
@@ -284,6 +323,8 @@ export default function CinematicHomepage() {
               key={section.id}
               section={section}
               onSelect={handleSelectTemplate}
+              onPreview={handlePreview}
+              onPreviewEnd={handlePreviewEnd}
             />
           ))}
 
@@ -324,22 +365,23 @@ function HeroText({ selectedTemplate, onBack }: { selectedTemplate: Template | n
             <button
               type="button"
               onClick={onBack}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
+              className="flex items-center gap-1.5 text-xs transition-colors"
+              style={{ color: "var(--text-secondary)" }}
               aria-label="Back to featured"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
               Featured
             </button>
           </motion.div>
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-light leading-tight tracking-tight mb-2">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-light leading-tight tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>
             {selectedTemplate.title}
           </h1>
-          <p className="text-base sm:text-lg text-white/50 mb-3 italic">
+          <p className="text-base sm:text-lg mb-3 italic" style={{ color: "var(--text-secondary)" }}>
             {selectedTemplate.hook}
           </p>
           <div className="flex flex-wrap gap-2 mb-6 justify-center lg:justify-start">
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">{selectedTemplate.length}</span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">Best for: {selectedTemplate.bestFor}</span>
+            <span className="rounded-full px-3 py-1 text-xs" style={{ background: "color-mix(in srgb, var(--primary) 15%, transparent)", color: "var(--text-secondary)" }}>{selectedTemplate.length}</span>
+            <span className="rounded-full px-3 py-1 text-xs" style={{ background: "color-mix(in srgb, var(--secondary) 15%, transparent)", color: "var(--text-secondary)" }}>Best for: {selectedTemplate.bestFor}</span>
           </div>
           <Link
             href={`/create/${selectedTemplate.slug}`}
@@ -350,13 +392,13 @@ function HeroText({ selectedTemplate, onBack }: { selectedTemplate: Template | n
         </>
       ) : (
         <>
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-light leading-tight tracking-tight mb-3 sm:mb-4">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-light leading-tight tracking-tight mb-3 sm:mb-4" style={{ color: "var(--text-primary)" }}>
             Explore Interactive Experiences
           </h1>
-          <p className="font-serif text-xl sm:text-2xl md:text-3xl font-light italic text-white/60 mb-6 sm:mb-8">
+          <p className="font-serif text-xl sm:text-2xl md:text-3xl font-light italic mb-6 sm:mb-8" style={{ color: "var(--accent)" }}>
             Send an experience. Not just a message.
           </p>
-          <p className="text-sm sm:text-base text-white/40 mb-8 sm:mb-10 max-w-sm mx-auto lg:mx-0">
+          <p className="text-sm sm:text-base mb-8 sm:mb-10 max-w-sm mx-auto lg:mx-0" style={{ color: "var(--text-secondary)" }}>
             Don&apos;t just send a text. Wrap your message in a cinematic, interactive experience they&apos;ll never forget.
           </p>
           <Link
@@ -379,9 +421,13 @@ function HeroText({ selectedTemplate, onBack }: { selectedTemplate: Template | n
 function TemplateSection({
   section,
   onSelect,
+  onPreview,
+  onPreviewEnd,
 }: {
   section: { id: string; emoji: string; label: string; items: Template[] };
   onSelect: (template: Template) => void;
+  onPreview?: (template: Template) => void;
+  onPreviewEnd?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -412,10 +458,10 @@ function TemplateSection({
   return (
     <section className="relative max-w-7xl mx-auto px-4 sm:px-6">
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
-        <h2 className="text-base sm:text-lg font-bold text-white/90">
+        <h2 className="text-base sm:text-lg font-bold" style={{ color: "var(--text-primary)" }}>
           {section.emoji} {section.label}
         </h2>
-        <div className="h-px flex-1 bg-white/5" />
+        <div className="h-px flex-1" style={{ background: "var(--border-soft)" }} />
       </div>
 
       <div className="relative group/row">
@@ -423,10 +469,10 @@ function TemplateSection({
           <button
             type="button"
             onClick={() => scroll("left")}
-            className="absolute left-0 top-0 bottom-0 z-10 w-8 sm:w-12 bg-gradient-to-r from-[#08080A] to-transparent flex items-center justify-start opacity-0 group-hover/row:opacity-100 transition-opacity max-sm:hidden"
+            className="absolute left-0 top-0 bottom-0 z-10 w-8 sm:w-12 bg-gradient-to-r from-[var(--bg)] to-transparent flex items-center justify-start opacity-0 group-hover/row:opacity-100 transition-opacity max-sm:hidden"
             aria-label="Scroll left"
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:opacity-80 transition-opacity" style={{ background: "color-mix(in srgb, var(--primary) 25%, transparent)" }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 4L6 8l4 4"/></svg>
             </div>
           </button>
@@ -439,7 +485,7 @@ function TemplateSection({
         >
           {section.items.map((template) => (
             <div key={template.id} className="snap-start shrink-0 w-[200px] sm:w-[240px]">
-              <ShowcaseCard template={template} onSelect={onSelect} />
+              <ShowcaseCard template={template} onSelect={onSelect} onPreview={onPreview} onPreviewEnd={onPreviewEnd} />
             </div>
           ))}
         </div>
@@ -448,10 +494,10 @@ function TemplateSection({
           <button
             type="button"
             onClick={() => scroll("right")}
-            className="absolute right-0 top-0 bottom-0 z-10 w-8 sm:w-12 bg-gradient-to-l from-[#08080A] to-transparent flex items-center justify-end opacity-0 group-hover/row:opacity-100 transition-opacity max-sm:hidden"
+            className="absolute right-0 top-0 bottom-0 z-10 w-8 sm:w-12 bg-gradient-to-l from-[var(--bg)] to-transparent flex items-center justify-end opacity-0 group-hover/row:opacity-100 transition-opacity max-sm:hidden"
             aria-label="Scroll right"
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:opacity-80 transition-opacity" style={{ background: "color-mix(in srgb, var(--primary) 25%, transparent)" }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 4l4 4-4 4"/></svg>
             </div>
           </button>
@@ -465,19 +511,30 @@ function TemplateSection({
 // Showcase Card
 // ──────────────────────────────────────────────
 
-function ShowcaseCard({ template, onSelect }: { template: Template; onSelect: (t: Template) => void }) {
+function ShowcaseCard({ template, onSelect, onPreview, onPreviewEnd }: { template: Template; onSelect: (t: Template) => void; onPreview?: (t: Template) => void; onPreviewEnd?: () => void }) {
   const v = thumbVisuals[template.id] || defaultVisual;
   const meta = templateMeta[template.id];
   const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <motion.div
+      ref={cardRef}
       role="button"
       tabIndex={0}
       aria-label={`${template.title} — ${template.bestFor}`}
-      className="relative cursor-pointer rounded-xl sm:rounded-2xl overflow-hidden bg-white/[0.03] border border-white/[0.06] group/card"
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      className="relative cursor-pointer rounded-xl sm:rounded-2xl overflow-hidden group/card"
+      style={{ background: "color-mix(in srgb, var(--primary) 6%, transparent)", borderColor: "var(--border-soft)" }}
+      onHoverStart={() => {
+        setIsHovered(true);
+        onPreview?.(template);
+      }}
+      onHoverEnd={() => {
+        setIsHovered(false);
+        onPreviewEnd?.();
+      }}
+      onFocus={() => onPreview?.(template)}
+      onBlur={() => onPreviewEnd?.()}
       whileHover={{ y: -6, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={() => onSelect(template)}
@@ -548,18 +605,18 @@ function ShowcaseCard({ template, onSelect }: { template: Template; onSelect: (t
       </div>
 
       <div className="p-3 sm:p-4">
-        <h3 className="text-sm sm:text-base font-extrabold text-white/90 group-hover/card:text-white transition-colors leading-tight line-clamp-1">
+        <h3 className="text-sm sm:text-base font-extrabold leading-tight line-clamp-1" style={{ color: "var(--text-primary)" }}>
           {template.title}
         </h3>
 
-        <p className="mt-1 text-[11px] sm:text-xs text-white/50 line-clamp-2 leading-relaxed">
+        <p className="mt-1 text-[11px] sm:text-xs line-clamp-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           {template.hook}
         </p>
 
         {meta && (
           <div className="mt-2 flex flex-wrap gap-1">
             {meta.features.slice(0, 3).map((feat) => (
-              <span key={feat} className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold text-white/40 ring-1 ring-white/5">
+              <span key={feat} className="rounded-full px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold ring-1" style={{ background: "color-mix(in srgb, var(--primary) 10%, transparent)", color: "var(--text-muted)", borderColor: "var(--border-soft)" }}>
                 {feat}
               </span>
             ))}
@@ -572,7 +629,7 @@ function ShowcaseCard({ template, onSelect }: { template: Template; onSelect: (t
           animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
           transition={{ duration: 0.25 }}
         >
-          <span className="block w-full rounded-lg bg-gradient-to-r from-blush/80 to-violet/80 py-2 text-center text-[10px] sm:text-xs font-extrabold text-white shadow-lg">
+          <span className="block w-full rounded-lg py-2 text-center text-[10px] sm:text-xs font-extrabold shadow-lg" style={{ background: "linear-gradient(to right, var(--primary), var(--secondary))", color: "white" }}>
             Live Demo
           </span>
         </motion.div>
@@ -635,15 +692,21 @@ function DemoPhoneDisplay({ template, onBack }: { template: Template; onBack: ()
       </button>
 
       <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="relative w-[280px] sm:w-[320px] bg-black rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] border-[#1a1a1a] overflow-hidden shadow-2xl"
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          borderColor: "var(--phone-border, #d0a898)",
+          background: "var(--phone-body, #fdf6f2)",
+        }}
+        className="relative w-[280px] sm:w-[320px] rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] overflow-hidden shadow-2xl"
       >
         {/* Glass glare */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent z-10 pointer-events-none rounded-[1.8rem]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent z-10 pointer-events-none rounded-[1.8rem]" />
 
         {/* Camera dot */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#1a1a1a] border-2 border-[#333] flex items-center justify-center">
-          <div className="w-1 h-1 rounded-full bg-[#222]" />
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-2 h-2 sm:w-3 sm:h-3 rounded-full flex items-center justify-center" style={{ background: "var(--phone-border, #d0a898)" }}>
+          <div className="w-1 h-1 rounded-full" style={{ background: "var(--phone-camera-dot, #b08078)" }} />
         </div>
 
         {/* Demo content */}
@@ -660,28 +723,26 @@ function DemoPhoneDisplay({ template, onBack }: { template: Template; onBack: ()
         </div>
 
         {/* Home indicator */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-24 sm:w-28 h-[3px] sm:h-[4px] rounded-full bg-white/20" />
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-24 sm:w-28 h-[3px] sm:h-[4px] rounded-full" style={{ background: "var(--phone-home, rgba(200, 144, 136, 0.45))" }} />
 
         {/* Ambient glow */}
-        <div className="absolute -inset-4 bg-gradient-to-br from-white/5 to-transparent rounded-[2.8rem] -z-10 blur-2xl opacity-50" />
+        <div className="absolute -inset-4 bg-gradient-to-br from-[#E95791]/8 via-[#c070a0]/5 to-[#9060a0]/4 rounded-[2.8rem] -z-10 blur-2xl opacity-60" />
       </motion.div>
     </motion.div>
   );
 }
 
 // ──────────────────────────────────────────────
-// Holographic Phone (default hero)
+// Welcome Phone State (default hero)
 // ──────────────────────────────────────────────
 
-function HolographicPhone({ demoKey }: { demoKey: number }) {
+function WelcomePhoneState() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isUnlocking] = useState(false);
-
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [15, -15]), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-15, 15]), { stiffness: 150, damping: 20 });
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), { stiffness: 150, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), { stiffness: 150, damping: 20 });
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -697,16 +758,98 @@ function HolographicPhone({ demoKey }: { demoKey: number }) {
     mouseY.set(0);
   };
 
-  const cursorVariants = {
-    initial: { x: -50, y: 300, opacity: 0, scale: 0.8 },
-    moveToPassword: { x: 100, y: 240, opacity: 1, scale: 1, transition: { duration: 1, delay: 0.5 } },
-    tapPassword: { scale: 0.7, transition: { duration: 0.2, delay: 1.5 } },
-    releaseTap: { scale: 1, transition: { duration: 0.2, delay: 1.7 } },
-    moveToUnlock: { x: 100, y: 320, opacity: 1, scale: 1, transition: { duration: 0.8, delay: 2.5 } },
-    tapUnlock: { scale: 0.7, transition: { duration: 0.2, delay: 3.3 } },
-    releaseUnlock: { scale: 1, transition: { duration: 0.2, delay: 3.5 } },
-    moveOut: { x: 350, y: 400, opacity: 0, scale: 0.8, transition: { duration: 1, delay: 4 } },
+  return (
+    <motion.div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: 1000 }}
+      className="relative w-full flex items-center justify-center"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="relative w-[280px] sm:w-[320px] bg-gradient-to-br from-[#fce4ec] via-[#f8e8f0] to-[#f0e0e8] dark:from-[#2a1a24] dark:via-[#22151e] dark:to-[#1a1018] rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] border-[#e8c4d0] dark:border-[#3a2830] overflow-hidden shadow-2xl"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#f8d0df]/20 via-transparent to-[#e0c0d8]/20 dark:from-[#c490b0]/5 dark:via-transparent dark:to-[#a07090]/5 z-0 rounded-[1.8rem]" />
+
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#d4a0b0] dark:bg-[#4a3038] border-2 border-[#e0b0c0] dark:border-[#3a2830] flex items-center justify-center">
+          <div className="w-1 h-1 rounded-full bg-[#c898a8] dark:bg-[#382028]" />
+        </div>
+
+        <div className="relative w-full pt-4 sm:pt-5">
+          <div className="aspect-[9/16] w-full max-h-[460px] sm:max-h-[520px] flex flex-col items-center justify-center p-6 sm:p-8 text-center">
+            <motion.div
+              className="mb-4 sm:mb-5"
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <HeartIcon className="w-10 h-10 sm:w-12 sm:h-12" color="#E95791" />
+            </motion.div>
+
+            <motion.p
+              className="font-serif text-base sm:text-lg italic leading-relaxed"
+              style={{ color: "#c06070" }}
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              Choose a template
+              <br />to preview
+            </motion.p>
+
+            <motion.div
+              className="mt-5 sm:mt-6 flex gap-1.5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
+                  style={{ backgroundColor: "#E95791" }}
+                  animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+                />
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-24 sm:w-28 h-[3px] sm:h-[4px] rounded-full bg-[#d4a0b0]/40 dark:bg-white/15" />
+
+        <div className="absolute -inset-4 bg-gradient-to-br from-[#E95791]/10 via-[#c070a0]/5 to-[#9060a0]/5 rounded-[2.8rem] -z-10 blur-2xl opacity-60" />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Preview Phone Display (hover preview — no close button)
+// ──────────────────────────────────────────────
+
+function PreviewPhoneDisplay({ template }: { template: Template }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), { stiffness: 150, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), { stiffness: 150, damping: 20 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
   };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  const experience = useMemo(() => createDemoExperience(template), [template]);
 
   return (
     <motion.div
@@ -714,114 +857,48 @@ function HolographicPhone({ demoKey }: { demoKey: number }) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ perspective: 1000 }}
-      className="relative w-full max-w-[360px] sm:max-w-[400px] flex items-center justify-center"
+      className="relative w-full flex items-center justify-center"
     >
       <motion.div
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="relative w-[260px] sm:w-[300px] bg-black rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] border-[#1a1a1a] overflow-hidden shadow-2xl"
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          borderColor: "var(--phone-border, #d0a898)",
+          background: "var(--phone-body, #fdf6f2)",
+        }}
+        className="relative w-[280px] sm:w-[320px] rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] overflow-hidden shadow-2xl"
       >
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-purple-900/40 to-rose-900/30 z-0"
-          style={{ transform: "translateZ(-50px) scale(1.2)" }}
-        />
-        <motion.div
-          className="absolute top-1/4 left-1/2 w-24 h-24 sm:w-32 sm:h-32 bg-white/20 rounded-full blur-[30px] sm:blur-[40px] z-0"
-          animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          style={{ transform: "translateZ(-20px)" }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent z-10 pointer-events-none rounded-[1.8rem]" />
 
-        <div className="absolute inset-0 z-20 flex">
-          <motion.div
-            key={`left-${demoKey}`}
-            className="w-1/2 h-full bg-gradient-to-l from-gray-900 to-black border-r border-white/10"
-            initial={{ x: 0 }}
-            animate={isUnlocking ? { x: "-120%", rotateY: -45 } : { x: 0 }}
-            transition={{ duration: 1, delay: 3.5, ease: "easeInOut" }}
-            style={{ transformOrigin: "left" }}
-          />
-          <motion.div
-            key={`right-${demoKey}`}
-            className="w-1/2 h-full bg-gradient-to-r from-gray-900 to-black border-l border-white/10"
-            initial={{ x: 0 }}
-            animate={isUnlocking ? { x: "120%", rotateY: 45 } : { x: 0 }}
-            transition={{ duration: 1, delay: 3.5, ease: "easeInOut" }}
-            style={{ transformOrigin: "right" }}
-          />
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-2 h-2 sm:w-3 sm:h-3 rounded-full flex items-center justify-center" style={{ background: "var(--phone-border, #d0a898)" }}>
+          <div className="w-1 h-1 rounded-full" style={{ background: "var(--phone-camera-dot, #b08078)" }} />
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={demoKey}
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 sm:p-8 text-center"
-            style={{ transform: "translateZ(40px)" }}
-          >
-            <motion.div
-              className="mb-6 sm:mb-8 text-white/80"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" className="sm:w-12 sm:h-12">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </motion.div>
-
-            <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8" aria-label="Password input, 4 dots">
-              {[0, 1, 2, 3].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-white/40"
-                  initial={{ backgroundColor: "transparent" }}
-                  animate={{ backgroundColor: ["transparent", "transparent", "white", "white"] }}
-                  transition={{ duration: 2, delay: 1.6 + i * 0.2, times: [0, 0.2, 0.4, 1] }}
-                />
-              ))}
-            </div>
-
-            <motion.div
-              className="px-5 sm:px-6 py-1.5 sm:py-2 border border-white/30 rounded-full text-xs sm:text-sm text-white/80"
-              animate={{ backgroundColor: ["transparent", "transparent", "rgba(255,255,255,0.2)", "transparent"] }}
-              transition={{ duration: 1, delay: 3.3, times: [0, 0.3, 0.5, 1] }}
-            >
-              Unlock
-            </motion.div>
-
-            <motion.div
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0, 1] }}
-              transition={{ duration: 1, delay: 4.5, times: [0, 0.5, 1] }}
-            >
-              <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/40 mb-3 sm:mb-4">Your Message</p>
-              <p className="font-serif text-sm sm:text-lg italic px-4">
-                &quot;I love you more than words can say...&quot;
-              </p>
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
-
-        <motion.div
-          key={`cursor-${demoKey}`}
-          className="absolute w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/20 border border-white/50 backdrop-blur-sm z-30 pointer-events-none"
-          style={{ x: 0, y: 0, left: 0, top: 0 }}
-          variants={cursorVariants}
-          initial="initial"
-          animate="moveToPassword"
-          aria-hidden="true"
-        >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
+        <div className="relative w-full pt-4 sm:pt-5 bg-zinc-950">
+          <div className="aspect-[9/16] w-full max-h-[460px] sm:max-h-[520px]">
+            <ScaledPhonePreview>
+              <ExperiencePlayer
+                template={template}
+                experience={experience}
+                mode="demo"
+              />
+            </ScaledPhonePreview>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute inset-0 bg-black z-40 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0, 1, 0] }}
-          transition={{ duration: 1, delay: 6, times: [0, 0.85, 0.9, 1] }}
-        />
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 w-24 sm:w-28 h-[3px] sm:h-[4px] rounded-full" style={{ background: "var(--phone-home, rgba(200, 144, 136, 0.45))" }} />
+
+        <div className="absolute -inset-4 bg-gradient-to-br from-[#E95791]/8 via-[#c070a0]/5 to-[#9060a0]/4 rounded-[2.8rem] -z-10 blur-2xl opacity-60" />
       </motion.div>
     </motion.div>
+  );
+}
+
+function HeartIcon({ className, color }: { className?: string; color?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill={color || "#E95791"} aria-hidden="true">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
   );
 }
