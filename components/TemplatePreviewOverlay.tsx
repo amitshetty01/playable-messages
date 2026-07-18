@@ -4,14 +4,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { playSound } from "@/lib/flowSounds";
-import dynamic from "next/dynamic";
 import type { Template } from "@/lib/types";
-import { createDemoExperience } from "@/lib/demo";
-
-const ExperiencePlayer = dynamic(
-  () => import("@/components/ExperiencePlayer").then((m) => ({ default: m.ExperiencePlayer })),
-  { ssr: false }
-);
 
 /* ─── Visual registry ─── */
 const VISUALS: Record<string, { emoji: string; gradient: string; pattern: string }> = {
@@ -154,20 +147,12 @@ export function TemplatePreviewOverlay({
   const [phase, setPhase] = useState<"enter" | "show" | "exit">("enter");
   const [showPreview, setShowPreview] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
-  const [isDemoPaused, setIsDemoPaused] = useState(false);
-  const [showBurst, setShowBurst] = useState(false); // New state for particle burst
   const morphTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fourthWallTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const v = VISUALS[template.id] || VISUALS["the-final-button"]!;
 
   const isAvailable = TEMPLATE_SLUGS.has(template.slug) && template.status === "full";
-
-  const experience = useMemo(() => {
-    if (!isAvailable) return null;
-    return createDemoExperience(template);
-  }, [template, isAvailable]);
 
   // Lock scroll + cleanup timeouts on unmount
   useEffect(() => {
@@ -176,7 +161,6 @@ export function TemplatePreviewOverlay({
       document.body.style.overflow = "";
       if (morphTimeoutRef.current) clearTimeout(morphTimeoutRef.current);
       if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
-      if (fourthWallTimeoutRef.current) clearTimeout(fourthWallTimeoutRef.current);
     };
   }, []);
 
@@ -193,7 +177,6 @@ export function TemplatePreviewOverlay({
     if (phase === "show" && !showPreview) {
       morphTimeoutRef.current = setTimeout(() => {
         setShowPreview(true);
-        setShowBurst(true); // Trigger particle burst
         playSound("click");
       }, 750);
     }
@@ -202,28 +185,18 @@ export function TemplatePreviewOverlay({
 
   /* ─── Handlers ─── */
   const restart = useCallback(() => {
-    setIsDemoPaused(false);
     setPreviewKey((k) => k + 1);
   }, []);
 
   const handleBack = useCallback(() => {
-    setIsDemoPaused(false);
     setShowPreview(false);
     setPhase("exit");
     exitTimeoutRef.current = setTimeout(() => onClose(), 800);
   }, [onClose]);
 
   const handleBg = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && phase === "show" && !isDemoPaused) handleBack();
-  }, [handleBack, phase, isDemoPaused]);
-
-    const handleDemoClimax = useCallback(() => {
-      setIsDemoPaused(true);
-      playSound("ding"); // Play sound on fourth-wall reveal
-      fourthWallTimeoutRef.current = setTimeout(() => {
-        setIsDemoPaused(false); // End fourth-wall break
-      }, 4000); // Fourth wall message duration
-    }, []);
+    if (e.target === e.currentTarget && phase === "show") handleBack();
+  }, [handleBack, phase]);
 
   /* ─── Layout ─── */
   const [vp, setVp] = useState<{ w: number; h: number } | null>(null);
@@ -298,16 +271,15 @@ export function TemplatePreviewOverlay({
           top: phoneTop, left: phoneLeft,
           width: phoneW, height: phoneH,
           borderRadius: isEnter || isExit ? "1.4rem" : "36px",
-          rotateY: isDemoPaused ? [0, -15, 15, -5, 0] : 0, // Dynamic rotation for fourth-wall
-          scale: isEnter ? 0.95 : 1, // Add scale animation for the morph
-          translateZ: isEnter ? 0 : 50, // Added translateZ for volumetric feel
+          scale: isEnter ? 0.95 : 1,
+          translateZ: isEnter ? 0 : 50,
         }}
         transition={{
           ...spring,
-          ease: isEnter ? [0.6, 0.05, 0.2, 1] : (isDemoPaused ? [0.22, 1, 0.36, 1] : [0.4, 0, 0.2, 1]), // Cinematic ease for rotation, return ease
-          duration: isEnter ? 0.9 : (isDemoPaused ? 1.2 : 0.6), // Longer duration for cinematic rotation, faster return
+          ease: isEnter ? [0.6, 0.05, 0.2, 1] : [0.4, 0, 0.2, 1],
+          duration: isEnter ? 0.9 : 0.6,
         }}
-        style={{ willChange: "top, left, width, height, border-radius, rotateY, scale, translateZ" }}
+        style={{ willChange: "top, left, width, height, border-radius, scale, translateZ" }}
       >
         {/* Card face — always underneath */}
         <div className="absolute inset-0">
@@ -317,42 +289,20 @@ export function TemplatePreviewOverlay({
         {/* Phone frame — only during active preview */}
         {showPreview && !isExit && (
           <div className="absolute inset-0">
-            <PhoneFrame style={{ filter: isDemoPaused ? "brightness(0.7)" : "none", transition: "filter 0.3s ease-in-out" }}>
-              {isAvailable && experience ? (
-                <ExperiencePlayer
+            <PhoneFrame>
+              {isAvailable ? (
+                <iframe
                   key={previewKey}
-                  template={template}
-                  experience={experience}
-                  mode="demo"
-                  isPaused={isDemoPaused}
-                  onDemoClimax={handleDemoClimax}
+                  src={`/embed/demo/${template.id}`}
+                  title={`${template.title} preview`}
+                  className="h-full w-full border-0"
+                  scrolling="no"
+                  allow="autoplay"
                 />
               ) : (
                 <PreviewComingSoon />
               )}
             </PhoneFrame>
-            <AnimatePresence>
-              {isDemoPaused && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none z-50 text-center"
-                  style={{
-                    // Position this exactly over the phone screen area
-                    top: `calc(${topPhone}px + ${ph * 0.18}px)`, // Further adjusted for visual center
-                    left: `calc(${phoneLeft}px + ${pw * 0.1}px)`,
-                    width: `calc(${pw}px - ${pw * 0.2}px)`,
-                    height: `calc(${ph}px - ${ph * 0.36}px)`,
-                  }}
-                >
-                  <p className="text-white display-title text-4xl font-extrabold leading-tight drop-shadow-2xl shadow-text-glow-blush">
-                    Now imagine this... made <br /><strong className="text-blush">just for YOU.</strong>
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         )}
       </motion.div>

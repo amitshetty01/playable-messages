@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { headers } from "next/headers";
 import { Fraunces, Nunito_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "@/app/globals.css";
@@ -70,10 +71,14 @@ export const viewport: Viewport = {
   themeColor: "#160f19"
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isEmbed = pathname.startsWith("/embed/demo/");
+
   return (
     <html lang="en" className={`dark ${fraunces.variable} ${nunito.variable}`} suppressHydrationWarning>
-      <body>
+      <body className={isEmbed ? "embed-active" : ""}>
         <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <Script id="theme-init" strategy="beforeInteractive">
@@ -96,16 +101,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Analytics />
-        <AmbientGlow />
-        <Header />
-        <ResponsiveBannerAd />
-        <main id="content" className="min-h-[calc(100svh-220px)] w-full">
+        {!isEmbed && <AmbientGlow />}
+        {!isEmbed && <Header />}
+        {!isEmbed && <ResponsiveBannerAd />}
+        <main id="content" className={isEmbed ? "embed-main" : "min-h-[calc(100svh-220px)] w-full"}>
           {children}
         </main>
-        <Footer />
-        <SoundWelcome />
-        <SoundToggleWrapper />
-        <CookieBanner />
+        {!isEmbed && <Footer />}
+        {!isEmbed && <SoundWelcome />}
+        {!isEmbed && <SoundToggleWrapper />}
+        {!isEmbed && <CookieBanner />}
         </LanguageProvider>
         </AudioProvider>
         </ThemeProvider>

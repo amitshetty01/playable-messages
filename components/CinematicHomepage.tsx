@@ -4,16 +4,9 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { getAllTemplates } from "@/lib/data";
-import { createDemoExperience } from "@/lib/demo";
-import { ScaledPhonePreview } from "@/components/ScaledPhonePreview";
+import { ExperiencePreviewViewport } from "@/components/preview/ExperiencePreviewViewport";
 import type { Template } from "@/lib/types";
-
-const ExperiencePlayer = dynamic(
-  () => import("@/components/ExperiencePlayer").then((m) => m.ExperiencePlayer),
-  { ssr: false },
-);
 
 type ThumbVisual = {
   gradient: string;
@@ -671,8 +664,6 @@ function DemoPhoneDisplay({ template, onBack }: { template: Template; onBack: ()
     mouseY.set(0);
   };
 
-  const experience = useMemo(() => createDemoExperience(template), [template]);
-
   return (
     <motion.div
       ref={containerRef}
@@ -711,14 +702,8 @@ function DemoPhoneDisplay({ template, onBack }: { template: Template; onBack: ()
 
         {/* Demo content */}
         <div className="relative w-full pt-4 sm:pt-5 bg-zinc-950">
-          <div className="aspect-[9/16] w-full max-h-[460px] sm:max-h-[520px]">
-            <ScaledPhonePreview>
-              <ExperiencePlayer
-                template={template}
-                experience={experience}
-                mode="demo"
-              />
-            </ScaledPhonePreview>
+          <div className="aspect-[9/16] w-full">
+            <ExperiencePreviewViewport templateId={template.id} templateName={template.title} />
           </div>
         </div>
 
@@ -849,8 +834,6 @@ function PreviewPhoneDisplay({ template }: { template: Template }) {
     mouseY.set(0);
   };
 
-  const experience = useMemo(() => createDemoExperience(template), [template]);
-
   return (
     <motion.div
       ref={containerRef}
@@ -876,14 +859,8 @@ function PreviewPhoneDisplay({ template }: { template: Template }) {
         </div>
 
         <div className="relative w-full pt-4 sm:pt-5 bg-zinc-950">
-          <div className="aspect-[9/16] w-full max-h-[460px] sm:max-h-[520px]">
-            <ScaledPhonePreview>
-              <ExperiencePlayer
-                template={template}
-                experience={experience}
-                mode="demo"
-              />
-            </ScaledPhonePreview>
+          <div className="aspect-[9/16] w-full">
+            <ExperiencePreviewViewport templateId={template.id} templateName={template.title} />
           </div>
         </div>
 
